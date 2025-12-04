@@ -103,6 +103,6 @@ void MainWindow::on_AddDataDirItem_clicked() {
 }
 
 void MainWindow::on_RemoveItem_clicked() {
-    QListWidgetItem *currentItem = ui->dataListWidget->currentItem();
-    delete currentItem;
+    QListWidgetItem *removeItem = ui->dataListWidget->takeItem(ui->dataListWidget->currentRow());
+    delete removeItem;
 }
