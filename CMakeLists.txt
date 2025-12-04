@@ -6,6 +6,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
+
 set(CMAKE_PREFIX_PATH "D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64/bin")
 
 find_package(Qt5 COMPONENTS
@@ -14,11 +16,25 @@ find_package(Qt5 COMPONENTS
         Widgets
         REQUIRED)
 
-add_executable(NuitkaStudio main.cpp)
+set(SOURCES
+        src/main.cpp
+        src/mainwindow.cpp
+        src/mainwindow.h
+        forms/mainwindow.ui
+)
+
+add_executable(NuitkaStudio ${SOURCES})
+
 target_link_libraries(NuitkaStudio
         Qt5::Core
         Qt5::Gui
         Qt5::Widgets
+)
+
+target_include_directories(NuitkaStudio PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
