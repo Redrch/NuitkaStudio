@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->settings_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(1);
     });
-    connect(ui->more_btn, &QPushButton::clicked, this, [=]() {
+    connect(ui->export_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(2);
     });
 
