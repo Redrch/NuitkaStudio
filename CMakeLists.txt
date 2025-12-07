@@ -24,8 +24,12 @@ set(SOURCES
         src/config.cpp
         src/config.h
 )
+set(RESOURCES
+        resource.qrc
+        logo.rc
+)
 
-add_executable(NuitkaStudio ${SOURCES})
+add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
 
 target_link_libraries(NuitkaStudio
         Qt5::Core
