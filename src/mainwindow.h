@@ -10,13 +10,19 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QListWidget>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QConstOverload>
 
 #include <QString>
 #include <QList>
 #include <QListWidgetItem>
 #include <QScopedPointer>
+#include <QFile>
 
 #include <QDebug>
+
+#include "config.h"
 
 enum class LTOMode {
     No,
@@ -46,6 +52,8 @@ private:
     QString outputFilename;
     QString iconPath = QString("");
     LTOMode ltoMode = LTOMode::Auto;
+
+    Config* config;
 
     QList<QString> dataList = QList<QString>();
 

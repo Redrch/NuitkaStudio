@@ -517,15 +517,103 @@
       <widget class="QWidget" name="settings_page">
        <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
-         <widget class="QWidget" name="defaultPathWidget" native="true">
-          <layout class="QVBoxLayout" name="verticalLayout_10">
+         <widget class="QGroupBox" name="generalSettings">
+          <property name="title">
+           <string>通用设置</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_12">
            <item>
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>默认选择路径</string>
-             </property>
+            <widget class="QWidget" name="consoleInputEncodingWidget" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_21">
+              <item>
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>控制台输入编码</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="consoleInputEncodingCombo">
+                <property name="currentText">
+                 <string>utf-8</string>
+                </property>
+                <property name="currentIndex">
+                 <number>0</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>utf-8</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>gbk</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ascii</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="consoleOutputEncodingWidget" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_20">
+                 <item>
+                  <widget class="QLabel" name="label_10">
+                   <property name="text">
+                    <string>控制台输出编码</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="consoleOutputEncodingCombo">
+                   <item>
+                    <property name="text">
+                     <string>utf-8</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>gbk</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>ascii</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </widget>
            </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="defaultPath">
+          <property name="title">
+           <string>默认路径设置</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_13">
            <item>
             <widget class="QWidget" name="defaultPyPathWidget" native="true">
              <layout class="QHBoxLayout" name="horizontalLayout_16">
@@ -596,7 +684,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="defaultIconPathWidget_4" native="true">
+            <widget class="QWidget" name="defaultIconPathWidget" native="true">
              <layout class="QHBoxLayout" name="horizontalLayout_19">
               <item>
                <widget class="QLabel" name="label_9">
@@ -606,10 +694,10 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="defaultIconPathEdit_4"/>
+               <widget class="QLineEdit" name="defaultIconPathEdit"/>
               </item>
               <item>
-               <widget class="QPushButton" name="defaultIconPathBrowseBtn_4">
+               <widget class="QPushButton" name="defaultIconPathBrowseBtn">
                 <property name="text">
                  <string>浏览</string>
                 </property>
@@ -625,89 +713,6 @@
          <widget class="QWidget" name="widget" native="true">
           <layout class="QVBoxLayout" name="verticalLayout_11">
            <item>
-            <widget class="QWidget" name="widget_9" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_22">
-              <item>
-               <widget class="QWidget" name="consoleInputEncodingWidget" native="true">
-                <layout class="QHBoxLayout" name="horizontalLayout_21">
-                 <item>
-                  <widget class="QLabel" name="label_11">
-                   <property name="text">
-                    <string>控制台输入编码</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="consoleInputEncodingCombo">
-                   <item>
-                    <property name="text">
-                     <string>utf-8</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>gbk</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>ascii</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QWidget" name="consoleOutputEncodingWidget" native="true">
-                <layout class="QHBoxLayout" name="horizontalLayout_20">
-                 <item>
-                  <widget class="QLabel" name="label_10">
-                   <property name="text">
-                    <string>控制台输出编码</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="consoleOutputEncodingCombo">
-                   <item>
-                    <property name="text">
-                     <string>utf-8</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>gbk</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>ascii</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <spacer name="verticalSpacer_7">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -716,6 +721,32 @@
               <size>
                <width>20</width>
                <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="widget_9" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_22">
+           <item>
+            <widget class="QPushButton" name="saveSettingsBtn">
+             <property name="text">
+              <string>保存</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
               </size>
              </property>
             </spacer>
