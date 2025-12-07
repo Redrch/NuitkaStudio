@@ -71,3 +71,16 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
 endif ()
+
+if (WIN32)
+    if (MSVC)
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+                WIN32_EXECUTABLE YES
+                LINK_FLAGS "/ENTRY:mainCRTStartup"
+        )
+    elseif (CMAKE_COMPILER_IS_GNUCXX)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
+    else()
+        message(SEND_ERROR "Unsupported Windows compiler!")
+    endif()
+endif()
