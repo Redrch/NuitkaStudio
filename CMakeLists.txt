@@ -21,6 +21,8 @@ set(SOURCES
         src/mainwindow.cpp
         src/mainwindow.h
         forms/mainwindow.ui
+        src/config.cpp
+        src/config.h
 )
 
 add_executable(NuitkaStudio ${SOURCES})

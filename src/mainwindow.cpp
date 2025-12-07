@@ -10,16 +10,26 @@ MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    // 连接信号槽
+    this->config = new Config;
+    if (!QFile::exists(this->config->getConfigPath())) {
+        this->config->writeConfig();
+    }
+    this->config->readConfig();
+
+
+    // Connect signal and slot
     // QStackedWidget
     connect(ui->pack_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(0);
+        this->config->writeConfig();
     });
     connect(ui->settings_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(1);
+        this->config->writeConfig();
     });
-    connect(ui->more_btn, &QPushButton::clicked, this, [=]() {
+    connect(ui->export_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(2);
+        this->config->writeConfig();
     });
 
     // Python file browse button
@@ -79,9 +89,98 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Start pack
     connect(ui->startPackBtn, &QPushButton::clicked, this, &MainWindow::startPack);
+
+
+    // Settings
+    // General Settings
+    // Console Input Encoding
+    connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [=](int index) {
+                EncodingEnum encoding = this->config->encodingEnumFromInt(index);
+                this->config->setConsoleInputEncoding(encoding);
+            });
+    // Console Output Encoding
+    connect(ui->consoleOutputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [=](int index) {
+                EncodingEnum encoding = this->config->encodingEnumFromInt(index);
+                this->config->setConsoleOutputEncoding(encoding);
+            });
+
+
+    // Default Path Settings
+    // Browse Buttons
+    // Default Python Path Browse
+    connect(ui->defaultPyPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->config->setDefaultPythonPath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
+                                                  this->config->getDefaultPythonPath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultPyPathEdit->setText(this->config->getDefaultPythonPath());
+    });
+    // Default Main File Path Browse
+    connect(ui->defaultMainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->config->setDefaultMainFilePath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
+                                                  this->config->getDefaultMainFilePath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultMainPathEdit->setText(this->config->getDefaultMainFilePath());
+    });
+    // Default Output Path Browse
+    connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->config->setDefaultOutputPath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
+                                                  this->config->getDefaultIconPath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultOutputPathEdit->setText(this->config->getDefaultOutputPath());
+    });
+    // Default Icon Path Browse
+    connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->config->setDefaultIconPath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
+                                                  this->config->getDefaultIconPath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultIconPathEdit->setText(this->config->getDefaultIconPath());
+    });
+
+    // Line Edits
+    // Python Edit
+    connect(ui->defaultPyPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        this->config->setDefaultPythonPath(text);
+    });
+    // Main file Edit
+    connect(ui->defaultMainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        this->config->setDefaultMainFilePath(text);
+    });
+    // Output Edit
+    connect(ui->defaultOutputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        this->config->setDefaultOutputPath(text);
+    });
+    // Icon Edit
+    connect(ui->defaultIconPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        this->config->setDefaultIconPath(text);
+    });
+
+    // Save button
+    connect(ui->saveSettingsBtn, &QPushButton::clicked, this, [=]() {
+        this->config->writeConfig();
+    });
+
+
+    // Init UI
+    // Settings
+    ui->defaultPyPathEdit->setText(this->config->getDefaultPythonPath());
+    ui->defaultMainPathEdit->setText(this->config->getDefaultMainFilePath());
+    ui->defaultOutputPathEdit->setText(this->config->getDefaultOutputPath());
+    ui->defaultIconPathEdit->setText(this->config->getDefaultIconPath());
+
+    ui->consoleInputEncodingCombo->setCurrentIndex(
+            this->config->encodingEnumToInt(this->config->getConsoleInputEncoding()));
+    ui->consoleOutputEncodingCombo->setCurrentIndex(
+            this->config->encodingEnumToInt(this->config->getConsoleOutputEncoding()));
 }
 
 MainWindow::~MainWindow() {
+    delete this->config;
     delete ui;
 }
 
