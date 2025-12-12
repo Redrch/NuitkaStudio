@@ -13,12 +13,17 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QConstOverload>
+#include <QListWidgetItem>
+#include <QTableWidgetItem>
 
 #include <QString>
 #include <QList>
-#include <QListWidgetItem>
 #include <QScopedPointer>
+
 #include <QFile>
+#include <QProcess>
+#include <QDateTime>
+#include <QTimer>
 
 #include <QDebug>
 
@@ -42,6 +47,7 @@ public:
 
     ~MainWindow() override;
 
+    static QString boolToString(bool v);
 
 private:
     Ui::MainWindow *ui;
@@ -50,12 +56,20 @@ private:
     QString mainFilePath;
     QString outputPath;
     QString outputFilename;
-    QString iconPath = QString("");
+    QString iconPath;
+
+    bool standalone;
+    bool onefile;
+    bool removeOutput;
+
     LTOMode ltoMode = LTOMode::Auto;
 
     Config* config;
 
     QList<QString> dataList = QList<QString>();
+
+    QString processErrorToString(QProcess::ProcessError err);
+    void updateExportTable();
 
 private slots:
     void on_AddDataFileItem_clicked();
