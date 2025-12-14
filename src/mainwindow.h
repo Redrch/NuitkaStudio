@@ -24,7 +24,7 @@
 #include <QFile>
 #include <QProcess>
 #include <QDateTime>
-#include <QTimer>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QTextStream>
 
