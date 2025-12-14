@@ -105,7 +105,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="pack_page">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -505,6 +505,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="importBtn">
+             <property name="text">
+              <string>导入</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -713,6 +720,29 @@
               </item>
               <item>
                <widget class="QPushButton" name="defaultIconPathBrowseBtn">
+                <property name="text">
+                 <string>浏览</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="defaultDataPathWidget" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_25">
+              <item>
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>默认数据路径</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="defaultDataPathEdit"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="defaultDataPathBrowseBtn">
                 <property name="text">
                  <string>浏览</string>
                 </property>

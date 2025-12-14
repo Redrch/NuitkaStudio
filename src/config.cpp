@@ -16,6 +16,7 @@ Config::Config() {
     this->defaultPythonPath = QString("C:/");
     this->defaultMainFilePath = QString("C:/");
     this->defaultIconPath = QString("C:/");
+    this->defaultDataPath = QString("C:/");
 }
 
 Config::~Config() {
@@ -35,6 +36,7 @@ void Config::writeConfig() {
     this->settings->setValue("defaultMainFilePath", QVariant(this->getDefaultMainFilePath()));
     this->settings->setValue("defaultOutputPath", QVariant(this->getDefaultOutputPath()));
     this->settings->setValue("defaultIconPath", QVariant(this->getDefaultIconPath()));
+    this->settings->setValue("defaultDataPath", QVariant(this->getDefaultDataPath()));
     this->settings->endGroup();
 }
 
@@ -51,6 +53,7 @@ void Config::readConfig() {
     this->setDefaultMainFilePath(this->settings->value("defaultMainFilePath").toString());
     this->setDefaultOutputPath(this->settings->value("defaultOutputPath").toString());
     this->setDefaultIconPath(this->settings->value("defaultIconPath").toString());
+    this->setDefaultDataPath(this->settings->value("defaultDataPath").toString());
     this->settings->endGroup();
 }
 
