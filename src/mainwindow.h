@@ -15,6 +15,7 @@
 #include <QConstOverload>
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
+#include <QMessageBox>
 
 #include <QString>
 #include <QList>
@@ -24,9 +25,12 @@
 #include <QProcess>
 #include <QDateTime>
 #include <QTimer>
+#include <QFile>
+#include <QTextStream>
 
 #include <QDebug>
 
+#include "export_datalist_window.h"
 #include "config.h"
 
 enum class LTOMode {
@@ -59,23 +63,27 @@ private:
     QString iconPath;
 
     bool standalone;
-    bool onefile;
-    bool removeOutput;
+    bool onefile = false;
+    bool removeOutput = false;
 
     LTOMode ltoMode = LTOMode::Auto;
-
-    Config* config;
 
     QList<QString> dataList = QList<QString>();
 
     QString processErrorToString(QProcess::ProcessError err);
     void updateExportTable();
+    void updatePackUI();
+    void updateUI();
 
 private slots:
     void on_AddDataFileItem_clicked();
     void on_AddDataDirItem_clicked();
     void on_RemoveItem_clicked();
+    void on_ProjectTable_cellDoubleClicked(int row, int column);
+
     void startPack();
+    void importProject();
+    void exportProject();
 };
 
 

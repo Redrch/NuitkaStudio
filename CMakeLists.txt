@@ -23,6 +23,9 @@ set(SOURCES
         forms/mainwindow.ui
         src/config.cpp
         src/config.h
+        src/export_datalist_window.cpp
+        src/export_datalist_window.h
+        forms/export_datalist_window.ui
 )
 set(RESOURCES
         resource.qrc

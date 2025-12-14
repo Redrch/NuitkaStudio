@@ -18,12 +18,18 @@ enum class EncodingEnum {
     ascii = 2
 };
 
+// Singleton class
 class Config {
 public:
+    static Config& instance() {
+        static Config inst;
+        return inst;
+    }
+    Config(const Config&) = delete;
+    Config& operator=(const Config&) = delete;
+
     Config();
-
     ~Config();
-
 
     void writeConfig();
     void readConfig();
@@ -46,6 +52,9 @@ public:
     const QString &getDefaultIconPath() const { return defaultIconPath; }
     void setDefaultIconPath(const QString &v) { defaultIconPath = v; }
 
+    const QString &getDefaultDataPath() const { return defaultDataPath; }
+    void setDefaultDataPath(const QString &v) { defaultDataPath = v; }
+
     EncodingEnum getConsoleInputEncoding() const { return consoleInputEncoding; }
     void setConsoleInputEncoding(EncodingEnum e) { consoleInputEncoding = e; }
 
@@ -63,6 +72,7 @@ private:
     QString defaultMainFilePath;
     QString defaultOutputPath;
     QString defaultIconPath;
+    QString defaultDataPath;
 
     EncodingEnum consoleInputEncoding;
     EncodingEnum consoleOutputEncoding;

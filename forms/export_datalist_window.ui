@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ExportDataListWindow</string>
+   <string>数据文件</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>

@@ -9,6 +9,7 @@
 #include <QList>
 #include <QFileDialog>
 
+#include "config.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ExportDataListWindow; }
@@ -22,12 +23,15 @@ public:
 
     ~ExportDataListWindow() override;
 
-    void setDataList(QList<QString>& dataListArg);
+    void setDataList(const QList<QString>& dataListArg);
+    const QList<QString>& getDataList();
     void updateUI();
 private:
     Ui::ExportDataListWindow *ui;
 
     QList<QString> dataList;
+signals:
+    void dataListChanged(const QList<QString>& newDataList);
 };
 
 
