@@ -8,7 +8,34 @@ set(CMAKE_AUTOUIC ON)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
 
-set(CMAKE_PREFIX_PATH "D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64/bin")
+set(CMAKE_PREFIX_PATH "D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64")
+
+# include spdlog lib
+if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+    set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "vcpkg triplet")
+endif()
+
+if(DEFINED ENV{VCPKG_ROOT})
+    set(_VCPKG_ROOT $ENV{VCPKG_ROOT})
+else()
+    set(_VCPKG_ROOT "D:/Develop/Cpp/vcpkg")
+endif()
+
+string(REPLACE "\\" "/" _vcpkg_installed_norm "${_VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}")
+set(spdlog_DIR "${_vcpkg_installed_norm}/lib/cmake/spdlog")
+message(STATUS "spdlog_DIR -> ${spdlog_DIR}")
+
+list(APPEND CMAKE_PREFIX_PATH
+        "${_vcpkg_installed_norm}/lib/cmake"
+        "${_vcpkg_installed_norm}/share"
+)
+message(STATUS "CMAKE_PREFIX_PATH -> ${CMAKE_PREFIX_PATH}")
+
+find_package(spdlog CONFIG REQUIRED HINTS
+        "${_vcpkg_installed}/lib/cmake/spdlog"
+        "${_vcpkg_installed}/share/spdlog"
+        "${_vcpkg_installed}/cmake"
+)
 
 find_package(Qt5 COMPONENTS
         Core
@@ -35,9 +62,11 @@ set(RESOURCES
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
 
 target_link_libraries(NuitkaStudio
+        PRIVATE
         Qt5::Core
         Qt5::Gui
         Qt5::Widgets
+        spdlog::spdlog
 )
 
 target_include_directories(NuitkaStudio PRIVATE
