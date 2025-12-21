@@ -274,6 +274,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->projectTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     this->updateUI();
+
+    spdlog::info("初始化MainWindow类完成");
 }
 
 MainWindow::~MainWindow() {
@@ -294,6 +296,7 @@ void MainWindow::updateUI() {
             Config::instance().encodingEnumToInt(Config::instance().getConsoleInputEncoding()));
     ui->consoleOutputEncodingCombo->setCurrentIndex(
             Config::instance().encodingEnumToInt(Config::instance().getConsoleOutputEncoding()));
+    spdlog::info("刷新UI");
 }
 
 void MainWindow::startPack() {
@@ -310,6 +313,7 @@ void MainWindow::startPack() {
     connect(proc, &QProcess::readyReadStandardOutput, this, [=]() {
         QString out = QString::fromLocal8Bit(proc->readAllStandardOutput());
         ui->consoleOutputEdit->append(out);
+        spdlog::info(out.toStdString());
     });
     // finished
     connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
@@ -326,12 +330,14 @@ void MainWindow::startPack() {
                 }
 
                 ui->consoleOutputEdit->append(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString));
+                spdlog::info(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString).toStdString());
                 proc->deleteLater();
             });
     // error occurred
     connect(proc, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
         qWarning() << "command error: " << error;
         ui->consoleOutputEdit->append("Error: " + this->processErrorToString(error));
+        spdlog::error("Error: " + this->processErrorToString(error).toStdString());
     });
 
     // build args
@@ -370,6 +376,7 @@ void MainWindow::startPack() {
 
     proc->start(this->pythonPath, args);
     ui->consoleOutputEdit->append(this->pythonPath + " " + args.join(" "));
+    spdlog::info("开始打包  打包命令: " + QString(this->pythonPath + " " + args.join(" ")).toStdString());
 }
 
 void MainWindow::importProject() {
@@ -414,6 +421,8 @@ void MainWindow::importProject() {
     }
     this->dataList = contentList[9].split("=")[1].split(";");
 
+    spdlog::info("导入NPF文件，参数: " + contentList.join(";").toStdString());
+
     // Update UI
     this->updateUI();
 }
@@ -456,6 +465,8 @@ void MainWindow::exportProject() {
     out << "data_list=" << this->dataList.join(";");
 
     file.close();
+
+    spdlog::info("导出NPF文件");
 }
 
 void MainWindow::on_AddDataFileItem_clicked() {

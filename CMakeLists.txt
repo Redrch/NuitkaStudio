@@ -15,19 +15,15 @@ if(NOT DEFINED VCPKG_TARGET_TRIPLET)
     set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "vcpkg triplet")
 endif()
 
-if(DEFINED ENV{VCPKG_ROOT})
-    set(_VCPKG_ROOT $ENV{VCPKG_ROOT})
-else()
-    set(_VCPKG_ROOT "D:/Develop/Cpp/vcpkg")
-endif()
+set(_vcpkg_installed "${CMAKE_BINARY_DIR}/vcpkg_installed")
 
-string(REPLACE "\\" "/" _vcpkg_installed_norm "${_VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}")
-set(spdlog_DIR "${_vcpkg_installed_norm}/lib/cmake/spdlog")
+string(REPLACE "\\" "/" _vcpkg_installed "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
+set(spdlog_DIR "${_vcpkg_installed}/lib/cmake/spdlog" "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
 message(STATUS "spdlog_DIR -> ${spdlog_DIR}")
 
 list(APPEND CMAKE_PREFIX_PATH
-        "${_vcpkg_installed_norm}/lib/cmake"
-        "${_vcpkg_installed_norm}/share"
+        "${_vcpkg_installed}/lib/cmake"
+        "${_vcpkg_installed}/share"
 )
 message(STATUS "CMAKE_PREFIX_PATH -> ${CMAKE_PREFIX_PATH}")
 
@@ -53,6 +49,8 @@ set(SOURCES
         src/export_datalist_window.cpp
         src/export_datalist_window.h
         forms/export_datalist_window.ui
+        src/logger.cpp
+        src/logger.h
 )
 set(RESOURCES
         resource.qrc
