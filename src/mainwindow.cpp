@@ -3,7 +3,7 @@
 //
 
 #include "mainwindow.h"
-#include "../ui/ui_mainwindow.h"
+#include "ui_mainwindow.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -34,14 +34,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pack_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(0);
         Config::instance().writeConfig();
+        this->updateUI();
     });
     connect(ui->settings_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(1);
         Config::instance().writeConfig();
+        this->updateUI();
     });
     connect(ui->export_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(2);
         Config::instance().writeConfig();
+        this->updateUI();
     });
 
     // Python file browse button
@@ -271,6 +274,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->projectTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     this->updateUI();
+
+    spdlog::info("初始化MainWindow类完成");
 }
 
 MainWindow::~MainWindow() {
@@ -291,9 +296,12 @@ void MainWindow::updateUI() {
             Config::instance().encodingEnumToInt(Config::instance().getConsoleInputEncoding()));
     ui->consoleOutputEncodingCombo->setCurrentIndex(
             Config::instance().encodingEnumToInt(Config::instance().getConsoleOutputEncoding()));
+    spdlog::info("刷新UI");
 }
 
 void MainWindow::startPack() {
+    QElapsedTimer timer;
+    timer.start();
     ui->consoleOutputEdit->append(QString("-------------- 开始打包 %1 -------------").arg(
             QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")));
     QProcess *proc = new QProcess(this);
@@ -305,17 +313,31 @@ void MainWindow::startPack() {
     connect(proc, &QProcess::readyReadStandardOutput, this, [=]() {
         QString out = QString::fromLocal8Bit(proc->readAllStandardOutput());
         ui->consoleOutputEdit->append(out);
+        spdlog::info(out.toStdString());
     });
     // finished
     connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [=](int exitCode, QProcess::ExitStatus exitStatus) {
-                ui->consoleOutputEdit->append("-------------- 打包结束 -------------");
+                qint64 time = timer.elapsed();
+                qint64 second = time / 1000;
+                qint64 ms = time % 1000;
+                QString timeString;
+                if (second < 60) {
+                    timeString = QString("%1秒%2毫秒").arg(second).arg(ms);
+                } else {
+                    qint64 minute = second / 60;
+                    timeString = QString("%1分钟%2秒%3毫秒").arg(minute).arg(second - minute * 60).arg(ms);
+                }
+
+                ui->consoleOutputEdit->append(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString));
+                spdlog::info(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString).toStdString());
                 proc->deleteLater();
             });
     // error occurred
     connect(proc, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
         qWarning() << "command error: " << error;
         ui->consoleOutputEdit->append("Error: " + this->processErrorToString(error));
+        spdlog::error("Error: " + this->processErrorToString(error).toStdString());
     });
 
     // build args
@@ -354,12 +376,16 @@ void MainWindow::startPack() {
 
     proc->start(this->pythonPath, args);
     ui->consoleOutputEdit->append(this->pythonPath + " " + args.join(" "));
+    spdlog::info("开始打包  打包命令: " + QString(this->pythonPath + " " + args.join(" ")).toStdString());
 }
 
 void MainWindow::importProject() {
     QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio  导入项目文件",
                                                 Config::instance().getDefaultDataPath(),
                                                 "Nuitka Project File(*.npf);;All files(*)");
+    if (path == "") {
+        return;
+    }
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qWarning() << "Open failed: " << file.errorString();
@@ -394,6 +420,8 @@ void MainWindow::importProject() {
         return;
     }
     this->dataList = contentList[9].split("=")[1].split(";");
+
+    spdlog::info("导入NPF文件，参数: " + contentList.join(";").toStdString());
 
     // Update UI
     this->updateUI();
@@ -437,6 +465,8 @@ void MainWindow::exportProject() {
     out << "data_list=" << this->dataList.join(";");
 
     file.close();
+
+    spdlog::info("导出NPF文件");
 }
 
 void MainWindow::on_AddDataFileItem_clicked() {
@@ -456,6 +486,7 @@ void MainWindow::on_AddDataDirItem_clicked() {
 
 void MainWindow::on_RemoveItem_clicked() {
     QListWidgetItem *removeItem = ui->dataListWidget->takeItem(ui->dataListWidget->currentRow());
+    this->dataList.removeOne(removeItem->text());
     delete removeItem;
 }
 

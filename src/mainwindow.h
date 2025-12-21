@@ -24,7 +24,7 @@
 #include <QFile>
 #include <QProcess>
 #include <QDateTime>
-#include <QTimer>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QTextStream>
 
@@ -32,6 +32,7 @@
 
 #include "export_datalist_window.h"
 #include "config.h"
+#include "logger.h"
 
 enum class LTOMode {
     No,
