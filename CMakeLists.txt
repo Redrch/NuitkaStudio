@@ -5,10 +5,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(VERSION 1.0.0)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
 
 set(CMAKE_PREFIX_PATH "D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64")
+
+# not Windows
+if (NOT WIN32)
+    message(FATAL_ERROR "Error: The project can only be uses on Windows OS now.")
+endif ()
 
 # include spdlog lib
 if(NOT DEFINED VCPKG_TARGET_TRIPLET)
@@ -59,6 +65,18 @@ set(RESOURCES
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
 
+if (WIN32)
+        # For multi-config generators (Visual Studio, etc.) set the WIN32 flag
+        # only for the Release configuration using a generator expression.
+        set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE "$<$<CONFIG:Release>:TRUE>")
+
+        # For single-config generators that use CMAKE_BUILD_TYPE, enable immediately
+        # when CMAKE_BUILD_TYPE is Release.
+        if (DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Release")
+                set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE TRUE)
+        endif()
+endif()
+
 target_link_libraries(NuitkaStudio
         PRIVATE
         Qt5::Core
@@ -100,19 +118,4 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/bin/Qt5${QT_LIB}${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
-endif ()
-
-if (MATCHES "Debug")
-    if (WIN32)
-        if (MSVC)
-            set_target_properties(${PROJECT_NAME} PROPERTIES
-                    WIN32_EXECUTABLE YES
-                    LINK_FLAGS "/ENTRY:mainCRTStartup"
-            )
-        elseif (CMAKE_COMPILER_IS_GNUCXX)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
-        else ()
-            message(SEND_ERROR "Unsupported Windows compiler!")
-        endif ()
-    endif ()
 endif ()
