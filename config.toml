@@ -1,0 +1,9 @@
+[General]
+# value 0: release  value 1: debug
+is_debug = 0
+
+[Path]
+# ninja exe's path
+ninja_path = "C:/Program Files/JetBrains/CLion 2025.1.2/bin/ninja/win/x64/ninja.exe"
+# vcpkg cmake file's path  eg.c:/vcpkg/buildsystems/vcpkg.cmake
+vcpkg_path = "D:/Develop/Cpp/vcpkg/scripts/buildsystems/vcpkg.cmake"

@@ -1,6 +1,11 @@
 <component name="ProjectDictionaryState">
   <dictionary name="project">
     <words>
+      <w>buildsystems</w>
+      <w>dcompiler</w>
+      <w>libfmt</w>
+      <w>libspdlog</w>
+      <w>libwinpthread</w>
       <w>mainfile</w>
       <w>mainwindow</w>
       <w>nuitkastudio</w>
