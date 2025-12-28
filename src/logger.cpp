@@ -72,3 +72,19 @@ void Logger::qtMessageHandler(QtMsgType type, const QMessageLogContext &ctx, con
         case QtFatalMsg:    logger->critical("{} ({}:{})", text, ctx.file ? ctx.file : "", ctx.line); abort();
     }
 }
+
+void Logger::debug(QString &msg) {
+    spdlog::debug(msg.toStdString());
+}
+
+void Logger::info(QString &msg) {
+    spdlog::info(msg.toStdString());
+}
+
+void Logger::warn(QString &msg) {
+    spdlog::warn(msg.toStdString());
+}
+
+void Logger::error(QString &msg) {
+    spdlog::error(msg.toStdString());
+}

@@ -15,19 +15,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     Config::instance().readConfig();
 
-//    this->iconPath = QString("");
-//    this->standalone = true;
-//    this->onefile = true;
-//    this->ltoMode = LTOMode::Yes;
-//
-//    // Debug Code
-//    this->pythonPath = "D:/Develop/Python/RandomText/.venv/Scripts/python.exe";
-//    this->mainFilePath = "D:/Develop/Python/RandomText/main.py";
-//    this->outputPath = "D:/Develop/Python/RandomText";
-//    this->outputFilename = "RandomText.exe";
-//    this->dataList = {"D:/Develop/Python/RandomText/a", "D:/Develop/Python/RandomText/b",
-//                      "D:/Develop/Python/RandomText/c"};
-
 
     // Connect signal and slot
     // QStackedWidget
@@ -272,7 +259,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // 自适应行宽/行高
     ui->projectTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->projectTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
     this->updateUI();
 
     spdlog::info("初始化MainWindow类完成");
@@ -371,7 +357,7 @@ void MainWindow::startPack() {
     args << "--output-filename=" + this->outputFilename;
 
     if (this->iconPath != QString("")) {
-        args << "--windows-icon=" + this->iconPath;
+        args << "--windows-icon-from-ico=" + this->iconPath;
     }
 
     proc->start(this->pythonPath, args);
@@ -474,6 +460,9 @@ void MainWindow::on_AddDataFileItem_clicked() {
                                                     Config::instance().getDefaultDataPath());
     ui->dataListWidget->addItem(filePath);
     this->dataList.append(filePath);
+
+    Logger::debug(this->dataList[0]);
+    Logger::debug(this->dataList[1]);
 }
 
 void MainWindow::on_AddDataDirItem_clicked() {
@@ -568,8 +557,10 @@ void MainWindow::updatePackUI() {
     }
     // Data list
     ui->dataListWidget->clear();
-    for (QString item: this->dataList) {
-        ui->dataListWidget->addItem(item);
+    for (const QString& item: this->dataList) {
+        if (item != "") {
+            ui->dataListWidget->addItem(item);
+        }
     }
 }
 

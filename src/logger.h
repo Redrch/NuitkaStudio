@@ -38,6 +38,11 @@ public:
     static void installQtMessageHandler();
     static void uninstallQtMessageHandler();
 
+    static void debug(QString& msg);
+    static void info(QString& msg);
+    static void warn(QString& msg);
+    static void error(QString& msg);
+
 
 private:
     static void qtMessageHandler(QtMsgType type, const QMessageLogContext &ctx, const QString &msg);
