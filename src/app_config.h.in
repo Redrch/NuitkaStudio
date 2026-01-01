@@ -1,0 +1,12 @@
+//
+// Created by david on 2026/1/1.
+//
+#pragma once
+#ifndef NUITKASTUDIO_APP_CONFIG_H
+#define NUITKASTUDIO_APP_CONFIG_H
+
+#define APP_VERSION    "@PROJECT_VERSION@"
+#define APP_AUTHOR     "@AUTHOR@"
+#define APP_BUILD_TIME "@BUILD_TIME@"
+
+#endif //NUITKASTUDIO_APP_CONFIG_H

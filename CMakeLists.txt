@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(NuitkaStudio)
+project(NuitkaStudio VERSION 1.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -15,10 +15,20 @@ if (NOT WIN32)
     message(FATAL_ERROR "Error: The project can only be uses on Windows OS now.")
 endif ()
 
+# set app info
+set(AUTHOR "Redrch")
+string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/app_config.h.in
+        ${CMAKE_CURRENT_BINARY_DIR}/app_config.h
+        @ONLY)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 # include spdlog lib
-if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+if (NOT DEFINED VCPKG_TARGET_TRIPLET)
     set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "vcpkg triplet")
-endif()
+endif ()
 
 set(_vcpkg_installed "${CMAKE_BINARY_DIR}/vcpkg_installed")
 
@@ -48,33 +58,39 @@ set(SOURCES
         src/main.cpp
         src/mainwindow.cpp
         src/mainwindow.h
-        forms/mainwindow.ui
         src/config.cpp
         src/config.h
         src/export_datalist_window.cpp
         src/export_datalist_window.h
-        forms/export_datalist_window.ui
         src/logger.cpp
         src/logger.h
+        src/about_window.cpp
+        src/about_window.h
+        src/app_config.h.in
 )
 set(RESOURCES
         resource.qrc
         logo.rc
+        forms/export_datalist_window.ui
+        forms/mainwindow.ui
+        forms/about_window.ui
+        licenses/FmtLicense
+        licenses/SpdlogLicense
 )
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
 
 if (WIN32)
-        # For multi-config generators (Visual Studio, etc.) set the WIN32 flag
-        # only for the Release configuration using a generator expression.
-        set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE "$<$<CONFIG:Release>:TRUE>")
+    # For multi-config generators (Visual Studio, etc.) set the WIN32 flag
+    # only for the Release configuration using a generator expression.
+    set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE "$<$<CONFIG:Release>:TRUE>")
 
-        # For single-config generators that use CMAKE_BUILD_TYPE, enable immediately
-        # when CMAKE_BUILD_TYPE is Release.
-        if (DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Release")
-                set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE TRUE)
-        endif()
-endif()
+    # For single-config generators that use CMAKE_BUILD_TYPE, enable immediately
+    # when CMAKE_BUILD_TYPE is Release.
+    if (DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Release")
+        set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE TRUE)
+    endif ()
+endif ()
 
 target_link_libraries(NuitkaStudio
         PRIVATE

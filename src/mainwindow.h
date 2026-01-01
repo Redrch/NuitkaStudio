@@ -23,14 +23,18 @@
 
 #include <QFile>
 #include <QProcess>
+#include <QTextStream>
+#include <QDesktopServices>
+#include <QUrl>
+
 #include <QDateTime>
 #include <QElapsedTimer>
-#include <QFile>
-#include <QTextStream>
+#include <QTimer>
 
 #include <QDebug>
 
 #include "export_datalist_window.h"
+#include "about_window.h"
 #include "config.h"
 #include "logger.h"
 
@@ -66,21 +70,29 @@ private:
     bool standalone;
     bool onefile = false;
     bool removeOutput = false;
-
     LTOMode ltoMode = LTOMode::Auto;
 
     QList<QString> dataList = QList<QString>();
 
     QString processErrorToString(QProcess::ProcessError err);
+    // Update UI functions
     void updateExportTable();
     void updatePackUI();
     void updateUI();
+    // Connect signals and slots functions
+    void connectStackedWidget();
+    void connectMenubar();
+    void connectPackPage();
+    void connectSettingsPage();
+    void connectExportPage();
 
 private slots:
-    void on_AddDataFileItem_clicked();
-    void on_AddDataDirItem_clicked();
-    void on_RemoveItem_clicked();
-    void on_ProjectTable_cellDoubleClicked(int row, int column);
+    void onAddDataFileItemClicked();
+    void onAddDataDirItemClicked();
+    void onRemoveItemClicked();
+    void onProjectTableCellDoubleClicked(int row, int column);
+    void onFileMenuTriggered(QAction* action);
+    void onHelpMenuTriggered(QAction* action);
 
     void startPack();
     void importProject();

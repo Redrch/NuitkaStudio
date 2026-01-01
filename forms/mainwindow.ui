@@ -961,8 +961,52 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="fileMenu">
+    <property name="tearOffEnabled">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>文件(&amp;F)</string>
+    </property>
+    <addaction name="importAction"/>
+    <addaction name="exportAction"/>
+   </widget>
+   <widget class="QMenu" name="helpMenu">
+    <property name="title">
+     <string>帮助(&amp;H)</string>
+    </property>
+    <addaction name="helpAction"/>
+    <addaction name="aboutAction"/>
+   </widget>
+   <addaction name="fileMenu"/>
+   <addaction name="helpMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="importAction">
+   <property name="text">
+    <string>导入(&amp;I)</string>
+   </property>
+  </action>
+  <action name="exportAction">
+   <property name="text">
+    <string>导出(&amp;E)</string>
+   </property>
+  </action>
+  <action name="helpAction">
+   <property name="text">
+    <string>帮助(&amp;H)</string>
+   </property>
+  </action>
+  <action name="aboutAction">
+   <property name="text">
+    <string>关于(&amp;A)</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>许可证(&amp;L)</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../resource.qrc"/>

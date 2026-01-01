@@ -38,10 +38,10 @@ public:
     static void installQtMessageHandler();
     static void uninstallQtMessageHandler();
 
-    static void debug(QString& msg);
-    static void info(QString& msg);
-    static void warn(QString& msg);
-    static void error(QString& msg);
+    static void debug(const QString& msg);
+    static void info(const QString& msg);
+    static void warn(const QString& msg);
+    static void error(const QString& msg);
 
 
 private:

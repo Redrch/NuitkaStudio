@@ -15,244 +15,12 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     Config::instance().readConfig();
 
-
     // Connect signal and slot
-    // QStackedWidget
-    connect(ui->pack_btn, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(0);
-        Config::instance().writeConfig();
-        this->updateUI();
-    });
-    connect(ui->settings_btn, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(1);
-        Config::instance().writeConfig();
-        this->updateUI();
-    });
-    connect(ui->export_btn, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(2);
-        Config::instance().writeConfig();
-        this->updateUI();
-    });
-
-    // Python file browse button
-    connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python解释器选择", "C:\\", "exe(*.exe)");
-        ui->pythonFileEdit->setText(this->pythonPath);
-    });
-
-    // Main file path browse button
-    connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->mainFilePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  主文件选择", "C:\\",
-                                                          "Python file(*.py)");
-        ui->mainPathEdit->setText(this->mainFilePath);
-    });
-
-    // Output file path browse button
-    connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->outputPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  输出路径", "C:\\",
-                                                             QFileDialog::ShowDirsOnly);
-        ui->outputPathEdit->setText(this->outputPath);
-    });
-
-    // Build Settings
-    // Standalone
-    connect(ui->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        if (state == Qt::Unchecked) {
-            this->standalone = false;
-        } else if (state == Qt::Checked) {
-            this->standalone = true;
-        }
-    });
-    // Onefile
-    connect(ui->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        if (state == Qt::Unchecked) {
-            this->onefile = false;
-        } else if (state == Qt::Checked) {
-            this->onefile = true;
-        }
-    });
-    // Remove Output
-    connect(ui->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        if (state == Qt::Unchecked) {
-            this->removeOutput = false;
-        } else if (state == Qt::Checked) {
-            this->removeOutput = true;
-        }
-    });
-
-    // LTO Mode Checkbox
-    // No
-    connect(ui->ltoNo, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            this->ltoMode = LTOMode::No;
-        }
-    });
-    // Yes
-    connect(ui->ltoYes, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            this->ltoMode = LTOMode::Yes;
-        }
-    });
-    // Auto
-    connect(ui->ltoAuto, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            this->ltoMode = LTOMode::Auto;
-        }
-    });
-
-    // Modify Data List
-    // Add file button
-    connect(ui->addFileBtn, &QPushButton::clicked, this, &MainWindow::on_AddDataFileItem_clicked);
-    // Add dir button
-    connect(ui->addDirBtn, &QPushButton::clicked, this, &MainWindow::on_AddDataDirItem_clicked);
-    // Remove item button
-    connect(ui->removeItemBtn, &QPushButton::clicked, this, &MainWindow::on_RemoveItem_clicked);
-
-    // Icon browse
-    connect(ui->iconFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->iconPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  图标路径", "C:\\",
-                                                      "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)");
-        ui->iconFileEdit->setText(this->iconPath);
-    });
-
-    // Start pack
-    connect(ui->startPackBtn, &QPushButton::clicked, this, &MainWindow::startPack);
-    // Clear Console Edit
-    connect(ui->clearConsoleBtn, &QPushButton::clicked, this, [=]() {
-        ui->consoleOutputEdit->clear();
-    });
-    // Import button
-    connect(ui->importBtn, &QPushButton::clicked, this, &MainWindow::importProject);
-
-
-    // Settings
-    // General Settings
-    // Console Input Encoding
-    connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                EncodingEnum encoding = Config::instance().encodingEnumFromInt(index);
-                Config::instance().setConsoleInputEncoding(encoding);
-            });
-    // Console Output Encoding
-    connect(ui->consoleOutputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                EncodingEnum encoding = Config::instance().encodingEnumFromInt(index);
-                Config::instance().setConsoleOutputEncoding(encoding);
-            });
-
-
-    // Default Path Settings
-    // Browse Buttons
-    // Default Python Path Browse
-    connect(ui->defaultPyPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        Config::instance().setDefaultPythonPath(
-                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
-                                                  Config::instance().getDefaultPythonPath(),
-                                                  QFileDialog::ShowDirsOnly));
-        ui->defaultPyPathEdit->setText(Config::instance().getDefaultPythonPath());
-    });
-    // Default Main File Path Browse
-    connect(ui->defaultMainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        Config::instance().setDefaultMainFilePath(
-                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
-                                                  Config::instance().getDefaultMainFilePath(),
-                                                  QFileDialog::ShowDirsOnly));
-        ui->defaultMainPathEdit->setText(Config::instance().getDefaultMainFilePath());
-    });
-    // Default Output Path Browse
-    connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        Config::instance().setDefaultOutputPath(
-                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
-                                                  Config::instance().getDefaultIconPath(),
-                                                  QFileDialog::ShowDirsOnly));
-        ui->defaultOutputPathEdit->setText(Config::instance().getDefaultOutputPath());
-    });
-    // Default Icon Path Browse
-    connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        Config::instance().setDefaultIconPath(
-                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
-                                                  Config::instance().getDefaultIconPath(),
-                                                  QFileDialog::ShowDirsOnly));
-        ui->defaultIconPathEdit->setText(Config::instance().getDefaultIconPath());
-    });
-
-    // Line Edits
-    // Python Edit
-    connect(ui->defaultPyPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        Config::instance().setDefaultPythonPath(text);
-    });
-    // Main file Edit
-    connect(ui->defaultMainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        Config::instance().setDefaultMainFilePath(text);
-    });
-    // Output Edit
-    connect(ui->defaultOutputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        Config::instance().setDefaultOutputPath(text);
-    });
-    // Icon Edit
-    connect(ui->defaultIconPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        Config::instance().setDefaultIconPath(text);
-    });
-    // Data Edit
-    connect(ui->defaultDataPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        Config::instance().setDefaultDataPath(text);
-    });
-
-    // Save button
-    connect(ui->saveSettingsBtn, &QPushButton::clicked, this, [=]() {
-        Config::instance().writeConfig();
-    });
-
-    // Export
-    // Export Button
-    connect(ui->exportBtn, &QPushButton::clicked, this, &MainWindow::exportProject);
-    // Cell Double-Clicked
-    connect(ui->projectTable, &QTableWidget::cellDoubleClicked, this, &MainWindow::on_ProjectTable_cellDoubleClicked);
-    // Item Changed
-    connect(ui->projectTable, &QTableWidget::itemChanged, this, [=](QTableWidgetItem *item) {
-        int row = item->row();
-        switch (row) {
-            case 0:
-                this->pythonPath = item->text();
-                break;
-            case 1:
-                this->mainFilePath = item->text();
-                break;
-            case 2:
-                this->outputPath = item->text();
-                break;
-            case 3:
-                this->outputFilename = item->text();
-                break;
-            case 4:
-                this->iconPath = item->text();
-                break;
-            case 5:
-                this->standalone = item->text() == "true";
-                break;
-            case 6:
-                this->onefile = item->text() == "true";
-                break;
-            case 7:
-                this->dataList = item->text().split(";");
-                break;
-            case 8:
-                QString text = item->text();
-                if (text == "Yes") {
-                    this->ltoMode = LTOMode::Yes;
-                } else if (text == "No") {
-                    this->ltoMode = LTOMode::No;
-                } else if (text == "Auto") {
-                    this->ltoMode = LTOMode::Auto;
-                } else {
-                    QMessageBox::warning(this, "Nuitka Studio Warning",
-                                         "LTO模式值: " + text + " 错误，只能为Yes/No/Auto");
-                    return;
-                }
-                break;
-        }
-    });
-
+    this->connectStackedWidget();
+    this->connectMenubar();
+    this->connectPackPage();
+    this->connectSettingsPage();
+    this->connectExportPage();
 
     // Init UI
     // Export
@@ -266,23 +34,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow() {
     delete ui;
-}
-
-void MainWindow::updateUI() {
-    this->updateExportTable();
-    this->updatePackUI();
-
-    ui->defaultPyPathEdit->setText(Config::instance().getDefaultPythonPath());
-    ui->defaultMainPathEdit->setText(Config::instance().getDefaultMainFilePath());
-    ui->defaultOutputPathEdit->setText(Config::instance().getDefaultOutputPath());
-    ui->defaultIconPathEdit->setText(Config::instance().getDefaultIconPath());
-    ui->defaultDataPathEdit->setText(Config::instance().getDefaultDataPath());
-
-    ui->consoleInputEncodingCombo->setCurrentIndex(
-            Config::instance().encodingEnumToInt(Config::instance().getConsoleInputEncoding()));
-    ui->consoleOutputEncodingCombo->setCurrentIndex(
-            Config::instance().encodingEnumToInt(Config::instance().getConsoleOutputEncoding()));
-    spdlog::info("刷新UI");
 }
 
 void MainWindow::startPack() {
@@ -455,7 +206,8 @@ void MainWindow::exportProject() {
     spdlog::info("导出NPF文件");
 }
 
-void MainWindow::on_AddDataFileItem_clicked() {
+// Slots
+void MainWindow::onAddDataFileItemClicked() {
     QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
                                                     Config::instance().getDefaultDataPath());
     ui->dataListWidget->addItem(filePath);
@@ -465,7 +217,7 @@ void MainWindow::on_AddDataFileItem_clicked() {
     Logger::debug(this->dataList[1]);
 }
 
-void MainWindow::on_AddDataDirItem_clicked() {
+void MainWindow::onAddDataDirItemClicked() {
     QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
                                                         Config::instance().getDefaultDataPath(),
                                                         QFileDialog::ShowDirsOnly);
@@ -473,13 +225,13 @@ void MainWindow::on_AddDataDirItem_clicked() {
     this->dataList.append(dirPath);
 }
 
-void MainWindow::on_RemoveItem_clicked() {
+void MainWindow::onRemoveItemClicked() {
     QListWidgetItem *removeItem = ui->dataListWidget->takeItem(ui->dataListWidget->currentRow());
     this->dataList.removeOne(removeItem->text());
     delete removeItem;
 }
 
-void MainWindow::on_ProjectTable_cellDoubleClicked(int row, int column) {
+void MainWindow::onProjectTableCellDoubleClicked(int row, int column) {
     // Data List
     if (row == 7 and column == 1) {
         auto *dataListWindow = new ExportDataListWindow();
@@ -493,6 +245,31 @@ void MainWindow::on_ProjectTable_cellDoubleClicked(int row, int column) {
 
         dataListWindow->updateUI();
         dataListWindow->show();
+    }
+}
+
+void MainWindow::onFileMenuTriggered(QAction *action) {
+    QString text = action->text();
+    Logger::info(QString("菜单：文件, 菜单项 %1 触发triggered事件").arg(text));
+
+    if (text == "导入(&I)") {
+        this->importProject();
+    } else if (text == "导出(&E)") {
+        this->exportProject();
+    }
+}
+
+void MainWindow::onHelpMenuTriggered(QAction *action) {
+    QString text = action->text();
+    Logger::info(QString("菜单：帮助, 菜单项 %1 触发triggered事件").arg(text));
+
+    if (text == "帮助(&H)") {
+        QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
+    } else if (text == "关于(&A)") {
+        auto* aboutWindow = new AboutWindow();
+        aboutWindow->setAttribute(Qt::WA_DeleteOnClose);
+        aboutWindow->move(100, 100);
+        aboutWindow->show();
     }
 }
 
@@ -512,6 +289,24 @@ QString MainWindow::processErrorToString(QProcess::ProcessError err) {
             return QStringLiteral("UnknownError");
     }
     return QStringLiteral("UnknownProcessError: ") + QString::number(static_cast<int>(err));
+}
+
+// Update UI functions
+void MainWindow::updateUI() {
+    this->updateExportTable();
+    this->updatePackUI();
+
+    ui->defaultPyPathEdit->setText(Config::instance().getDefaultPythonPath());
+    ui->defaultMainPathEdit->setText(Config::instance().getDefaultMainFilePath());
+    ui->defaultOutputPathEdit->setText(Config::instance().getDefaultOutputPath());
+    ui->defaultIconPathEdit->setText(Config::instance().getDefaultIconPath());
+    ui->defaultDataPathEdit->setText(Config::instance().getDefaultDataPath());
+
+    ui->consoleInputEncodingCombo->setCurrentIndex(
+            Config::instance().encodingEnumToInt(Config::instance().getConsoleInputEncoding()));
+    ui->consoleOutputEncodingCombo->setCurrentIndex(
+            Config::instance().encodingEnumToInt(Config::instance().getConsoleOutputEncoding()));
+    spdlog::info("刷新UI");
 }
 
 void MainWindow::updateExportTable() {
@@ -564,6 +359,252 @@ void MainWindow::updatePackUI() {
     }
 }
 
+// connect functions
+void MainWindow::connectStackedWidget() {
+    connect(ui->pack_btn, &QPushButton::clicked, this, [=]() {
+        ui->stackedWidget->setCurrentIndex(0);
+        Config::instance().writeConfig();
+        this->updateUI();
+    });
+    connect(ui->settings_btn, &QPushButton::clicked, this, [=]() {
+        ui->stackedWidget->setCurrentIndex(1);
+        Config::instance().writeConfig();
+        this->updateUI();
+    });
+    connect(ui->export_btn, &QPushButton::clicked, this, [=]() {
+        ui->stackedWidget->setCurrentIndex(2);
+        Config::instance().writeConfig();
+        this->updateUI();
+    });
+}
+
+void MainWindow::connectMenubar() {
+    connect(ui->fileMenu, &QMenu::triggered, this, &MainWindow::onFileMenuTriggered);
+    connect(ui->helpMenu, &QMenu::triggered, this, &MainWindow::onHelpMenuTriggered);
+}
+
+void MainWindow::connectPackPage() {
+    // Python file browse button
+    connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python解释器选择", "C:\\", "exe(*.exe)");
+        ui->pythonFileEdit->setText(this->pythonPath);
+    });
+
+    // Main file path browse button
+    connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->mainFilePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  主文件选择", "C:\\",
+                                                          "Python file(*.py)");
+        ui->mainPathEdit->setText(this->mainFilePath);
+    });
+
+    // Output file path browse button
+    connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->outputPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  输出路径", "C:\\",
+                                                             QFileDialog::ShowDirsOnly);
+        ui->outputPathEdit->setText(this->outputPath);
+    });
+
+    // Build Settings
+    // Standalone
+    connect(ui->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
+        if (state == Qt::Unchecked) {
+            this->standalone = false;
+        } else if (state == Qt::Checked) {
+            this->standalone = true;
+        }
+    });
+    // Onefile
+    connect(ui->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
+        if (state == Qt::Unchecked) {
+            this->onefile = false;
+        } else if (state == Qt::Checked) {
+            this->onefile = true;
+        }
+    });
+    // Remove Output
+    connect(ui->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
+        if (state == Qt::Unchecked) {
+            this->removeOutput = false;
+        } else if (state == Qt::Checked) {
+            this->removeOutput = true;
+        }
+    });
+
+    // LTO Mode Checkbox
+    // No
+    connect(ui->ltoNo, &QCheckBox::stateChanged, this, [=]() {
+        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
+            this->ltoMode = LTOMode::No;
+        }
+    });
+    // Yes
+    connect(ui->ltoYes, &QCheckBox::stateChanged, this, [=]() {
+        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
+            this->ltoMode = LTOMode::Yes;
+        }
+    });
+    // Auto
+    connect(ui->ltoAuto, &QCheckBox::stateChanged, this, [=]() {
+        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
+            this->ltoMode = LTOMode::Auto;
+        }
+    });
+
+    // Modify Data List
+    // Add file button
+    connect(ui->addFileBtn, &QPushButton::clicked, this, &MainWindow::onAddDataFileItemClicked);
+    // Add dir button
+    connect(ui->addDirBtn, &QPushButton::clicked, this, &MainWindow::onAddDataDirItemClicked);
+    // Remove item button
+    connect(ui->removeItemBtn, &QPushButton::clicked, this, &MainWindow::onRemoveItemClicked);
+
+    // Icon browse
+    connect(ui->iconFileBrowseBtn, &QPushButton::clicked, this, [=]() {
+        this->iconPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  图标路径", "C:\\",
+                                                      "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)");
+        ui->iconFileEdit->setText(this->iconPath);
+    });
+
+    // Start pack
+    connect(ui->startPackBtn, &QPushButton::clicked, this, &MainWindow::startPack);
+    // Clear Console Edit
+    connect(ui->clearConsoleBtn, &QPushButton::clicked, this, [=]() {
+        ui->consoleOutputEdit->clear();
+    });
+    // Import button
+    connect(ui->importBtn, &QPushButton::clicked, this, &MainWindow::importProject);
+}
+
+void MainWindow::connectSettingsPage() {
+    // Console Input Encoding
+    connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [=](int index) {
+                EncodingEnum encoding = Config::instance().encodingEnumFromInt(index);
+                Config::instance().setConsoleInputEncoding(encoding);
+            });
+    // Console Output Encoding
+    connect(ui->consoleOutputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [=](int index) {
+                EncodingEnum encoding = Config::instance().encodingEnumFromInt(index);
+                Config::instance().setConsoleOutputEncoding(encoding);
+            });
+
+
+    // Default Path Settings
+    // Browse Buttons
+    // Default Python Path Browse
+    connect(ui->defaultPyPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        Config::instance().setDefaultPythonPath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
+                                                  Config::instance().getDefaultPythonPath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultPyPathEdit->setText(Config::instance().getDefaultPythonPath());
+    });
+    // Default Main File Path Browse
+    connect(ui->defaultMainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        Config::instance().setDefaultMainFilePath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
+                                                  Config::instance().getDefaultMainFilePath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultMainPathEdit->setText(Config::instance().getDefaultMainFilePath());
+    });
+    // Default Output Path Browse
+    connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        Config::instance().setDefaultOutputPath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
+                                                  Config::instance().getDefaultIconPath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultOutputPathEdit->setText(Config::instance().getDefaultOutputPath());
+    });
+    // Default Icon Path Browse
+    connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        Config::instance().setDefaultIconPath(
+                QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
+                                                  Config::instance().getDefaultIconPath(),
+                                                  QFileDialog::ShowDirsOnly));
+        ui->defaultIconPathEdit->setText(Config::instance().getDefaultIconPath());
+    });
+
+    // Line Edits
+    // Python Edit
+    connect(ui->defaultPyPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        Config::instance().setDefaultPythonPath(text);
+    });
+    // Main file Edit
+    connect(ui->defaultMainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        Config::instance().setDefaultMainFilePath(text);
+    });
+    // Output Edit
+    connect(ui->defaultOutputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        Config::instance().setDefaultOutputPath(text);
+    });
+    // Icon Edit
+    connect(ui->defaultIconPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        Config::instance().setDefaultIconPath(text);
+    });
+    // Data Edit
+    connect(ui->defaultDataPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        Config::instance().setDefaultDataPath(text);
+    });
+
+    // Save button
+    connect(ui->saveSettingsBtn, &QPushButton::clicked, this, [=]() {
+        Config::instance().writeConfig();
+    });
+}
+
+void MainWindow::connectExportPage() {
+    // Export Button
+    connect(ui->exportBtn, &QPushButton::clicked, this, &MainWindow::exportProject);
+    // Cell Double-Clicked
+    connect(ui->projectTable, &QTableWidget::cellDoubleClicked, this, &MainWindow::onProjectTableCellDoubleClicked);
+    // Item Changed
+    connect(ui->projectTable, &QTableWidget::itemChanged, this, [=](QTableWidgetItem *item) {
+        int row = item->row();
+        switch (row) {
+            case 0:
+                this->pythonPath = item->text();
+                break;
+            case 1:
+                this->mainFilePath = item->text();
+                break;
+            case 2:
+                this->outputPath = item->text();
+                break;
+            case 3:
+                this->outputFilename = item->text();
+                break;
+            case 4:
+                this->iconPath = item->text();
+                break;
+            case 5:
+                this->standalone = item->text() == "true";
+                break;
+            case 6:
+                this->onefile = item->text() == "true";
+                break;
+            case 7:
+                this->dataList = item->text().split(";");
+                break;
+            case 8:
+                QString text = item->text();
+                if (text == "Yes") {
+                    this->ltoMode = LTOMode::Yes;
+                } else if (text == "No") {
+                    this->ltoMode = LTOMode::No;
+                } else if (text == "Auto") {
+                    this->ltoMode = LTOMode::Auto;
+                } else {
+                    QMessageBox::warning(this, "Nuitka Studio Warning",
+                                         "LTO模式值: " + text + " 错误，只能为Yes/No/Auto");
+                    return;
+                }
+                break;
+        }
+    });
+}
+
+// Util functions
 QString MainWindow::boolToString(bool v) {
     return (v ? "true" : "false");
 }
