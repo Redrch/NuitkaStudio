@@ -106,6 +106,37 @@ target_include_directories(NuitkaStudio PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+
+if(ENABLE_ASAN)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # try to find libasan in the toolchain link dirs
+        find_library(ASAN_LIB asan
+                PATHS ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}
+                NO_DEFAULT_PATH
+        )
+
+        # try common clang runtime name on mingw/clang
+        if(NOT ASAN_LIB AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            find_library(ASAN_LIB clang_rt.asan-x86_64
+                    PATHS ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}
+                    NO_DEFAULT_PATH
+            )
+        endif()
+
+        if(ASAN_LIB)
+            message(STATUS "Enabling AddressSanitizer (found ${ASAN_LIB})")
+            set(ASAN_COMMON_FLAGS -fsanitize=address -fno-omit-frame-pointer -g -O1)
+            target_compile_options(NuitkaStudio PRIVATE ${ASAN_COMMON_FLAGS})
+            target_link_options(NuitkaStudio PRIVATE -fsanitize=address)
+        else()
+            message(WARNING "ASan requested but no libasan found in the toolchain. Disable ENABLE_ASAN or switch to a clang toolchain / WSL.")
+        endif()
+    else()
+        message(WARNING "ASan requires gcc/clang. On MSVC use clang-cl or other tools.")
+    endif()
+endif()
+
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
