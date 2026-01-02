@@ -67,12 +67,17 @@ private:
     QString outputFilename;
     QString iconPath;
 
-    bool standalone;
+    bool standalone = true;
     bool onefile = false;
     bool removeOutput = false;
     LTOMode ltoMode = LTOMode::Auto;
 
     QList<QString> dataList = QList<QString>();
+
+    QCheckBox* standaloneCheckbox;
+    QCheckBox* onefileCheckbox;
+    QCheckBox* removeOutputCheckbox;
+    QComboBox* ltoModeCombobox;
 
     QString processErrorToString(QProcess::ProcessError err);
     // Update UI functions

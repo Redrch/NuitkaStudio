@@ -1,5 +1,5 @@
 //
-// Created by david on 2025/12/30.
+// Created by redrch on 2025/12/30.
 //
 
 // You may need to build the project (run Qt uic code generator) to get "ui_about_window.h" resolved

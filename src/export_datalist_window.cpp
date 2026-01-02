@@ -16,6 +16,10 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
     connect(ui->addFileBtn, &QPushButton::clicked, this, [=]() {
         QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
                                                         Config::instance().getDefaultDataPath());
+        if (filePath == "") {
+            return;
+        }
+
         ui->dataListWidget->addItem(filePath);
         this->dataList.append(filePath);
         emit this->dataListChanged(this->dataList);
@@ -25,6 +29,10 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
         QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
                                                             Config::instance().getDefaultDataPath(),
                                                             QFileDialog::ShowDirsOnly);
+        if (dirPath == "") {
+            return;
+        }
+
         ui->dataListWidget->addItem(dirPath);
         this->dataList.append(dirPath);
         emit this->dataListChanged(this->dataList);
@@ -32,6 +40,9 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
 
     connect(ui->removeItemBtn, &QPushButton::clicked, this, [=]() {
         QListWidgetItem *removeItem = ui->dataListWidget->takeItem(ui->dataListWidget->currentRow());
+        if (removeItem == nullptr) {
+            return;
+        }
         delete removeItem;
         emit this->dataListChanged(this->dataList);
     });

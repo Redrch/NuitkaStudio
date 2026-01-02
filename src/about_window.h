@@ -1,5 +1,5 @@
 //
-// Created by david on 2025/12/30.
+// Created by redrch on 2025/12/30.
 //
 
 #ifndef NUITKASTUDIO_ABOUT_WINDOW_H

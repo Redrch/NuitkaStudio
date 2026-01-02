@@ -105,7 +105,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="pack_page">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -826,7 +826,7 @@
               <item>
                <widget class="QTableWidget" name="projectTable">
                 <property name="rowCount">
-                 <number>9</number>
+                 <number>10</number>
                 </property>
                 <property name="columnCount">
                  <number>2</number>
@@ -852,51 +852,87 @@
                 <row/>
                 <row/>
                 <row/>
+                <row/>
                 <column/>
                 <column/>
                 <item row="0" column="0">
                  <property name="text">
                   <string>python解释器路径</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="1" column="0">
                  <property name="text">
                   <string>主文件路径</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="2" column="0">
                  <property name="text">
                   <string>输出目录</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="3" column="0">
                  <property name="text">
                   <string>输出文件名</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="4" column="0">
                  <property name="text">
                   <string>图标路径</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="5" column="0">
                  <property name="text">
                   <string>独立模式</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="6" column="0">
                  <property name="text">
                   <string>单文件输出</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="7" column="0">
                  <property name="text">
-                  <string>数据文件</string>
+                  <string>删除打包临时文件</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="8" column="0">
                  <property name="text">
+                  <string>数据文件</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
+                </item>
+                <item row="9" column="0">
+                 <property name="text">
                   <string>LTO模式</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                </widget>
@@ -906,19 +942,6 @@
            </item>
           </layout>
          </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_8">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
         <item>
          <widget class="QWidget" name="widget_11" native="true">
