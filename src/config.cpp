@@ -18,7 +18,7 @@ Config::Config() {
     this->defaultIconPath = QString("C:/");
     this->defaultDataPath = QString("C:/");
 
-    this->packTimerTriggerInterval = 10;
+    this->packTimerTriggerInterval = 100;
 }
 
 Config::~Config() {

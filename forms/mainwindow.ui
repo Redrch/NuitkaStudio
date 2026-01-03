@@ -105,7 +105,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="pack_page">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -677,7 +677,7 @@
                     <number>9999</number>
                    </property>
                    <property name="value">
-                    <number>10</number>
+                    <number>100</number>
                    </property>
                   </widget>
                  </item>
