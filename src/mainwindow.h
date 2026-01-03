@@ -6,24 +6,16 @@
 #define NUITKASTUDIO_MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QStackedWidget>
 #include <QPushButton>
-#include <QFileDialog>
-#include <QListWidget>
 #include <QLineEdit>
 #include <QComboBox>
 #include <QConstOverload>
-#include <QListWidgetItem>
-#include <QTableWidgetItem>
 #include <QMessageBox>
 
 #include <QString>
 #include <QList>
-#include <QScopedPointer>
 
-#include <QFile>
 #include <QProcess>
-#include <QTextStream>
 #include <QDesktopServices>
 #include <QUrl>
 
@@ -45,18 +37,20 @@ enum class LTOMode {
 };
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+
+namespace Ui {
+    class MainWindow;
+}
+
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
-Q_OBJECT
+    Q_OBJECT
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
     ~MainWindow() override;
-
-    static QString boolToString(bool v);
 
 private:
     Ui::MainWindow *ui;
@@ -71,19 +65,25 @@ private:
     bool onefile = false;
     bool removeOutput = false;
     LTOMode ltoMode = LTOMode::Auto;
-
     QList<QString> dataList = QList<QString>();
 
-    QCheckBox* standaloneCheckbox;
-    QCheckBox* onefileCheckbox;
-    QCheckBox* removeOutputCheckbox;
-    QComboBox* ltoModeCombobox;
+    QDateTime startPackTime;
 
-    QString processErrorToString(QProcess::ProcessError err);
+    QTimer *packTimer;
+    QProcess *packProcess;
+
+    QCheckBox *standaloneCheckbox;
+    QCheckBox *onefileCheckbox;
+    QCheckBox *removeOutputCheckbox;
+    QComboBox *ltoModeCombobox;
+    QLabel *timerLabel;
+
+    // functions
     // Update UI functions
     void updateExportTable();
     void updatePackUI();
     void updateUI();
+
     // Connect signals and slots functions
     void connectStackedWidget();
     void connectMenubar();
@@ -91,15 +91,28 @@ private:
     void connectSettingsPage();
     void connectExportPage();
 
+    // Init functions
+    void initExportPage();
+    void initStatusBar();
+
+    // Util functions
+    static QString boolToString(bool v);
+    static QString processErrorToString(QProcess::ProcessError err);
+    static QString formatMilliseconds(qint64 totalMs);
+
 private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
     void onRemoveItemClicked();
+
     void onProjectTableCellDoubleClicked(int row, int column);
-    void onFileMenuTriggered(QAction* action);
-    void onHelpMenuTriggered(QAction* action);
+
+    void onFileMenuTriggered(QAction *action);
+    void onHelpMenuTriggered(QAction *action);
 
     void startPack();
+    void stopPack();
+
     void importProject();
     void exportProject();
 };

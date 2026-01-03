@@ -14,21 +14,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     Config::instance().readConfig();
 
+    this->packTimer = new QTimer(this);
+
     // Init UI
-    // Export
-    // 自适应行宽/行高
-    ui->projectTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->projectTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    // 表格组件
-    this->standaloneCheckbox = new QCheckBox;
-    this->onefileCheckbox = new QCheckBox;
-    this->removeOutputCheckbox = new QCheckBox;
-    this->ltoModeCombobox = new QComboBox;
-    this->ltoModeCombobox->addItems(QStringList() << tr("自动") << tr("启用") << tr("禁用"));
-    ui->projectTable->setCellWidget(5, 1, this->standaloneCheckbox);
-    ui->projectTable->setCellWidget(6, 1, this->onefileCheckbox);
-    ui->projectTable->setCellWidget(7, 1, this->removeOutputCheckbox);
-    ui->projectTable->setCellWidget(9, 1, this->ltoModeCombobox);
+    this->initExportPage();
+    this->initStatusBar();
 
     // Connect signal and slot
     this->connectStackedWidget();
@@ -47,23 +37,23 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::startPack() {
+    ui->startPackBtn->setEnabled(false);
+    ui->stopPackBtn->setEnabled(true);
     QElapsedTimer timer;
-    timer.start();
-    ui->consoleOutputEdit->append(QString("-------------- 开始打包 %1 -------------").arg(
-        QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")));
-    QProcess *proc = new QProcess(this);
+
+    this->packProcess = new QProcess(this);
 
     // Signals and slots
     // 合并普通和错误输出
-    proc->setProcessChannelMode(QProcess::MergedChannels);
+    this->packProcess->setProcessChannelMode(QProcess::MergedChannels);
     // output
-    connect(proc, &QProcess::readyReadStandardOutput, this, [=]() {
-        QString out = QString::fromLocal8Bit(proc->readAllStandardOutput());
+    connect(this->packProcess, &QProcess::readyReadStandardOutput, this, [=]() {
+        QString out = QString::fromLocal8Bit(this->packProcess->readAllStandardOutput());
         ui->consoleOutputEdit->append(out);
         spdlog::info(out.toStdString());
     });
     // finished
-    connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+    connect(this->packProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [=](int exitCode, QProcess::ExitStatus exitStatus) {
                 qint64 time = timer.elapsed();
                 qint64 second = time / 1000;
@@ -76,16 +66,45 @@ void MainWindow::startPack() {
                     timeString = QString("%1分钟%2秒%3毫秒").arg(minute).arg(second - minute * 60).arg(ms);
                 }
 
-                ui->consoleOutputEdit->append(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString));
+                QString endOutString = QString("----------- 打包结束 耗时: %1 ----------").arg(timeString);
+                ui->consoleOutputEdit->append(endOutString);
                 spdlog::info(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString).toStdString());
-                proc->deleteLater();
+                this->packProcess->deleteLater();
+                this->packTimer->stop();
+                ui->startPackBtn->setEnabled(true);
+                ui->stopPackBtn->setEnabled(false);
             });
     // error occurred
-    connect(proc, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
+    connect(this->packProcess, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
         qWarning() << "command error: " << error;
         ui->consoleOutputEdit->append("Error: " + this->processErrorToString(error));
         spdlog::error("Error: " + this->processErrorToString(error).toStdString());
     });
+
+    if (this->pythonPath == "") {
+        ui->consoleOutputEdit->append("python解释器路径为必填项");
+        ui->startPackBtn->setEnabled(true);
+        ui->stopPackBtn->setEnabled(false);
+        return;
+    }
+    if (this->mainFilePath == "") {
+        ui->consoleOutputEdit->append("主文件路径为必填项");
+        ui->startPackBtn->setEnabled(true);
+        ui->stopPackBtn->setEnabled(false);
+        return;
+    }
+    if (this->outputPath == "") {
+        ui->consoleOutputEdit->append("输出目录为必填项");
+        ui->startPackBtn->setEnabled(true);
+        ui->stopPackBtn->setEnabled(false);
+        return;
+    }
+    if (this->outputFilename == "") {
+        ui->consoleOutputEdit->append("输出文件名为必填项");
+        ui->startPackBtn->setEnabled(true);
+        ui->startPackBtn->setEnabled(false);
+        return;
+    }
 
     // build args
     QStringList args = QStringList();
@@ -121,9 +140,45 @@ void MainWindow::startPack() {
         args << "--windows-icon-from-ico=" + this->iconPath;
     }
 
-    proc->start(this->pythonPath, args);
+    this->packProcess->start(this->pythonPath, args);
+
+    // console output
+    QString outputString = QString("-------------- 开始打包 %1 -------------").arg(
+        QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz"));
+    ui->consoleOutputEdit->append(outputString);
+    // pack timer
+    this->startPackTime = QDateTime::currentDateTime();
+    this->packTimer->start(Config::instance().getPackTimerTriggerInterval());
+    // use time obj
+    timer.start();
     ui->consoleOutputEdit->append(this->pythonPath + " " + args.join(" "));
     spdlog::info("开始打包  打包命令: " + QString(this->pythonPath + " " + args.join(" ")).toStdString());
+}
+
+void MainWindow::stopPack() {
+    if (!this->packProcess) {
+        ui->consoleOutputEdit->append("没有正在执行的打包任务");
+        return;
+    }
+    if (this->packProcess->state() == QProcess::NotRunning) {
+        ui->consoleOutputEdit->append("打包任务已结束");
+        this->packProcess = nullptr;
+        return;
+    }
+
+    ui->consoleOutputEdit->append("正在尝试停止打包任务");
+    this->packProcess->terminate();
+
+    QTimer::singleShot(5000, this, [=]() {
+        if (this->packProcess->state() != QProcess::NotRunning) {
+            ui->consoleOutputEdit->append("进程未响应，强制终止中...");
+        this->packProcess->kill();
+        }
+    });
+
+    this->packTimer->stop();
+    ui->startPackBtn->setEnabled(true);
+    ui->stopPackBtn->setEnabled(false);
 }
 
 void MainWindow::importProject() {
@@ -296,24 +351,6 @@ void MainWindow::onHelpMenuTriggered(QAction *action) {
     }
 }
 
-QString MainWindow::processErrorToString(QProcess::ProcessError err) {
-    switch (err) {
-        case QProcess::FailedToStart:
-            return QStringLiteral("FailedToStart");
-        case QProcess::Crashed:
-            return QStringLiteral("Crashed");
-        case QProcess::Timedout:
-            return QStringLiteral("Timedout");
-        case QProcess::ReadError:
-            return QStringLiteral("ReadError");
-        case QProcess::WriteError:
-            return QStringLiteral("WriteError");
-        case QProcess::UnknownError:
-            return QStringLiteral("UnknownError");
-    }
-    return QStringLiteral("UnknownProcessError: ") + QString::number(static_cast<int>(err));
-}
-
 // Update UI functions
 void MainWindow::updateUI() {
     this->updateExportTable();
@@ -348,15 +385,19 @@ void MainWindow::updateExportTable() {
         this->removeOutputCheckbox->setCheckState(
             this->removeOutput ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
     ui->projectTable->setItem(8, 1, new QTableWidgetItem(this->dataList.join(";")));
-    QString LTOModeString;
-    if (this->ltoMode == LTOMode::Yes) {
-        LTOModeString = "Yes";
-    } else if (this->ltoMode == LTOMode::No) {
-        LTOModeString = "No";
-    } else if (this->ltoMode == LTOMode::Auto) {
-        LTOModeString = "Auto";
+    int index = 0;
+    switch (this->ltoMode) {
+        case LTOMode::Auto:
+            index = 0;
+            break;
+        case LTOMode::Yes:
+            index = 1;
+            break;
+        case LTOMode::No:
+            index = 2;
+            break;
     }
-    ui->projectTable->setItem(9, 1, new QTableWidgetItem(LTOModeString));
+    this->ltoModeCombobox->setCurrentIndex(index);
 }
 
 void MainWindow::updatePackUI() {
@@ -389,7 +430,7 @@ void MainWindow::updatePackUI() {
     }
 }
 
-// connect functions
+// Connect functions
 void MainWindow::connectStackedWidget() {
     connect(ui->pack_btn, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentIndex(0);
@@ -497,15 +538,27 @@ void MainWindow::connectPackPage() {
 
     // Start pack
     connect(ui->startPackBtn, &QPushButton::clicked, this, &MainWindow::startPack);
+    // Stop pack
+    connect(ui->stopPackBtn, &QPushButton::clicked, this, &MainWindow::stopPack);
     // Clear Console Edit
     connect(ui->clearConsoleBtn, &QPushButton::clicked, this, [=]() {
         ui->consoleOutputEdit->clear();
     });
     // Import button
     connect(ui->importBtn, &QPushButton::clicked, this, &MainWindow::importProject);
+
+
+    // Pack Timer
+    connect(this->packTimer, &QTimer::timeout, this, [=]() {
+        auto now = QDateTime::currentDateTime();
+        qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
+        QString timeString = formatMilliseconds(time);
+        this->timerLabel->setText(timeString);
+    });
 }
 
 void MainWindow::connectSettingsPage() {
+    // General Settings
     // Console Input Encoding
     connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [=](int index) {
@@ -518,6 +571,11 @@ void MainWindow::connectSettingsPage() {
                 EncodingEnum encoding = Config::instance().encodingEnumFromInt(index);
                 Config::instance().setConsoleOutputEncoding(encoding);
             });
+    // Pack Timer Trigger Interval
+    connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int value) {
+        Logger::debug(QString::number(value));
+        Config::instance().setPackTimerTriggerInterval(value);
+    });
 
 
     // Default Path Settings
@@ -656,7 +714,66 @@ void MainWindow::connectExportPage() {
     });
 }
 
+// Init functions
+void MainWindow::initExportPage() {
+    // Export
+    // 自适应行宽/行高
+    ui->projectTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->projectTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    // 表格组件
+    this->standaloneCheckbox = new QCheckBox;
+    this->onefileCheckbox = new QCheckBox;
+    this->removeOutputCheckbox = new QCheckBox;
+    this->ltoModeCombobox = new QComboBox;
+    this->ltoModeCombobox->addItems(QStringList() << tr("自动") << tr("启用") << tr("禁用"));
+    ui->projectTable->setCellWidget(5, 1, this->standaloneCheckbox);
+    ui->projectTable->setCellWidget(6, 1, this->onefileCheckbox);
+    ui->projectTable->setCellWidget(7, 1, this->removeOutputCheckbox);
+    ui->projectTable->setCellWidget(9, 1, this->ltoModeCombobox);
+}
+
+void MainWindow::initStatusBar() {
+    // Status bar
+    this->timerLabel = new QLabel;
+    this->timerLabel->setAlignment(Qt::AlignCenter);
+    ui->statusbar->addWidget(this->timerLabel);
+    ui->statusbar->addPermanentWidget(this->timerLabel, 0);
+}
+
 // Util functions
 QString MainWindow::boolToString(bool v) {
     return (v ? "true" : "false");
+}
+
+QString MainWindow::processErrorToString(QProcess::ProcessError err) {
+    switch (err) {
+        case QProcess::FailedToStart:
+            return QStringLiteral("FailedToStart");
+        case QProcess::Crashed:
+            return QStringLiteral("Crashed");
+        case QProcess::Timedout:
+            return QStringLiteral("Timedout");
+        case QProcess::ReadError:
+            return QStringLiteral("ReadError");
+        case QProcess::WriteError:
+            return QStringLiteral("WriteError");
+        case QProcess::UnknownError:
+            return QStringLiteral("UnknownError");
+    }
+    return QStringLiteral("UnknownProcessError: ") + QString::number(static_cast<int>(err));
+}
+
+QString MainWindow::formatMilliseconds(qint64 totalMs) {
+    bool neg = totalMs < 0;
+    if (neg) totalMs = -totalMs;
+    qint64 h = totalMs / 3600000;
+    qint64 m = (totalMs % 3600000) / 60000;
+    qint64 s = (totalMs % 60000) / 1000;
+    qint64 ms = totalMs % 1000;
+    return QString("%1%2:%3:%4:%5")
+            .arg(neg ? "-" : "")
+            .arg(h, 2, 10, QChar('0'))
+            .arg(m, 2, 10, QChar('0'))
+            .arg(s, 2, 10, QChar('0'))
+            .arg(ms, 3, 10, QChar('0'));
 }
