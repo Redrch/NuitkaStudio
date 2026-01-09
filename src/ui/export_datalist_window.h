@@ -9,7 +9,7 @@
 #include <QList>
 #include <QFileDialog>
 
-#include "config.h"
+#include "../utils/config.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ExportDataListWindow; }

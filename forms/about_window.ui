@@ -128,6 +128,7 @@
  </widget>
  <resources>
   <include location="../resource.qrc"/>
+  <include location="C:/Users/rrh_2/.designer/resource.qrc"/>
  </resources>
  <connections/>
 </ui>

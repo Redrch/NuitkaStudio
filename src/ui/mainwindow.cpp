@@ -9,6 +9,9 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
+    this->data = new ProjectConfigData;
+    this->projectConfig = new ProjectConfig(this->data, this);
+
     if (!QFile::exists(Config::instance().getConfigPath())) {
         Config::instance().writeConfig();
     }
@@ -33,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 MainWindow::~MainWindow() {
+    delete this->data;
+    delete this->projectConfig;
     delete ui;
 }
 
@@ -40,6 +45,7 @@ void MainWindow::startPack() {
     ui->startPackBtn->setEnabled(false);
     ui->stopPackBtn->setEnabled(true);
     QElapsedTimer timer;
+    timer.start();
 
     this->packProcess = new QProcess(this);
 
@@ -77,29 +83,29 @@ void MainWindow::startPack() {
     // error occurred
     connect(this->packProcess, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
         qWarning() << "command error: " << error;
-        ui->consoleOutputEdit->append("Error: " + this->processErrorToString(error));
-        spdlog::error("Error: " + this->processErrorToString(error).toStdString());
+        ui->consoleOutputEdit->append("Error: " + Utils::processErrorToString(error));
+        spdlog::error("Error: " + Utils::processErrorToString(error).toStdString());
     });
 
-    if (this->pythonPath == "") {
+    if (this->data->pythonPath == "") {
         ui->consoleOutputEdit->append("python解释器路径为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
         return;
     }
-    if (this->mainFilePath == "") {
+    if (this->data->mainFilePath == "") {
         ui->consoleOutputEdit->append("主文件路径为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
         return;
     }
-    if (this->outputPath == "") {
+    if (this->data->outputPath == "") {
         ui->consoleOutputEdit->append("输出目录为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
         return;
     }
-    if (this->outputFilename == "") {
+    if (this->data->outputFilename == "") {
         ui->consoleOutputEdit->append("输出文件名为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->startPackBtn->setEnabled(false);
@@ -109,18 +115,18 @@ void MainWindow::startPack() {
     // build args
     QStringList args = QStringList();
     args << "-m" << "nuitka";
-    if (this->standalone) {
+    if (this->data->standalone) {
         args << "--standalone";
     }
-    if (this->onefile) {
+    if (this->data->onefile) {
         args << "--onefile";
     }
-    if (this->removeOutput) {
+    if (this->data->removeOutput) {
         args << "--remove-output";
     }
 
     // LTO
-    switch (this->ltoMode) {
+    switch (this->data->ltoMode) {
         case LTOMode::No:
             args << "--lto=no";
             break;
@@ -132,15 +138,15 @@ void MainWindow::startPack() {
             break;
     }
 
-    args << mainFilePath;
-    args << "--output-dir=" + this->outputPath;
-    args << "--output-filename=" + this->outputFilename;
+    args << this->data->mainFilePath;
+    args << "--output-dir=" + this->data->outputPath;
+    args << "--output-filename=" + this->data->outputFilename;
 
-    if (this->iconPath != QString("")) {
-        args << "--windows-icon-from-ico=" + this->iconPath;
+    if (this->data->iconPath != QString("")) {
+        args << "--windows-icon-from-ico=" + this->data->iconPath;
     }
 
-    this->packProcess->start(this->pythonPath, args);
+    this->packProcess->start(this->data->pythonPath, args);
 
     // console output
     QString outputString = QString("-------------- 开始打包 %1 -------------").arg(
@@ -150,9 +156,8 @@ void MainWindow::startPack() {
     this->startPackTime = QDateTime::currentDateTime();
     this->packTimer->start(Config::instance().getPackTimerTriggerInterval());
     // use time obj
-    timer.start();
-    ui->consoleOutputEdit->append(this->pythonPath + " " + args.join(" "));
-    spdlog::info("开始打包  打包命令: " + QString(this->pythonPath + " " + args.join(" ")).toStdString());
+    ui->consoleOutputEdit->append(this->data->pythonPath + " " + args.join(" "));
+    spdlog::info("开始打包  打包命令: " + QString(this->data->pythonPath + " " + args.join(" ")).toStdString());
 }
 
 void MainWindow::stopPack() {
@@ -172,7 +177,7 @@ void MainWindow::stopPack() {
     QTimer::singleShot(5000, this, [=]() {
         if (this->packProcess->state() != QProcess::NotRunning) {
             ui->consoleOutputEdit->append("进程未响应，强制终止中...");
-        this->packProcess->kill();
+            this->packProcess->kill();
         }
     });
 
@@ -182,93 +187,20 @@ void MainWindow::stopPack() {
 }
 
 void MainWindow::importProject() {
-    QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio  导入项目文件",
-                                                Config::instance().getDefaultDataPath(),
-                                                "Nuitka Project File(*.npf);;All files(*)");
-    if (path == "") {
-        return;
-    }
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Open failed: " << file.errorString();
-        QMessageBox::critical(this, "Nuitka Studio Error", "Open failed: " + file.errorString());
-        return;
-    }
-    QTextStream in(&file);
-    in.setCodec("UTF-8");
-
-    // Read the file
-    QStringList contentList = in.readAll().split("\n");
-    // Process data
-    this->pythonPath = contentList[0].split("=")[1];
-    this->mainFilePath = contentList[1].split("=")[1];
-    this->outputPath = contentList[2].split("=")[1];
-    this->outputFilename = contentList[3].split("=")[1];
-    this->iconPath = contentList[4].split("=")[1];
-    this->standalone = contentList[5].split("=")[1] == "true";
-    this->onefile = contentList[6].split("=")[1] == "true";
-    this->removeOutput = contentList[7].split("=")[1] == "true";
-    // LTO
-    QString ltoModeString = contentList[8].split("=")[1];
-    if (ltoModeString == "Yes") {
-        this->ltoMode = LTOMode::Yes;
-    } else if (ltoModeString == "No") {
-        this->ltoMode = LTOMode::No;
-    } else if (ltoModeString == "Auto") {
-        this->ltoMode = LTOMode::Auto;
-    } else {
-        QMessageBox::warning(this, "Nuitka Studio Warning",
-                             "LTO模式值: " + ltoModeString + " 错误，只能为Yes/No/Auto");
-        return;
-    }
-    this->dataList = contentList[9].split("=")[1].split(";");
-
-    spdlog::info("导入NPF文件，参数: " + contentList.join(";").toStdString());
-
+    this->projectConfig->importProject();
     // Update UI
     this->updateUI();
 }
 
 void MainWindow::exportProject() {
-    QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio  导出项目文件",
-                                                Config::instance().getDefaultDataPath(),
-                                                "Nuitka Project File(*.npf);;All files(*)");
-    QFile file(path);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        qWarning() << "Open failed: " << file.errorString();
-        QMessageBox::warning(this, "Nuitka Studio  Warning", "Open failed: " + file.errorString());
-        return;
-    }
-    QTextStream out(&file);
-    out.setCodec("UTF-8");
+    this->projectConfig->exportProject();
+}
 
-    // Write data
-    // Path data
-    out << "python_path=" << this->pythonPath << "\n";
-    out << "mainfile_path=" << this->mainFilePath << "\n";
-    out << "output_path=" << this->outputPath << "\n";
-    out << "output_filename=" << this->outputFilename << "\n";
-    out << "icon_path=" << this->iconPath << "\n";
-    // Bool data
-    out << "standalone=" << MainWindow::boolToString(this->standalone) << "\n";
-    out << "onefile=" << MainWindow::boolToString(this->onefile) << "\n";
-    out << "remove_output=" << MainWindow::boolToString(this->removeOutput) << "\n";
-    // LTO data
-    QString LTOModeString;
-    if (this->ltoMode == LTOMode::Yes) {
-        LTOModeString = "Yes";
-    } else if (this->ltoMode == LTOMode::No) {
-        LTOModeString = "No";
-    } else if (this->ltoMode == LTOMode::Auto) {
-        LTOModeString = "Auto";
-    }
-    out << "lto=" << LTOModeString << "\n";
-    // Data list
-    out << "data_list=" << this->dataList.join(";");
-
-    file.close();
-
-    spdlog::info("导出NPF文件");
+void MainWindow::newProject() {
+    auto* newProjectWindow = new NewProjectWindow(this);
+    newProjectWindow->setWindowFlags(newProjectWindow->windowFlags() | Qt::Window);
+    newProjectWindow->setAttribute(Qt::WA_DeleteOnClose);
+    newProjectWindow->show();
 }
 
 // Slots
@@ -279,10 +211,10 @@ void MainWindow::onAddDataFileItemClicked() {
         return;
     }
     ui->dataListWidget->addItem(filePath);
-    this->dataList.append(filePath);
+    this->data->dataList.append(filePath);
 
-    Logger::debug(this->dataList[0]);
-    Logger::debug(this->dataList[1]);
+    Logger::debug(this->data->dataList[0]);
+    Logger::debug(this->data->dataList[1]);
 }
 
 void MainWindow::onAddDataDirItemClicked() {
@@ -294,7 +226,7 @@ void MainWindow::onAddDataDirItemClicked() {
     }
 
     ui->dataListWidget->addItem(dirPath);
-    this->dataList.append(dirPath);
+    this->data->dataList.append(dirPath);
 }
 
 void MainWindow::onRemoveItemClicked() {
@@ -303,7 +235,7 @@ void MainWindow::onRemoveItemClicked() {
         return;
     }
 
-    this->dataList.removeOne(removeItem->text());
+    this->data->dataList.removeOne(removeItem->text());
     delete removeItem;
 }
 
@@ -313,10 +245,10 @@ void MainWindow::onProjectTableCellDoubleClicked(int row, int column) {
         auto *dataListWindow = new ExportDataListWindow(this);
         dataListWindow->setWindowFlags(dataListWindow->windowFlags() | Qt::Window);
         dataListWindow->setAttribute(Qt::WA_DeleteOnClose);
-        dataListWindow->setDataList(this->dataList);
+        dataListWindow->setDataList(this->data->dataList);
 
         connect(dataListWindow, &ExportDataListWindow::dataListChanged, this, [=](const QList<QString> &newDataList) {
-            this->dataList = newDataList;
+            this->data->dataList = newDataList;
             this->updateUI();
         });
 
@@ -329,7 +261,9 @@ void MainWindow::onFileMenuTriggered(QAction *action) {
     QString text = action->text();
     Logger::info(QString("菜单：文件, 菜单项 %1 触发triggered事件").arg(text));
 
-    if (text == "导入(&I)") {
+    if (text == "新建(&N)") {
+        this->newProject();
+    } else if (text == "导入(&I)") {
         this->importProject();
     } else if (text == "导出(&E)") {
         this->exportProject();
@@ -370,23 +304,23 @@ void MainWindow::updateUI() {
 }
 
 void MainWindow::updateExportTable() {
-    ui->projectTable->setItem(0, 1, new QTableWidgetItem(this->pythonPath));
-    ui->projectTable->setItem(1, 1, new QTableWidgetItem(this->mainFilePath));
-    ui->projectTable->setItem(2, 1, new QTableWidgetItem(this->outputPath));
-    ui->projectTable->setItem(3, 1, new QTableWidgetItem(this->outputFilename));
-    ui->projectTable->setItem(4, 1, new QTableWidgetItem(this->iconPath));
+    ui->projectTable->setItem(0, 1, new QTableWidgetItem(this->data->pythonPath));
+    ui->projectTable->setItem(1, 1, new QTableWidgetItem(this->data->mainFilePath));
+    ui->projectTable->setItem(2, 1, new QTableWidgetItem(this->data->outputPath));
+    ui->projectTable->setItem(3, 1, new QTableWidgetItem(this->data->outputFilename));
+    ui->projectTable->setItem(4, 1, new QTableWidgetItem(this->data->iconPath));
     if (this->standaloneCheckbox)
         this->standaloneCheckbox->setCheckState(
-            this->standalone ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+            this->data->standalone ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
     if (this->onefileCheckbox)
         this->onefileCheckbox->setCheckState(
-            this->onefile ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+            this->data->onefile ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
     if (this->removeOutputCheckbox)
         this->removeOutputCheckbox->setCheckState(
-            this->removeOutput ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-    ui->projectTable->setItem(8, 1, new QTableWidgetItem(this->dataList.join(";")));
+            this->data->removeOutput ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui->projectTable->setItem(8, 1, new QTableWidgetItem(this->data->dataList.join(";")));
     int index = 0;
-    switch (this->ltoMode) {
+    switch (this->data->ltoMode) {
         case LTOMode::Auto:
             index = 0;
             break;
@@ -401,16 +335,16 @@ void MainWindow::updateExportTable() {
 }
 
 void MainWindow::updatePackUI() {
-    ui->pythonFileEdit->setText(this->pythonPath);
-    ui->mainPathEdit->setText(this->mainFilePath);
-    ui->outputPathEdit->setText(this->outputPath);
-    ui->outputFileEdit->setText(this->outputFilename);
-    ui->iconFileEdit->setText(this->iconPath);
-    ui->standaloneCheckbox->setCheckState(this->standalone ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-    ui->onefileCheckbox->setCheckState(this->onefile ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-    ui->removeOutputCheckbox->setCheckState(this->removeOutput ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui->pythonFileEdit->setText(this->data->pythonPath);
+    ui->mainPathEdit->setText(this->data->mainFilePath);
+    ui->outputPathEdit->setText(this->data->outputPath);
+    ui->outputFileEdit->setText(this->data->outputFilename);
+    ui->iconFileEdit->setText(this->data->iconPath);
+    ui->standaloneCheckbox->setCheckState(this->data->standalone ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui->onefileCheckbox->setCheckState(this->data->onefile ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui->removeOutputCheckbox->setCheckState(this->data->removeOutput ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
     // LTO
-    switch (this->ltoMode) {
+    switch (this->data->ltoMode) {
         case LTOMode::Yes:
             ui->ltoYes->setCheckState(Qt::CheckState::Checked);
             break;
@@ -423,7 +357,7 @@ void MainWindow::updatePackUI() {
     }
     // Data list
     ui->dataListWidget->clear();
-    for (const QString &item: this->dataList) {
+    for (const QString &item: this->data->dataList) {
         if (item != "") {
             ui->dataListWidget->addItem(item);
         }
@@ -457,47 +391,67 @@ void MainWindow::connectMenubar() {
 void MainWindow::connectPackPage() {
     // Python file browse button
     connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python解释器选择", "C:\\", "exe(*.exe)");
-        ui->pythonFileEdit->setText(this->pythonPath);
+        this->data->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python解释器选择", "C:\\", "exe(*.exe)");
+        ui->pythonFileEdit->setText(this->data->pythonPath);
     });
 
     // Main file path browse button
     connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->mainFilePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  主文件选择", "C:\\",
+        this->data->mainFilePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  主文件选择", "C:\\",
                                                           "Python file(*.py)");
-        ui->mainPathEdit->setText(this->mainFilePath);
+        ui->mainPathEdit->setText(this->data->mainFilePath);
     });
 
     // Output file path browse button
     connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->outputPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  输出路径", "C:\\",
+        this->data->outputPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  输出路径", "C:\\",
                                                              QFileDialog::ShowDirsOnly);
-        ui->outputPathEdit->setText(this->outputPath);
+        ui->outputPathEdit->setText(this->data->outputPath);
+    });
+
+    // Python file edit
+    connect(ui->pythonFileEdit, &QLineEdit::textChanged, this, [=](QString text) {
+        this->data->pythonPath = text;
+    });
+
+    // Main file path edit
+    connect(ui->mainPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+        this->data->mainFilePath = text;
+    });
+
+    // Output file path edit
+    connect(ui->outputPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+        this->data->outputPath = text;
+    });
+
+    // Output file name edit
+    connect(ui->outputFileEdit, &QLineEdit::textChanged, this, [=](QString text) {
+        this->data->outputFilename = text;
     });
 
     // Build Settings
     // Standalone
     connect(ui->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
         if (state == Qt::Unchecked) {
-            this->standalone = false;
+            this->data->standalone = false;
         } else if (state == Qt::Checked) {
-            this->standalone = true;
+            this->data->standalone = true;
         }
     });
     // Onefile
     connect(ui->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
         if (state == Qt::Unchecked) {
-            this->onefile = false;
+            this->data->onefile = false;
         } else if (state == Qt::Checked) {
-            this->onefile = true;
+            this->data->onefile = true;
         }
     });
     // Remove Output
     connect(ui->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
         if (state == Qt::Unchecked) {
-            this->removeOutput = false;
+            this->data->removeOutput = false;
         } else if (state == Qt::Checked) {
-            this->removeOutput = true;
+            this->data->removeOutput = true;
         }
     });
 
@@ -505,19 +459,19 @@ void MainWindow::connectPackPage() {
     // No
     connect(ui->ltoNo, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            this->ltoMode = LTOMode::No;
+            this->data->ltoMode = LTOMode::No;
         }
     });
     // Yes
     connect(ui->ltoYes, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            this->ltoMode = LTOMode::Yes;
+            this->data->ltoMode = LTOMode::Yes;
         }
     });
     // Auto
     connect(ui->ltoAuto, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            this->ltoMode = LTOMode::Auto;
+            this->data->ltoMode = LTOMode::Auto;
         }
     });
 
@@ -531,9 +485,9 @@ void MainWindow::connectPackPage() {
 
     // Icon browse
     connect(ui->iconFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        this->iconPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  图标路径", "C:\\",
+        this->data->iconPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  图标路径", "C:\\",
                                                       "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)");
-        ui->iconFileEdit->setText(this->iconPath);
+        ui->iconFileEdit->setText(this->data->iconPath);
     });
 
     // Start pack
@@ -552,7 +506,7 @@ void MainWindow::connectPackPage() {
     connect(this->packTimer, &QTimer::timeout, this, [=]() {
         auto now = QDateTime::currentDateTime();
         qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
-        QString timeString = formatMilliseconds(time);
+        QString timeString = Utils::formatMilliseconds(time);
         this->timerLabel->setText(timeString);
     });
 }
@@ -651,26 +605,26 @@ void MainWindow::connectExportPage() {
         int row = item->row();
         switch (row) {
             case 0:
-                this->pythonPath = item->text();
+                this->data->pythonPath = item->text();
                 break;
             case 1:
-                this->mainFilePath = item->text();
+                this->data->mainFilePath = item->text();
                 break;
             case 2:
-                this->outputPath = item->text();
+                this->data->outputPath = item->text();
                 break;
             case 3:
-                this->outputFilename = item->text();
+                this->data->outputFilename = item->text();
                 break;
             case 4:
-                this->iconPath = item->text();
+                this->data->iconPath = item->text();
                 break;
             case 8:
-                this->dataList = item->text().split(";");
+                this->data->dataList = item->text().split(";");
                 break;
             case 9:
                 int ltoValue;
-                switch (this->ltoMode) {
+                switch (this->data->ltoMode) {
                     case LTOMode::Auto:
                         ltoValue = 0;
                         break;
@@ -687,25 +641,25 @@ void MainWindow::connectExportPage() {
     });
     // Checkboxes
     connect(this->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        this->standalone = state == Qt::CheckState::Checked;
+        this->data->standalone = state == Qt::CheckState::Checked;
     });
     connect(this->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        this->onefile = state == Qt::CheckState::Checked;
+        this->data->onefile = state == Qt::CheckState::Checked;
     });
     connect(this->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        this->removeOutput = state == Qt::CheckState::Checked;
+        this->data->removeOutput = state == Qt::CheckState::Checked;
     });
     // LTO Mode Combobox
     connect(this->ltoModeCombobox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         switch (index) {
             case 0:
-                this->ltoMode = LTOMode::Auto;
+                this->data->ltoMode = LTOMode::Auto;
                 break;
             case 1:
-                this->ltoMode = LTOMode::Yes;
+                this->data->ltoMode = LTOMode::Yes;
                 break;
             case 2:
-                this->ltoMode = LTOMode::No;
+                this->data->ltoMode = LTOMode::No;
                 break;
             default:
                 QMessageBox::warning(this, "Nuitka Studio Warning", "LTO模式值错误");
@@ -738,42 +692,4 @@ void MainWindow::initStatusBar() {
     this->timerLabel->setAlignment(Qt::AlignCenter);
     ui->statusbar->addWidget(this->timerLabel);
     ui->statusbar->addPermanentWidget(this->timerLabel, 0);
-}
-
-// Util functions
-QString MainWindow::boolToString(bool v) {
-    return (v ? "true" : "false");
-}
-
-QString MainWindow::processErrorToString(QProcess::ProcessError err) {
-    switch (err) {
-        case QProcess::FailedToStart:
-            return QStringLiteral("FailedToStart");
-        case QProcess::Crashed:
-            return QStringLiteral("Crashed");
-        case QProcess::Timedout:
-            return QStringLiteral("Timedout");
-        case QProcess::ReadError:
-            return QStringLiteral("ReadError");
-        case QProcess::WriteError:
-            return QStringLiteral("WriteError");
-        case QProcess::UnknownError:
-            return QStringLiteral("UnknownError");
-    }
-    return QStringLiteral("UnknownProcessError: ") + QString::number(static_cast<int>(err));
-}
-
-QString MainWindow::formatMilliseconds(qint64 totalMs) {
-    bool neg = totalMs < 0;
-    if (neg) totalMs = -totalMs;
-    qint64 h = totalMs / 3600000;
-    qint64 m = (totalMs % 3600000) / 60000;
-    qint64 s = (totalMs % 60000) / 1000;
-    qint64 ms = totalMs % 1000;
-    return QString("%1%2:%3:%4:%5")
-            .arg(neg ? "-" : "")
-            .arg(h, 2, 10, QChar('0'))
-            .arg(m, 2, 10, QChar('0'))
-            .arg(s, 2, 10, QChar('0'))
-            .arg(ms, 3, 10, QChar('0'));
 }

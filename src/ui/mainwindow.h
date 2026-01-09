@@ -27,14 +27,12 @@
 
 #include "export_datalist_window.h"
 #include "about_window.h"
-#include "config.h"
-#include "logger.h"
-
-enum class LTOMode {
-    No,
-    Yes,
-    Auto
-};
+#include "../utils/config.h"
+#include "../utils/logger.h"
+#include "new_project_window.h"
+#include "../utils/data_structs.h"
+#include "../utils/utils.h"
+#include "../utils/project_config.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -55,22 +53,24 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QString pythonPath;
-    QString mainFilePath;
-    QString outputPath;
-    QString outputFilename;
-    QString iconPath;
+    // QString pythonPath;
+    // QString mainFilePath;
+    // QString outputPath;
+    // QString outputFilename;
+    // QString iconPath;
+    //
+    // bool standalone = true;
+    // bool onefile = false;
+    // bool removeOutput = false;
+    // LTOMode ltoMode = LTOMode::Auto;
+    // QList<QString> dataList = QList<QString>();
 
-    bool standalone = true;
-    bool onefile = false;
-    bool removeOutput = false;
-    LTOMode ltoMode = LTOMode::Auto;
-    QList<QString> dataList = QList<QString>();
+    ProjectConfig *projectConfig;
 
     QDateTime startPackTime;
-
     QTimer *packTimer;
     QProcess *packProcess;
+    ProjectConfigData* data;
 
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;
@@ -95,11 +95,6 @@ private:
     void initExportPage();
     void initStatusBar();
 
-    // Util functions
-    static QString boolToString(bool v);
-    static QString processErrorToString(QProcess::ProcessError err);
-    static QString formatMilliseconds(qint64 totalMs);
-
 private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
@@ -115,6 +110,7 @@ private slots:
 
     void importProject();
     void exportProject();
+    void newProject();
 };
 
 
