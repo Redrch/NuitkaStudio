@@ -122,7 +122,6 @@ void NewProjectWindow::newProject() {
             project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
         }
-
         case InterpreterType::UV: {
             QProcess p;
             p.setWorkingDirectory(projectDirPath);

@@ -186,7 +186,7 @@
       <item>
        <widget class="QStackedWidget" name="projectPyPathStackedWidget">
         <property name="currentIndex">
-         <number>1</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="pythonPage">
          <layout class="QVBoxLayout" name="verticalLayout">
