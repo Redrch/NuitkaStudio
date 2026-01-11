@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(NuitkaStudio)
+project(NuitkaStudio VERSION 1.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -15,10 +15,20 @@ if (NOT WIN32)
     message(FATAL_ERROR "Error: The project can only be uses on Windows OS now.")
 endif ()
 
+# set app info
+set(AUTHOR "Redrch")
+string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/app_config.h.in
+        ${CMAKE_CURRENT_BINARY_DIR}/app_config.h
+        @ONLY)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 # include spdlog lib
-if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+if (NOT DEFINED VCPKG_TARGET_TRIPLET)
     set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "vcpkg triplet")
-endif()
+endif ()
 
 set(_vcpkg_installed "${CMAKE_BINARY_DIR}/vcpkg_installed")
 
@@ -46,35 +56,49 @@ find_package(Qt5 COMPONENTS
 
 set(SOURCES
         src/main.cpp
-        src/mainwindow.cpp
-        src/mainwindow.h
-        forms/mainwindow.ui
-        src/config.cpp
-        src/config.h
-        src/export_datalist_window.cpp
-        src/export_datalist_window.h
-        forms/export_datalist_window.ui
-        src/logger.cpp
-        src/logger.h
+        src/ui/mainwindow.cpp
+        src/ui/mainwindow.h
+        src/utils/config.cpp
+        src/utils/config.h
+        src/ui/export_datalist_window.cpp
+        src/ui/export_datalist_window.h
+        src/utils/logger.cpp
+        src/utils/logger.h
+        src/ui/about_window.cpp
+        src/ui/about_window.h
+        src/app_config.h.in
+        src/ui/new_project_window.cpp
+        src/ui/new_project_window.h
+        src/utils/project_config.cpp
+        src/utils/project_config.h
+        src/utils/data_structs.h
+        src/utils/utils.cpp
+        src/utils/utils.h
 )
 set(RESOURCES
         resource.qrc
         logo.rc
+        forms/export_datalist_window.ui
+        forms/mainwindow.ui
+        forms/about_window.ui
+        forms/new_project_window.ui
+        licenses/FmtLicense
+        licenses/SpdlogLicense
 )
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
 
 if (WIN32)
-        # For multi-config generators (Visual Studio, etc.) set the WIN32 flag
-        # only for the Release configuration using a generator expression.
-        set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE "$<$<CONFIG:Release>:TRUE>")
+    # For multi-config generators (Visual Studio, etc.) set the WIN32 flag
+    # only for the Release configuration using a generator expression.
+    set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE "$<$<CONFIG:Release>:TRUE>")
 
-        # For single-config generators that use CMAKE_BUILD_TYPE, enable immediately
-        # when CMAKE_BUILD_TYPE is Release.
-        if (DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Release")
-                set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE TRUE)
-        endif()
-endif()
+    # For single-config generators that use CMAKE_BUILD_TYPE, enable immediately
+    # when CMAKE_BUILD_TYPE is Release.
+    if (DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Release")
+        set_target_properties(NuitkaStudio PROPERTIES WIN32_EXECUTABLE TRUE)
+    endif ()
+endif ()
 
 target_link_libraries(NuitkaStudio
         PRIVATE
@@ -89,6 +113,37 @@ target_include_directories(NuitkaStudio PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+
+if(ENABLE_ASAN)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # try to find libasan in the toolchain link dirs
+        find_library(ASAN_LIB asan
+                PATHS ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}
+                NO_DEFAULT_PATH
+        )
+
+        # try common clang runtime name on mingw/clang
+        if(NOT ASAN_LIB AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            find_library(ASAN_LIB clang_rt.asan-x86_64
+                    PATHS ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}
+                    NO_DEFAULT_PATH
+            )
+        endif()
+
+        if(ASAN_LIB)
+            message(STATUS "Enabling AddressSanitizer (found ${ASAN_LIB})")
+            set(ASAN_COMMON_FLAGS -fsanitize=address -fno-omit-frame-pointer -g -O1)
+            target_compile_options(NuitkaStudio PRIVATE ${ASAN_COMMON_FLAGS})
+            target_link_options(NuitkaStudio PRIVATE -fsanitize=address)
+        else()
+            message(WARNING "ASan requested but no libasan found in the toolchain. Disable ENABLE_ASAN or switch to a clang toolchain / WSL.")
+        endif()
+    else()
+        message(WARNING "ASan requires gcc/clang. On MSVC use clang-cl or other tools.")
+    endif()
+endif()
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)

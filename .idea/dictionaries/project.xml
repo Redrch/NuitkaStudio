@@ -4,7 +4,9 @@
       <w>buildsystems</w>
       <w>dcompiler</w>
       <w>libfmt</w>
+      <w>libgcc</w>
       <w>libspdlog</w>
+      <w>libstdc</w>
       <w>libwinpthread</w>
       <w>mainfile</w>
       <w>mainwindow</w>

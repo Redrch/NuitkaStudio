@@ -61,6 +61,9 @@ public:
     EncodingEnum getConsoleOutputEncoding() const { return consoleOutputEncoding; }
     void setConsoleOutputEncoding(EncodingEnum e) { consoleOutputEncoding = e; }
 
+    int getPackTimerTriggerInterval() const { return packTimerTriggerInterval; }
+    void setPackTimerTriggerInterval(int v) { packTimerTriggerInterval = v; }
+
     const QString& getConfigPath() const { return configPath; }
 
 private:
@@ -76,6 +79,8 @@ private:
 
     EncodingEnum consoleInputEncoding;
     EncodingEnum consoleOutputEncoding;
+
+    int packTimerTriggerInterval;
 };
 
 

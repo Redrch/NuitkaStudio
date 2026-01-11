@@ -4,7 +4,7 @@ import os
 import shutil
 import tomllib
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 
 config_dict = tomllib.load(open("config.toml", "rb"))
 path_dict = config_dict["Path"]
@@ -40,15 +40,13 @@ if not is_debug:
     os.remove("libEGL.dll")
     os.remove("D3Dcompiler_47.dll")
     os.remove("opengl32sw.dll")
-    os.remove("libwinpthread-1.dll")
-    os.remove("libgcc_s_seh-1.dll")
-    os.remove("libstdc++-6.dll")
 
     shutil.rmtree("iconengines")
     shutil.rmtree("imageformats")
     shutil.rmtree("styles")
     shutil.rmtree("translations")
 
+    # move files
     os.mkdir("qt")
     os.mkdir("qt/plugins")
     shutil.move("platforms", "qt/plugins/platforms")
@@ -56,5 +54,8 @@ if not is_debug:
     shutil.move("Qt5Core.dll", "qt/Qt5Core.dll")
     shutil.move("Qt5Gui.dll", "qt/Qt5Gui.dll")
     shutil.move("Qt5Widgets.dll", "qt/Qt5Widgets.dll")
+    shutil.move("libgcc_s_seh-1.dll", "qt/libgcc_s_seh.dll")
+    shutil.move("libstdc++-6.dll", "qt/libstdc++-6.dll")
+    shutil.move("libwinpthread-1.dll", "qt/libwinpthread.dll")
 
 print(f"Nuitka Studio {VERSION} build successfully!")

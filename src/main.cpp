@@ -1,6 +1,6 @@
 #include <QApplication>
-#include "mainwindow.h"
-#include "logger.h"
+#include "ui/mainwindow.h"
+#include "utils/logger.h"
 
 int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 启动高DPI缩放

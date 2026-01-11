@@ -73,18 +73,18 @@ void Logger::qtMessageHandler(QtMsgType type, const QMessageLogContext &ctx, con
     }
 }
 
-void Logger::debug(QString &msg) {
+void Logger::debug(const QString& msg) {
     spdlog::debug(msg.toStdString());
 }
 
-void Logger::info(QString &msg) {
+void Logger::info(const QString& msg) {
     spdlog::info(msg.toStdString());
 }
 
-void Logger::warn(QString &msg) {
+void Logger::warn(const QString& msg) {
     spdlog::warn(msg.toStdString());
 }
 
-void Logger::error(QString &msg) {
+void Logger::error(const QString& msg) {
     spdlog::error(msg.toStdString());
 }

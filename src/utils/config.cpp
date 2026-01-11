@@ -17,6 +17,8 @@ Config::Config() {
     this->defaultMainFilePath = QString("C:/");
     this->defaultIconPath = QString("C:/");
     this->defaultDataPath = QString("C:/");
+
+    this->packTimerTriggerInterval = 100;
 }
 
 Config::~Config() {
@@ -29,6 +31,7 @@ void Config::writeConfig() {
                              QVariant(this->encodingEnumToString(this->getConsoleInputEncoding())));
     this->settings->setValue("consoleOutputEncoding",
                              QVariant(this->encodingEnumToString(this->getConsoleOutputEncoding())));
+    this->settings->setValue("packTimerTriggerInterval", QVariant(this->getPackTimerTriggerInterval()));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -43,9 +46,10 @@ void Config::writeConfig() {
 void Config::readConfig() {
     this->settings->beginGroup("General");
     this->setConsoleInputEncoding(
-            this->encodingEnumFromString(this->settings->value("consoleInputEncoding").toString()));
+        this->encodingEnumFromString(this->settings->value("consoleInputEncoding").toString()));
     this->setConsoleOutputEncoding(
-            this->encodingEnumFromString(this->settings->value("consoleOutputEncoding").toString()));
+        this->encodingEnumFromString(this->settings->value("consoleOutputEncoding").toString()));
+    this->setPackTimerTriggerInterval(this->settings->value("packTimerTriggerInterval").toInt());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -67,7 +71,7 @@ QString Config::encodingEnumToString(EncodingEnum enumValue) {
             return QStringLiteral("2");
         default:
             throw std::runtime_error(
-                    "toCode: unexpected EncodingEnum value: " + std::to_string(static_cast<int>(enumValue)));
+                "toCode: unexpected EncodingEnum value: " + std::to_string(static_cast<int>(enumValue)));
     }
 }
 
@@ -81,7 +85,7 @@ int Config::encodingEnumToInt(EncodingEnum enumValue) {
             return 2;
         default:
             throw std::runtime_error(
-                    "toCode: unexpected EncodingEnum value: " + std::to_string(static_cast<int>(enumValue)));
+                "toCode: unexpected EncodingEnum value: " + std::to_string(static_cast<int>(enumValue)));
     }
 }
 
@@ -110,4 +114,3 @@ EncodingEnum Config::encodingEnumFromInt(int value) {
         throw std::runtime_error("'Encoding Enum' value error.Please use >= 0 and <= 2 value");
     }
 }
-

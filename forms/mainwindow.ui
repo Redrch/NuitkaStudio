@@ -529,6 +529,25 @@
              <property name="text">
               <string>打包</string>
              </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="stopPackBtn">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>停止打包</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
             </widget>
            </item>
           </layout>
@@ -613,6 +632,67 @@
               </item>
               <item>
                <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="widget_13" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_27">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QWidget" name="widget_14" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_26">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>9</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_14">
+                   <property name="text">
+                    <string>打包计时器触发间隔</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="packTimerTriggerIntervalSpin">
+                   <property name="maximum">
+                    <number>9999</number>
+                   </property>
+                   <property name="value">
+                    <number>100</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_15">
+                   <property name="text">
+                    <string>ms</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_6">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -826,7 +906,7 @@
               <item>
                <widget class="QTableWidget" name="projectTable">
                 <property name="rowCount">
-                 <number>9</number>
+                 <number>10</number>
                 </property>
                 <property name="columnCount">
                  <number>2</number>
@@ -852,51 +932,87 @@
                 <row/>
                 <row/>
                 <row/>
+                <row/>
                 <column/>
                 <column/>
                 <item row="0" column="0">
                  <property name="text">
                   <string>python解释器路径</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="1" column="0">
                  <property name="text">
                   <string>主文件路径</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="2" column="0">
                  <property name="text">
                   <string>输出目录</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="3" column="0">
                  <property name="text">
                   <string>输出文件名</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="4" column="0">
                  <property name="text">
                   <string>图标路径</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="5" column="0">
                  <property name="text">
                   <string>独立模式</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="6" column="0">
                  <property name="text">
                   <string>单文件输出</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="7" column="0">
                  <property name="text">
-                  <string>数据文件</string>
+                  <string>删除打包临时文件</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="8" column="0">
                  <property name="text">
+                  <string>数据文件</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+                 </property>
+                </item>
+                <item row="9" column="0">
+                 <property name="text">
                   <string>LTO模式</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                  </property>
                 </item>
                </widget>
@@ -906,19 +1022,6 @@
            </item>
           </layout>
          </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_8">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
         <item>
          <widget class="QWidget" name="widget_11" native="true">
@@ -961,8 +1064,58 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="fileMenu">
+    <property name="tearOffEnabled">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>文件(&amp;F)</string>
+    </property>
+    <addaction name="newAction"/>
+    <addaction name="importAction"/>
+    <addaction name="exportAction"/>
+   </widget>
+   <widget class="QMenu" name="helpMenu">
+    <property name="title">
+     <string>帮助(&amp;H)</string>
+    </property>
+    <addaction name="helpAction"/>
+    <addaction name="aboutAction"/>
+   </widget>
+   <addaction name="fileMenu"/>
+   <addaction name="helpMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="importAction">
+   <property name="text">
+    <string>导入(&amp;I)</string>
+   </property>
+  </action>
+  <action name="exportAction">
+   <property name="text">
+    <string>导出(&amp;E)</string>
+   </property>
+  </action>
+  <action name="helpAction">
+   <property name="text">
+    <string>帮助(&amp;H)</string>
+   </property>
+  </action>
+  <action name="aboutAction">
+   <property name="text">
+    <string>关于(&amp;A)</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>许可证(&amp;L)</string>
+   </property>
+  </action>
+  <action name="newAction">
+   <property name="text">
+    <string>新建(&amp;N)</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../resource.qrc"/>
