@@ -197,10 +197,13 @@ void MainWindow::exportProject() {
 }
 
 void MainWindow::newProject() {
-    auto* newProjectWindow = new NewProjectWindow(this);
+    auto *newProjectWindow = new NewProjectWindow(this);
     newProjectWindow->setWindowFlags(newProjectWindow->windowFlags() | Qt::Window);
     newProjectWindow->setAttribute(Qt::WA_DeleteOnClose);
-    newProjectWindow->show();
+    newProjectWindow->exec();
+
+    this->data = newProjectWindow->getProjectConfigData();
+    this->updateUI();
 }
 
 // Slots
@@ -300,7 +303,7 @@ void MainWindow::updateUI() {
         Config::instance().encodingEnumToInt(Config::instance().getConsoleInputEncoding()));
     ui->consoleOutputEncodingCombo->setCurrentIndex(
         Config::instance().encodingEnumToInt(Config::instance().getConsoleOutputEncoding()));
-    spdlog::info("刷新UI");
+    Logger::info("刷新UI");
 }
 
 void MainWindow::updateExportTable() {
@@ -342,7 +345,9 @@ void MainWindow::updatePackUI() {
     ui->iconFileEdit->setText(this->data->iconPath);
     ui->standaloneCheckbox->setCheckState(this->data->standalone ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
     ui->onefileCheckbox->setCheckState(this->data->onefile ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-    ui->removeOutputCheckbox->setCheckState(this->data->removeOutput ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui->removeOutputCheckbox->setCheckState(this->data->removeOutput
+                                                ? Qt::CheckState::Checked
+                                                : Qt::CheckState::Unchecked);
     // LTO
     switch (this->data->ltoMode) {
         case LTOMode::Yes:
@@ -398,14 +403,14 @@ void MainWindow::connectPackPage() {
     // Main file path browse button
     connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->data->mainFilePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  主文件选择", "C:\\",
-                                                          "Python file(*.py)");
+                                                                "Python file(*.py)");
         ui->mainPathEdit->setText(this->data->mainFilePath);
     });
 
     // Output file path browse button
     connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->data->outputPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  输出路径", "C:\\",
-                                                             QFileDialog::ShowDirsOnly);
+                                                                   QFileDialog::ShowDirsOnly);
         ui->outputPathEdit->setText(this->data->outputPath);
     });
 
@@ -486,7 +491,7 @@ void MainWindow::connectPackPage() {
     // Icon browse
     connect(ui->iconFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->data->iconPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  图标路径", "C:\\",
-                                                      "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)");
+                                                            "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)");
         ui->iconFileEdit->setText(this->data->iconPath);
     });
 

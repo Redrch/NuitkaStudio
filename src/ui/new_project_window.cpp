@@ -12,8 +12,11 @@
 #include "ui_new_project_window.h"
 
 
-NewProjectWindow::NewProjectWindow(QWidget *parent) : QWidget(parent), ui(new Ui::NewProjectWindow) {
+NewProjectWindow::NewProjectWindow(QWidget *parent) : QDialog(parent), ui(new Ui::NewProjectWindow) {
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+
+    this->projectConfigData = new ProjectConfigData;
 
     this->connectPath();
     connect(ui->pyTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
@@ -46,10 +49,12 @@ void NewProjectWindow::connectPath() {
     connect(ui->uvPyFilePathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
                                                         Config::instance().getDefaultPythonPath(), "exe(*.exe)");
+        ui->uvPyFilePathEdit->setText(this->pythonPath);
     });
     connect(ui->uvPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->uvPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  UV路径",
                                                     Config::instance().getDefaultMainFilePath(), "exe(*.exe)");
+        ui->uvPathEdit->setText(this->uvPath);
     });
 
     // edit
@@ -73,20 +78,70 @@ void NewProjectWindow::connectPath() {
     });
 }
 
+ProjectConfigData *NewProjectWindow::getProjectConfigData() {
+    return this->projectConfigData;
+}
+
 void NewProjectWindow::newProject() {
+    ui->newProjectBtn->setEnabled(false);
     Logger::info(QString("创建项目%1在目录%2").arg(this->projectName).arg(this->projectPath));
     QString projectDirPath = QFileInfo(this->projectPath, this->projectName).absoluteFilePath();
     QDir projectDir(this->projectPath);
     projectDir.mkdir(this->projectName);
-    switch (this->interpreterType) {
-        case InterpreterType::Python:
 
+    QFile file(projectDirPath + "/main.py");
+    file.open(QIODevice::WriteOnly);
+    QTextStream out(&file);
+    out.setCodec("UTF-8");
+    out << "#coding: utf-8" << "\n";
+    out << "\n";
+    out << "print('Hello,World!')" << "\n";
+    file.close();
+
+    switch (this->interpreterType) {
+        case InterpreterType::Python: {
+            this->projectConfigData->pythonPath = this->pythonPath;
+            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
+            this->projectConfigData->outputPath = projectDirPath + "/build";
+            this->projectConfigData->outputFilename = projectName + ".exe";
+            ProjectConfig project_config(this->projectConfigData, this);
+            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
-        case InterpreterType::Virtualenv:
+        }
+        case InterpreterType::Virtualenv: {
+            QProcess p;
+            p.setWorkingDirectory(projectDirPath);
+            p.start(this->pythonPath, QStringList() << "-m" << "venv" << ".venv");
+            p.waitForFinished();
+
+            this->projectConfigData->pythonPath = projectDirPath + "/.venv" + "/Scripts" + "/python.exe";
+            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
+            this->projectConfigData->outputPath = projectDirPath + "/build";
+            this->projectConfigData->outputFilename = projectName + ".exe";
+            ProjectConfig project_config(this->projectConfigData, this);
+            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
-        case InterpreterType::UV:
+        }
+
+        case InterpreterType::UV: {
+            QProcess p;
+            p.setWorkingDirectory(projectDirPath);
+            p.start(this->uvPath, QStringList() << "init" << "-p" << this->pythonPath << "--no-readme");
+            p.waitForFinished();
+
+            this->projectConfigData->pythonPath = this->pythonPath;
+            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
+            this->projectConfigData->outputPath = projectDirPath + "/build";
+            this->projectConfigData->outputFilename = projectName + ".exe";
+
+            ProjectConfig project_config(this->projectConfigData, this);
+            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
+        }
     }
+    ui->newProjectBtn->setDisabled(true);
+
+    this->accept();
 }
 
 void NewProjectWindow::onPyTypeComboBoxCurrentIndexChanged(int index) {

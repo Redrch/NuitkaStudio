@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>NewProjectWindow</class>
- <widget class="QWidget" name="NewProjectWindow">
+ <widget class="QDialog" name="NewProjectWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>550</width>
-    <height>300</height>
+    <height>350</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>550</width>
-    <height>300</height>
+    <height>350</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>550</width>
-    <height>300</height>
+    <height>350</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -186,7 +186,7 @@
       <item>
        <widget class="QStackedWidget" name="projectPyPathStackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="pythonPage">
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -244,29 +244,6 @@
              </item>
              <item>
               <widget class="QPushButton" name="venvPyFilePathBrowseBtn">
-               <property name="text">
-                <string>浏览</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="venvPathWidget" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QLabel" name="venvPathLabel">
-               <property name="text">
-                <string>venv路径</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="venvPathEdit"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="venvPathBrowseBtn">
                <property name="text">
                 <string>浏览</string>
                </property>

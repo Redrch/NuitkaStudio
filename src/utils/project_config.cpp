@@ -12,14 +12,20 @@ ProjectConfig::ProjectConfig(ProjectConfigData *data, QWidget *parent) {
 ProjectConfig::~ProjectConfig() {
 }
 
-void ProjectConfig::importProject() {
-    QString path = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
+void ProjectConfig::importProject(const QString &path) {
+    QString filePath;
+    if (path.isEmpty()) {
+        filePath = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
                                                 Config::instance().getDefaultDataPath(),
                                                 "Nuitka Project File(*.npf);;All files(*)");
-    if (path == "") {
-        return;
+        if (filePath.isEmpty()) {
+            return;
+        }
+    } else {
+        filePath = path;
     }
-    QFile file(path);
+
+    QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qWarning() << "Open failed: " << file.errorString();
         QMessageBox::critical(this->parent, "Nuitka Studio Error", "Open failed: " + file.errorString());
@@ -57,11 +63,20 @@ void ProjectConfig::importProject() {
     Logger::info("导入NPF文件，参数: " + contentList.join(";"));
 }
 
-void ProjectConfig::exportProject() {
-    QString path = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
+void ProjectConfig::exportProject(const QString &path) {
+    QString filePath = "";
+    if (path == "") {
+        filePath = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
                                                 Config::instance().getDefaultDataPath(),
                                                 "Nuitka Project File(*.npf);;All files(*)");
-    QFile file(path);
+        if (filePath.isEmpty()) {
+            return;
+        }
+    } else {
+        filePath = path;
+    }
+
+    QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
         qWarning() << "Open failed: " << file.errorString();
         QMessageBox::warning(this->parent, "Nuitka Studio  Warning", "Open failed: " + file.errorString());

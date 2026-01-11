@@ -9,8 +9,11 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QFileInfo>
+#include <QFile>
 
 #include "../utils/logger.h"
+#include "../utils/project_config.h"
+#include "../utils/data_structs.h"
 
 enum class InterpreterType {
     Python,
@@ -26,13 +29,15 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class NewProjectWindow : public QWidget {
+class NewProjectWindow : public QDialog {
     Q_OBJECT
 
 public:
     explicit NewProjectWindow(QWidget *parent = nullptr);
 
     ~NewProjectWindow() override;
+
+    ProjectConfigData *getProjectConfigData();
 
 private:
     Ui::NewProjectWindow *ui;
@@ -45,6 +50,7 @@ private:
     QString virtualenvPath;
     QString uvPath;
 
+    ProjectConfigData *projectConfigData;
 
     void connectPath();
 
