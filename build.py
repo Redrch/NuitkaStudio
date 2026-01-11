@@ -30,8 +30,6 @@ if not is_debug:
     shutil.copyfile("cmake-build-release/libfmt.dll", f"{output_path}/libfmt.dll")
     shutil.copyfile("cmake-build-release/libspdlog.dll", f"{output_path}/libspdlog.dll")
 
-    shutil.copyfile("assets/qt.conf", f"{output_path}/qt.conf")
-
     os.chdir(output_path)
     # remove files
     os.system("windeployqt NuitkaStudio.exe")
@@ -46,16 +44,5 @@ if not is_debug:
     shutil.rmtree("styles")
     shutil.rmtree("translations")
 
-    # move files
-    os.mkdir("qt")
-    os.mkdir("qt/plugins")
-    shutil.move("platforms", "qt/plugins/platforms")
-
-    shutil.move("Qt5Core.dll", "qt/Qt5Core.dll")
-    shutil.move("Qt5Gui.dll", "qt/Qt5Gui.dll")
-    shutil.move("Qt5Widgets.dll", "qt/Qt5Widgets.dll")
-    shutil.move("libgcc_s_seh-1.dll", "qt/libgcc_s_seh.dll")
-    shutil.move("libstdc++-6.dll", "qt/libstdc++-6.dll")
-    shutil.move("libwinpthread-1.dll", "qt/libwinpthread.dll")
 
 print(f"Nuitka Studio {VERSION} build successfully!")
