@@ -8,8 +8,7 @@
 #include "ui_export_datalist_window.h"
 
 
-ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
-        QWidget(parent), ui(new Ui::ExportDataListWindow) {
+ExportDataListWindow::ExportDataListWindow(QWidget *parent) : QWidget(parent), ui(new Ui::ExportDataListWindow) {
     ui->setupUi(this);
 
     // Connect Signals and slots
@@ -21,8 +20,7 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
         }
 
         ui->dataListWidget->addItem(filePath);
-        this->dataList.append(filePath);
-        emit this->dataListChanged(this->dataList);
+        ProjectConfigManager::instance().appendItemToStringList(ConfigValue::DataList, filePath);
     });
 
     connect(ui->addDirBtn, &QPushButton::clicked, this, [=]() {
@@ -34,8 +32,7 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
         }
 
         ui->dataListWidget->addItem(dirPath);
-        this->dataList.append(dirPath);
-        emit this->dataListChanged(this->dataList);
+        ProjectConfigManager::instance().appendItemToStringList(ConfigValue::DataList, dirPath);
     });
 
     connect(ui->removeItemBtn, &QPushButton::clicked, this, [=]() {
@@ -44,7 +41,6 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
             return;
         }
         delete removeItem;
-        emit this->dataListChanged(this->dataList);
     });
 
     this->updateUI();
@@ -54,16 +50,12 @@ ExportDataListWindow::~ExportDataListWindow() {
     delete ui;
 }
 
-void ExportDataListWindow::setDataList(const QList<QString> &dataListArg) {
-    this->dataList = dataListArg;
-}
-
-const QList<QString> &ExportDataListWindow::getDataList() {
-    return this->dataList;
-}
-
 void ExportDataListWindow::updateUI() {
-    for (QString dataItem: this->dataList) {
+    ui->dataListWidget->clear();
+    for (const QString &dataItem: ProjectConfigManager::instance().getItemValue(ConfigValue::DataList).toStringList()) {
+        if (dataItem.isEmpty()) {
+            continue;
+        }
         ui->dataListWidget->addItem(dataItem);
     }
 }

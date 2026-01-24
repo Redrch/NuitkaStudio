@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(NuitkaStudio VERSION 1.1.0)
+project(NuitkaStudio VERSION 1.2.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -71,9 +71,12 @@ set(SOURCES
         src/ui/new_project_window.h
         src/utils/project_config.cpp
         src/utils/project_config.h
-        src/utils/data_structs.h
+        src/types/data_structs.h
         src/utils/utils.cpp
         src/utils/utils.h
+        src/types/project_config_type.h
+        src/types/project_config_manager.cpp
+        src/types/project_config_manager.h
 )
 set(RESOURCES
         resource.qrc

@@ -9,7 +9,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-#include "data_structs.h"
+#include "../types/data_structs.h"
+#include "../types/project_config_manager.h"
 #include "config.h"
 #include "logger.h"
 #include "utils.h"

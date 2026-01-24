@@ -103,7 +103,9 @@ void NewProjectWindow::newProject() {
             this->projectConfigData->pythonPath = this->pythonPath;
             this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
             this->projectConfigData->outputPath = projectDirPath + "/build";
-            this->projectConfigData->outputFilename = projectName + ".exe";
+            this->projectConfigData->outputFilename = this->projectName + ".exe";
+            this->projectConfigData->projectPath = projectDirPath;
+            this->projectConfigData->projectName = this->projectName;
             ProjectConfig project_config(this->projectConfigData, this);
             project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
@@ -118,6 +120,9 @@ void NewProjectWindow::newProject() {
             this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
             this->projectConfigData->outputPath = projectDirPath + "/build";
             this->projectConfigData->outputFilename = projectName + ".exe";
+            this->projectConfigData->projectPath = projectDirPath;
+            this->projectConfigData->projectName = this->projectName;
+
             ProjectConfig project_config(this->projectConfigData, this);
             project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
@@ -132,6 +137,8 @@ void NewProjectWindow::newProject() {
             this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
             this->projectConfigData->outputPath = projectDirPath + "/build";
             this->projectConfigData->outputFilename = projectName + ".exe";
+            this->projectConfigData->projectPath = projectDirPath;
+            this->projectConfigData->projectName = this->projectName;
 
             ProjectConfig project_config(this->projectConfigData, this);
             project_config.exportProject(projectDirPath + "/" + projectName + ".npf");

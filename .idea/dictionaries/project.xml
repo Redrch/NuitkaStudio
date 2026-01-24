@@ -11,6 +11,8 @@
       <w>mainfile</w>
       <w>mainwindow</w>
       <w>nuitkastudio</w>
+      <w>projectconfigtype</w>
+      <w>projectconfigtypemanager</w>
       <w>redrch</w>
       <w>timedout</w>
     </words>

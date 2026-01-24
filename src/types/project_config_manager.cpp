@@ -1,0 +1,126 @@
+//
+// Created by redrch on 2026/1/16.
+//
+
+#include "project_config_manager.h"
+
+ProjectConfigManager::ProjectConfigManager() {
+    this->configList = new QList<ProjectConfigType *>();
+}
+
+ProjectConfigManager::~ProjectConfigManager() {
+    for (const ProjectConfigType *config: *this->configList) {
+        delete config;
+    }
+    delete this->configList;
+};
+
+void ProjectConfigManager::addItem(ProjectConfigType *config) {
+    if (config == nullptr) return;
+
+    if (this->configList->contains(config)) {
+        Logger::warn(QString("项目设置项%1已存在，请不要再次添加此项").arg(config->get_itemName()));
+    }
+    this->configList->append(config);
+}
+
+QList<ProjectConfigType *> *ProjectConfigManager::getList() {
+    return this->configList;
+}
+
+ProjectConfigType *ProjectConfigManager::getItem(int index) {
+    return this->configList->at(index);
+}
+
+ProjectConfigType *ProjectConfigManager::getItem(ConfigValue value) {
+    int index = static_cast<int>(value);
+    ProjectConfigType *config = getItem(index);
+    if (config == nullptr) return nullptr;
+    return config;
+}
+
+QVariant ProjectConfigManager::getItemValue(int index) {
+    ProjectConfigType *config = getItem(index);
+    if (config == nullptr) return QVariant();
+    return config->get_itemValue();
+}
+
+QVariant ProjectConfigManager::getItemValue(ConfigValue configValue) {
+    int index = static_cast<int>(configValue);
+    return getItemValue(index);
+}
+
+QString ProjectConfigManager::getItemValueToString(int index) {
+    return getItemValue(index).toString();
+}
+
+QString ProjectConfigManager::getItemValueToString(ConfigValue value) {
+    return getItemValue(value).toString();
+}
+
+QStringList ProjectConfigManager::getItemValueToStringList(int index) {
+    return getItemValue(index).toStringList();
+}
+
+QStringList ProjectConfigManager::getItemValueToStringList(ConfigValue value) {
+    return this->getItemValueToStringList(static_cast<int>(value));
+}
+
+bool ProjectConfigManager::getItemValueToBool(int index) {
+    return getItemValue(index).toBool();
+}
+
+bool ProjectConfigManager::getItemValueToBool(ConfigValue value) {
+    return getItemValue(value).toBool();
+}
+
+int ProjectConfigManager::getLength() {
+    return this->configList->size();
+}
+
+void ProjectConfigManager::setItem(const int index, const QVariant &value) {
+    ProjectConfigType *configItem = getItem(index);
+    configItem->set_itemValue(value);
+}
+
+void ProjectConfigManager::setItem(ConfigValue configValue, const QVariant &value) {
+    int index = static_cast<int>(configValue);
+    ProjectConfigType *configItem = getItem(index);
+    configItem->set_itemValue(value);
+}
+
+void ProjectConfigManager::appendItemToStringList(int index, const QString &value) {
+    QVariant rawList = this->getItemValue(index);
+    QStringList stringList = rawList.toStringList();
+    stringList.append(value);
+    this->setItem(index, QVariant(stringList));
+}
+
+void ProjectConfigManager::appendItemToStringList(ConfigValue configValue, const QString &value) {
+    int index = static_cast<int>(configValue);
+    this->appendItemToStringList(index, value);
+}
+
+void ProjectConfigManager::removeItemFromStringList(int index, const QString &value) {
+    QStringList stringList = this->getItemValue(index).toStringList();
+    stringList.removeOne(value);
+    this->setItem(index, QVariant(stringList));
+}
+
+void ProjectConfigManager::removeItemFromStringList(int index, int valueIndex) {
+    QStringList stringList = this->getItemValue(index).toStringList();
+    stringList.removeAt(valueIndex);
+    this->setItem(index, QVariant(stringList));
+}
+
+void ProjectConfigManager::removeItemFromStringList(ConfigValue configValue, const QString &value) {
+    this->removeItemFromStringList(static_cast<int>(configValue), value);
+}
+
+void ProjectConfigManager::removeItemFromStringList(ConfigValue configValue, int valueIndex) {
+    this->removeItemFromStringList(static_cast<int>(configValue), valueIndex);
+}
+
+void ProjectConfigManager::setList(QList<ProjectConfigType *> *list) {
+    this->configList = list;
+}

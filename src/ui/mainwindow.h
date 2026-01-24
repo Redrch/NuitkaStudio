@@ -22,6 +22,7 @@
 #include <QDateTime>
 #include <QElapsedTimer>
 #include <QTimer>
+#include <QProcessEnvironment>
 
 #include <QDebug>
 
@@ -30,7 +31,8 @@
 #include "../utils/config.h"
 #include "../utils/logger.h"
 #include "new_project_window.h"
-#include "../utils/data_structs.h"
+#include "../types/data_structs.h"
+#include "../types/project_config_manager.h"
 #include "../utils/utils.h"
 #include "../utils/project_config.h"
 
@@ -52,18 +54,6 @@ public:
 
 private:
     Ui::MainWindow *ui;
-
-    // QString pythonPath;
-    // QString mainFilePath;
-    // QString outputPath;
-    // QString outputFilename;
-    // QString iconPath;
-    //
-    // bool standalone = true;
-    // bool onefile = false;
-    // bool removeOutput = false;
-    // LTOMode ltoMode = LTOMode::Auto;
-    // QList<QString> dataList = QList<QString>();
 
     ProjectConfig *projectConfig;
 
@@ -95,6 +85,7 @@ private:
     void initExportPage();
     void initStatusBar();
 
+
 private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
@@ -111,6 +102,13 @@ private slots:
     void importProject();
     void exportProject();
     void newProject();
+
+    // Gen path functions
+    void genPaths(bool isUpdateUI = true);
+    void genPythonPath();
+    void genMainfilePath();
+    void genOutputPath();
+    void genOutputName();
 };
 
 

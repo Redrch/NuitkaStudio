@@ -10,6 +10,7 @@
 #include <QFileDialog>
 
 #include "../utils/config.h"
+#include "../types/project_config_manager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ExportDataListWindow; }
@@ -20,18 +21,11 @@ Q_OBJECT
 
 public:
     explicit ExportDataListWindow(QWidget *parent = nullptr);
-
     ~ExportDataListWindow() override;
 
-    void setDataList(const QList<QString>& dataListArg);
-    const QList<QString>& getDataList();
     void updateUI();
 private:
     Ui::ExportDataListWindow *ui;
-
-    QList<QString> dataList;
-signals:
-    void dataListChanged(const QList<QString>& newDataList);
 };
 
 
