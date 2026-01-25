@@ -38,6 +38,8 @@ void initProjectConfig() {
 int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 启动高DPI缩放
     qRegisterMetaType<LTOMode>("LTOMode");
+    qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
+
 
     initProjectConfig();
 
@@ -60,9 +62,9 @@ int main(int argc, char *argv[]) {
 
 /*
 Version 1.2.0 TO-DO
-TODO: 添加程序信息配置
+TODO:
 TODO: 新建项目时自动安装nuitka
-TODO: 重构打包UI界面m
+TODO: 重构打包UI界面
 TODO: 重构设置UI页面（如果需要）
 TODO: 添加打包日志功能，数据存储在npf文件中
 TODO: 添加新增项的配置
@@ -77,8 +79,10 @@ TODO: 美化ui（优先级最低）
 修改：
 1. 填写项目路径，自动填写其他路径
 2. 将项目配置的存储方式从struct改为了ProjectConfigManager
+3. 添加程序信息配置
+4. 修改了NPF文件格式，由文本改为二进制
 
 修复的问题：
 修复了导出数据列表窗口会存在空项的问题
-
+修复了导入新版NPF文件会崩溃的问题
 */

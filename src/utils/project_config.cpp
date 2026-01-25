@@ -26,7 +26,7 @@ void ProjectConfig::importProject(const QString &path) {
     }
 
     QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Open failed: " << file.errorString();
         QMessageBox::critical(this->parent, "Nuitka Studio Error", "Open failed: " + file.errorString());
         return;
@@ -35,11 +35,12 @@ void ProjectConfig::importProject(const QString &path) {
     in.setVersion(QDataStream::Qt_5_14);
     QList<ProjectConfigType> items;
     in >> items;
-    QList<ProjectConfigType *> itemList;
+
+    auto itemList = new QList<ProjectConfigType *>();
     for (const ProjectConfigType &item: items) {
-        itemList.append(new ProjectConfigType(item));
+        itemList->append(new ProjectConfigType(item));
     }
-    ProjectConfigManager::instance().setList(&itemList);
+    ProjectConfigManager::instance().setList(itemList);
 
     file.close();
 
@@ -60,7 +61,7 @@ void ProjectConfig::exportProject(const QString &path) {
     }
 
     QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         qWarning() << "Open failed: " << file.errorString();
         QMessageBox::warning(this->parent, "Nuitka Studio  Warning", "Open failed: " + file.errorString());
         return;

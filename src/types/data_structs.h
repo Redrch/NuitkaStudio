@@ -10,6 +10,7 @@
 #include <QMap>
 #include <QList>
 #include <QMetaType>
+#include <QVariant>
 
 enum class LTOMode {
     No,
@@ -18,6 +19,19 @@ enum class LTOMode {
 };
 
 Q_DECLARE_METATYPE(LTOMode);
+
+inline QDataStream &operator<<(QDataStream &out, const LTOMode &mode) {
+    // 使用 QVariant 明确选择 QVariant 的序列化重载，避免与其他重载冲突
+    out << QVariant(static_cast<int>(mode));
+    return out;
+}
+
+inline QDataStream &operator>>(QDataStream &in, LTOMode &mode) {
+    QVariant v;
+    in >> v;
+    mode = static_cast<LTOMode>(v.toInt());
+    return in;
+}
 
 inline QMap<int, int> configListAndUiListMap = {
     {0, 0},

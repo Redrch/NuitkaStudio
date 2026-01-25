@@ -104,11 +104,13 @@ private slots:
     void newProject();
 
     // Gen path functions
-    void genPaths(bool isUpdateUI = true);
+    void genData(bool isUpdateUI = true);
     void genPythonPath();
     void genMainfilePath();
     void genOutputPath();
     void genOutputName();
+    // Gen file info functions
+    void genFileInfo();
 };
 
 

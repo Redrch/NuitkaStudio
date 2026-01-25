@@ -120,7 +120,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>-251</y>
+         <y>0</y>
          <width>870</width>
          <height>963</height>
         </rect>
@@ -190,7 +190,7 @@
                   <item>
                    <widget class="QPushButton" name="genPathsButton">
                     <property name="text">
-                     <string>生成路径</string>
+                     <string>生成信息</string>
                     </property>
                    </widget>
                   </item>
@@ -665,17 +665,17 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QWidget" name="versionWidget" native="true">
+                   <widget class="QWidget" name="productVersionWidget" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_32">
                      <item>
-                      <widget class="QLabel" name="versionLabel">
+                      <widget class="QLabel" name="productVersionLabel">
                        <property name="text">
                         <string>产品版本号</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLineEdit" name="versionEdit"/>
+                      <widget class="QLineEdit" name="productVersionEdit"/>
                      </item>
                     </layout>
                    </widget>
