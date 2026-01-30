@@ -457,7 +457,7 @@ void MainWindow::updatePackUI() {
     ui->fileVersionEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileVersion));
     ui->companyEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company));
     ui->productNameEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductName));
-    ui->fileVersionEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductVersion));
+    ui->productVersionEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductVersion));
 
     ui->fileDescriptitonEdit->setText(
         ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileDescription));
@@ -925,10 +925,6 @@ void MainWindow::genOutputName() {
 }
 
 void MainWindow::genFileInfo() {
-    ProjectConfigManager::instance().setItem(ConfigValue::ProductVersion,
-                                             ProjectConfigManager::instance().getItemValueToString(
-                                                 ConfigValue::FileVersion));
-
     ProjectConfigManager::instance().setItem(ConfigValue::ProductName,
                                              ProjectConfigManager::instance().getItemValueToString(
                                                  ConfigValue::ProjectName));

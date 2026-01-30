@@ -22,19 +22,13 @@ void initProjectConfig() {
     // data list
     ProjectConfigManager::instance().addItem(new ProjectConfigType("dataList", QVariant(QStringList())));  // 11
     // file data
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("language", QVariant("")));  // 12
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("originalFileName", QVariant("")));  // 13
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("fileVersion", QVariant("")));  // 14
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("internalName", QVariant("")));  // 15
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("company", QVariant("")));  // 16
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("productName", QVariant("")));  // 17
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("productVersion", QVariant("")));  // 18
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("fileDescription", QVariant("")));  // 19
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("comments", QVariant("")));  // 20
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("legalCopyright", QVariant("")));  // 21
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("legalTrademarks", QVariant("")));  // 22
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("privateBuild", QVariant("")));  // 23
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("specialBuild", QVariant("")));  // 24
+    ProjectConfigManager::instance().addItem(new ProjectConfigType("fileVersion", QVariant("")));  // 12
+    ProjectConfigManager::instance().addItem(new ProjectConfigType("company", QVariant("")));  // 13
+    ProjectConfigManager::instance().addItem(new ProjectConfigType("productName", QVariant("")));  // 14
+    ProjectConfigManager::instance().addItem(new ProjectConfigType("productVersion", QVariant("")));  // 15
+    ProjectConfigManager::instance().addItem(new ProjectConfigType("fileDescription", QVariant("")));  // 16
+    ProjectConfigManager::instance().addItem(new ProjectConfigType("legalCopyright", QVariant("")));  // 17
+    ProjectConfigManager::instance().addItem(new ProjectConfigType("legalTrademarks", QVariant("")));  // 18
 }
 
 int main(int argc, char *argv[]) {
