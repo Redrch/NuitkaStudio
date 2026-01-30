@@ -13,9 +13,9 @@
 #include <QVariant>
 
 enum class LTOMode {
-    No,
+    Auto,
     Yes,
-    Auto
+    No
 };
 
 Q_DECLARE_METATYPE(LTOMode);
@@ -53,12 +53,6 @@ inline QMap<int, int> configListAndUiListMap = {
     {16, 16},
     {17, 17},
     {18, 18},
-    {19, 19},
-    {20, 20},
-    {21, 21},
-    {22, 22},
-    {23, 23},
-    {24, 24}
 };
 
 inline QMap<int, int> configListAndUiListInverseMap = {
@@ -81,12 +75,6 @@ inline QMap<int, int> configListAndUiListInverseMap = {
     {16, 16},
     {17, 17},
     {18, 18},
-    {19, 19},
-    {20, 20},
-    {21, 21},
-    {22, 22},
-    {23, 23},
-    {24, 24}
 };
 
 enum class ConfigValue {
@@ -102,19 +90,13 @@ enum class ConfigValue {
     RemoveOutput,
     LtoMode,
     DataList,
-    Language,
-    OriginalFilename,
     FileVersion,
-    InternalName,
     Company,
     ProductName,
     ProductVersion,
     FileDescription,
-    Comments,
     LegalCopyright,
     LegalTrademarks,
-    PrivateBuild,
-    SpecialBuild,
 };
 
 struct ProjectConfigData {

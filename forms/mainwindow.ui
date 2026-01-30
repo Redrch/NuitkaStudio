@@ -120,9 +120,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>-252</y>
          <width>870</width>
-         <height>963</height>
+         <height>902</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_29">
@@ -563,38 +563,6 @@
                 <widget class="QWidget" name="theFirstLineWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_34">
                   <item>
-                   <widget class="QWidget" name="languageWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_35">
-                     <item>
-                      <widget class="QLabel" name="languageLabel">
-                       <property name="text">
-                        <string>语言信息</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="languageEdit"/>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="originalFileNameWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_36">
-                     <item>
-                      <widget class="QLabel" name="originalFileNameLabel">
-                       <property name="text">
-                        <string>原始文件名</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="originalFileNameEdit"/>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
                    <widget class="QWidget" name="fileVersionWidget" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_37">
                      <item>
@@ -611,28 +579,6 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QWidget" name="internalNameWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_40">
-                     <item>
-                      <widget class="QLabel" name="internalNameLabel">
-                       <property name="text">
-                        <string>内部名称</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="internalNameEdit"/>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QWidget" name="theSecondLineWidget" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_33">
-                  <item>
                    <widget class="QWidget" name="companyWidget" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_30">
                      <item>
@@ -648,6 +594,12 @@
                     </layout>
                    </widget>
                   </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="theSecondLineWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_33">
                   <item>
                    <widget class="QWidget" name="productNameWidget" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_31">
@@ -685,44 +637,6 @@
                </item>
                <item>
                 <widget class="QWidget" name="theThirdLineWidget" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_38">
-                  <item>
-                   <widget class="QWidget" name="fileDescriptitonWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_39">
-                     <item>
-                      <widget class="QLabel" name="fileDescriptitonLabel">
-                       <property name="text">
-                        <string>文件说明</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="fileDescriptitonEdit"/>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="commentsWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_41">
-                     <item>
-                      <widget class="QLabel" name="commentsLabel">
-                       <property name="text">
-                        <string>注释</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="commentsEdit"/>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QWidget" name="theFourthLineWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_45">
                   <item>
                    <widget class="QWidget" name="legalCopyrightWidget" native="true">
@@ -760,36 +674,20 @@
                 </widget>
                </item>
                <item>
-                <widget class="QWidget" name="theFifthLineWidget" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_42">
+                <widget class="QWidget" name="theFourthLineWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_38">
                   <item>
-                   <widget class="QWidget" name="privateBuildWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_43">
+                   <widget class="QWidget" name="fileDescriptitonWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_39">
                      <item>
-                      <widget class="QLabel" name="privateBuildLabel">
+                      <widget class="QLabel" name="fileDescriptitonLabel">
                        <property name="text">
-                        <string>私有版本说明</string>
+                        <string>文件说明</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLineEdit" name="privateBuildEdit"/>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="specialBuildWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_44">
-                     <item>
-                      <widget class="QLabel" name="specialBuildLabel">
-                       <property name="text">
-                        <string>特殊构建说明</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="specialBuildEdit"/>
+                      <widget class="QLineEdit" name="fileDescriptitonEdit"/>
                      </item>
                     </layout>
                    </widget>
@@ -1221,7 +1119,7 @@
                   <item>
                    <widget class="QTableWidget" name="projectTable">
                     <property name="rowCount">
-                     <number>25</number>
+                     <number>19</number>
                     </property>
                     <property name="columnCount">
                      <number>2</number>
@@ -1238,12 +1136,6 @@
                     <attribute name="verticalHeaderCascadingSectionResizes">
                      <bool>false</bool>
                     </attribute>
-                    <row/>
-                    <row/>
-                    <row/>
-                    <row/>
-                    <row/>
-                    <row/>
                     <row/>
                     <row/>
                     <row/>
@@ -1363,7 +1255,7 @@
                     </item>
                     <item row="12" column="0">
                      <property name="text">
-                      <string>语言信息</string>
+                      <string>文件版本号</string>
                      </property>
                      <property name="flags">
                       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -1371,7 +1263,7 @@
                     </item>
                     <item row="13" column="0">
                      <property name="text">
-                      <string>原始文件名</string>
+                      <string>企业信息</string>
                      </property>
                      <property name="flags">
                       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -1379,7 +1271,7 @@
                     </item>
                     <item row="14" column="0">
                      <property name="text">
-                      <string>文件版本号</string>
+                      <string>产品名称</string>
                      </property>
                      <property name="flags">
                       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -1387,7 +1279,7 @@
                     </item>
                     <item row="15" column="0">
                      <property name="text">
-                      <string>内部名称</string>
+                      <string>产品版本号</string>
                      </property>
                      <property name="flags">
                       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
@@ -1395,42 +1287,10 @@
                     </item>
                     <item row="16" column="0">
                      <property name="text">
-                      <string>企业信息</string>
+                      <string>文件说明</string>
                      </property>
                     </item>
                     <item row="17" column="0">
-                     <property name="text">
-                      <string>产品名称</string>
-                     </property>
-                     <property name="flags">
-                      <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                     </property>
-                    </item>
-                    <item row="18" column="0">
-                     <property name="text">
-                      <string>产品版本号</string>
-                     </property>
-                     <property name="flags">
-                      <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                     </property>
-                    </item>
-                    <item row="19" column="0">
-                     <property name="text">
-                      <string>文件说明</string>
-                     </property>
-                     <property name="flags">
-                      <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                     </property>
-                    </item>
-                    <item row="20" column="0">
-                     <property name="text">
-                      <string>注释</string>
-                     </property>
-                     <property name="flags">
-                      <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                     </property>
-                    </item>
-                    <item row="21" column="0">
                      <property name="text">
                       <string>版权信息</string>
                      </property>
@@ -1438,25 +1298,9 @@
                       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
                      </property>
                     </item>
-                    <item row="22" column="0">
+                    <item row="18" column="0">
                      <property name="text">
                       <string>商标信息</string>
-                     </property>
-                     <property name="flags">
-                      <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                     </property>
-                    </item>
-                    <item row="23" column="0">
-                     <property name="text">
-                      <string>私有版本说明</string>
-                     </property>
-                     <property name="flags">
-                      <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                     </property>
-                    </item>
-                    <item row="24" column="0">
-                     <property name="text">
-                      <string>特殊构建说明</string>
                      </property>
                      <property name="flags">
                       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>

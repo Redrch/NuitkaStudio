@@ -2,6 +2,8 @@
 #include "ui/mainwindow.h"
 #include "utils/logger.h"
 
+bool isDebug = true;
+
 void initProjectConfig() {
     // path data
     ProjectConfigManager::instance().addItem(new ProjectConfigType("pythonPath", QVariant("")));  // 0
@@ -39,8 +41,6 @@ int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 启动高DPI缩放
     qRegisterMetaType<LTOMode>("LTOMode");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
-
-
     initProjectConfig();
 
     QApplication a(argc, argv);
@@ -48,13 +48,13 @@ int main(int argc, char *argv[]) {
     Logger::Config cfg;
     cfg.file_path = "app.log";
     Logger logger(cfg);
-    Logger::installQtMessageHandler();
+    if (!isDebug) Logger::installQtMessageHandler();
     // init mainwindow
     MainWindow w;
     w.show();
     // clean
     int ret = QApplication::exec();
-    Logger::uninstallQtMessageHandler();
+    if (!isDebug) Logger::uninstallQtMessageHandler();
     logger.shutdown();
     return ret;
 }
@@ -62,7 +62,6 @@ int main(int argc, char *argv[]) {
 
 /*
 Version 1.2.0 TO-DO
-TODO:
 TODO: 新建项目时自动安装nuitka
 TODO: 重构打包UI界面
 TODO: 重构设置UI页面（如果需要）

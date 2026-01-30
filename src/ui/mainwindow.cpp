@@ -3,6 +3,9 @@
 //
 
 #include "mainwindow.h"
+
+#include <complex>
+
 #include "ui_mainwindow.h"
 
 
@@ -146,6 +149,33 @@ void MainWindow::startPack() {
     if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::IconPath).isEmpty()) {
         args << "--windows-icon-from-ico=" + ProjectConfigManager::instance().getItemValueToString(
             ConfigValue::IconPath);
+    }
+    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileVersion).isEmpty()) {
+        args << "--file-version=" + ProjectConfigManager::instance().getItemValueToString(
+            ConfigValue::FileVersion);
+    }
+    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company).isEmpty()) {
+        args << "--company-name=" + ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company);
+    }
+    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductName).isEmpty()) {
+        args << "--product-name=" + ProjectConfigManager::instance().getItemValueToString(
+            ConfigValue::ProductName);
+    }
+    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductVersion).isEmpty()) {
+        args << "--product-version=" + ProjectConfigManager::instance().getItemValueToString(
+            ConfigValue::ProductVersion);
+    }
+    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileDescription).isEmpty()) {
+        args << "--file-description=" + ProjectConfigManager::instance().getItemValueToString(
+            ConfigValue::FileDescription);
+    }
+    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalCopyright).isEmpty()) {
+        args << "--copyright=" + ProjectConfigManager::instance().getItemValueToString(
+            ConfigValue::LegalCopyright);
+    }
+    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalTrademarks).isEmpty()) {
+        args << "--trademarks=" + ProjectConfigManager::instance().getItemValueToString(
+            ConfigValue::LegalTrademarks);
     }
 
     this->packProcess->start(
@@ -330,17 +360,8 @@ void MainWindow::updateExportTable() {
 
     // file info
     ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(ConfigValue::Language)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::Language)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(ConfigValue::OriginalFilename)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::OriginalFilename)));
-    ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::FileVersion)), 1,
         new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileVersion)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(ConfigValue::InternalName)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::InternalName)));
 
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::Company)), 1,
@@ -354,21 +375,12 @@ void MainWindow::updateExportTable() {
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::FileDescription)), 1,
                               new QTableWidgetItem(
                                   ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileDescription)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::Comments)), 1,
-                              new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::Comments)));
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::LegalCopyright)), 1,
                               new QTableWidgetItem(
                                   ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalCopyright)));
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::LegalTrademarks)), 1,
                               new QTableWidgetItem(
                                   ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalTrademarks)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::PrivateBuild)), 1,
-                              new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::PrivateBuild)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::SpecialBuild)), 1,
-                              new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::SpecialBuild)));
 
 
     if (this->standaloneCheckbox)
@@ -396,19 +408,8 @@ void MainWindow::updateExportTable() {
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::DataList)), 1,
                               new QTableWidgetItem(list.join(";")));
 
-    int index = 0;
-    switch (ProjectConfigManager::instance().getItemValue(ConfigValue::LtoMode).value<LTOMode>()) {
-        case LTOMode::Auto:
-            index = 0;
-            break;
-        case LTOMode::Yes:
-            index = 1;
-            break;
-        case LTOMode::No:
-            index = 2;
-            break;
-    }
-    this->ltoModeCombobox->setCurrentIndex(index);
+    this->ltoModeCombobox->setCurrentIndex(
+        static_cast<int>(ProjectConfigManager::instance().getItemValue(ConfigValue::LtoMode).value<LTOMode>()));
 }
 
 void MainWindow::updatePackUI() {
@@ -453,24 +454,16 @@ void MainWindow::updatePackUI() {
     }
 
     // File info
-    ui->languageEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::Language));
-    ui->originalFileNameEdit->setText(
-        ProjectConfigManager::instance().getItemValueToString(ConfigValue::OriginalFilename));
     ui->fileVersionEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileVersion));
-    ui->internalNameEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::InternalName));
-
     ui->companyEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company));
     ui->productNameEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductName));
     ui->fileVersionEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductVersion));
 
     ui->fileDescriptitonEdit->setText(
         ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileDescription));
-    ui->commentsEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::Comments));
     ui->legalCopyrightEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalCopyright));
     ui->legalTrademarksEdit->setText(
         ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalTrademarks));
-    ui->privateBuildEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PrivateBuild));
-    ui->specialBuildEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PrivateBuild));
 }
 
 // Connect functions
@@ -546,32 +539,32 @@ void MainWindow::connectPackPage() {
 
     // Edits
     // Python file edit
-    connect(ui->pythonFileEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->pythonFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, text);
     });
 
     // Main file path edit
-    connect(ui->mainPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->mainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, text);
     });
 
     // Output file path edit
-    connect(ui->outputPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->outputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, text);
     });
 
     // Output file name edit
-    connect(ui->outputFileEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, text);
+    connect(ui->outputFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, text);
     });
 
     // Project path edit
-    connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, text);
     });
 
     // Project name edit
-    connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, text);
     });
 
@@ -611,14 +604,14 @@ void MainWindow::connectPackPage() {
     });
     // Yes
     connect(ui->ltoYes, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
+        if (ui->ltoYes->checkState() == Qt::CheckState::Checked) {
             ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
                                                      QVariant::fromValue<LTOMode>(LTOMode::Yes));
         }
     });
     // Auto
     connect(ui->ltoAuto, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
+        if (ui->ltoAuto->checkState() == Qt::CheckState::Checked) {
             ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
                                                      QVariant::fromValue<LTOMode>(LTOMode::Auto));
         }
@@ -665,48 +658,28 @@ void MainWindow::connectPackPage() {
     });
 
     // file info
-    connect(ui->languageEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::Language, text);
-    });
-    connect(ui->originalFileNameEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::OriginalFilename, text);
-    });
-    connect(ui->fileVersionEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->fileVersionEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::FileVersion, text);
         this->genFileInfo();
         this->updateUI();
     });
-    connect(ui->internalNameEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::InternalName, text);
+    connect(ui->companyEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        ProjectConfigManager::instance().setItem(ConfigValue::Company, text);
     });
-
-    connect(ui->commentsEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::Comments, text);
-    });
-    connect(ui->productNameEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->productNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::ProductName, text);
     });
-    connect(ui->productVersionEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->productVersionEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::ProductVersion, text);
     });
-
-    connect(ui->fileDescriptitonEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->fileDescriptitonEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::FileDescription, text);
     });
-    connect(ui->commentsEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::Comments, text);
-    });
-    connect(ui->legalCopyrightEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->legalCopyrightEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::LegalCopyright, text);
     });
-    connect(ui->legalTrademarksEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->legalTrademarksEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         ProjectConfigManager::instance().setItem(ConfigValue::LegalTrademarks, text);
-    });
-    connect(ui->privateBuildEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::PrivateBuild, text);
-    });
-    connect(ui->specialBuildEdit, &QLineEdit::textChanged, this, [=](QString text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::SpecialBuild, text);
     });
 }
 
@@ -801,15 +774,15 @@ void MainWindow::connectExportPage() {
     // Item Changed
     connect(ui->projectTable, &QTableWidget::itemChanged, this, [=](QTableWidgetItem *item) {
         int row = item->row();
-        switch (row) {
-            case 8: {
-                QStringList stringDataList = item->text().split(";");
-                ProjectConfigManager::instance().setItem(configListAndUiListInverseMap.value(row), stringDataList);
-                break;
-            }
-            default:
-                ProjectConfigManager::instance().setItem(configListAndUiListInverseMap.value(row), item->text());
-                break;
+        if (row == configListAndUiListMap.value(static_cast<int>(ConfigValue::DataList))) {
+            QStringList stringDataList = item->text().split(";");
+            ProjectConfigManager::instance().setItem(configListAndUiListInverseMap.value(row), stringDataList);
+        } else if (row == configListAndUiListMap.value(static_cast<int>(ConfigValue::LtoMode))) {
+            int value = item->text().toInt();
+            ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+                                                     QVariant::fromValue<LTOMode>(static_cast<LTOMode>(value)));
+        } else {
+            ProjectConfigManager::instance().setItem(configListAndUiListInverseMap.value(row), item->text());
         }
     });
     // Checkboxes
@@ -952,18 +925,9 @@ void MainWindow::genOutputName() {
 }
 
 void MainWindow::genFileInfo() {
-    ProjectConfigManager::instance().setItem(ConfigValue::Language, "zh-CN");
-    ProjectConfigManager::instance().setItem(ConfigValue::OriginalFilename,
-                                             ProjectConfigManager::instance().getItemValueToString(
-                                                 ConfigValue::ProjectName) + "-" + ProjectConfigManager::instance().
-                                             getItemValueToString(ConfigValue::FileVersion) + ".exe");
     ProjectConfigManager::instance().setItem(ConfigValue::ProductVersion,
                                              ProjectConfigManager::instance().getItemValueToString(
                                                  ConfigValue::FileVersion));
-
-    ProjectConfigManager::instance().setItem(ConfigValue::InternalName,
-                                             ProjectConfigManager::instance().getItemValueToString(
-                                                 ConfigValue::ProjectName));
 
     ProjectConfigManager::instance().setItem(ConfigValue::ProductName,
                                              ProjectConfigManager::instance().getItemValueToString(
