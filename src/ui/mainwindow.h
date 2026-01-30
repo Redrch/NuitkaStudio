@@ -60,7 +60,6 @@ private:
     QDateTime startPackTime;
     QTimer *packTimer;
     QProcess *packProcess;
-    ProjectConfigData* data;
 
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;

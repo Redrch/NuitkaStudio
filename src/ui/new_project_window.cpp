@@ -16,8 +16,6 @@ NewProjectWindow::NewProjectWindow(QWidget *parent) : QDialog(parent), ui(new Ui
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 
-    this->projectConfigData = new ProjectConfigData;
-
     this->connectPath();
     connect(ui->pyTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         this->onPyTypeComboBoxCurrentIndexChanged(index);
@@ -78,10 +76,6 @@ void NewProjectWindow::connectPath() {
     });
 }
 
-ProjectConfigData *NewProjectWindow::getProjectConfigData() {
-    return this->projectConfigData;
-}
-
 void NewProjectWindow::newProject() {
     ui->newProjectBtn->setEnabled(false);
     Logger::info(QString("创建项目%1在目录%2").arg(this->projectName).arg(this->projectPath));
@@ -100,13 +94,13 @@ void NewProjectWindow::newProject() {
 
     switch (this->interpreterType) {
         case InterpreterType::Python: {
-            this->projectConfigData->pythonPath = this->pythonPath;
-            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
-            this->projectConfigData->outputPath = projectDirPath + "/build";
-            this->projectConfigData->outputFilename = this->projectName + ".exe";
-            this->projectConfigData->projectPath = projectDirPath;
-            this->projectConfigData->projectName = this->projectName;
-            ProjectConfig project_config(this->projectConfigData, this);
+            ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, this->pythonPath);
+            ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
+            ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, projectDirPath + "/build");
+            ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
+            ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, projectDirPath);
+            ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, this->projectName);
+            ProjectConfig project_config(this);
             project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
         }
@@ -116,14 +110,14 @@ void NewProjectWindow::newProject() {
             p.start(this->pythonPath, QStringList() << "-m" << "venv" << ".venv");
             p.waitForFinished();
 
-            this->projectConfigData->pythonPath = projectDirPath + "/.venv" + "/Scripts" + "/python.exe";
-            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
-            this->projectConfigData->outputPath = projectDirPath + "/build";
-            this->projectConfigData->outputFilename = projectName + ".exe";
-            this->projectConfigData->projectPath = projectDirPath;
-            this->projectConfigData->projectName = this->projectName;
+            ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
+            ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
+            ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, projectDirPath + "/build");
+            ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
+            ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, projectDirPath);
+            ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, this->projectName);
 
-            ProjectConfig project_config(this->projectConfigData, this);
+            ProjectConfig project_config(this);
             project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
         }
@@ -133,14 +127,14 @@ void NewProjectWindow::newProject() {
             p.start(this->uvPath, QStringList() << "init" << "-p" << this->pythonPath << "--no-readme");
             p.waitForFinished();
 
-            this->projectConfigData->pythonPath = this->pythonPath;
-            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
-            this->projectConfigData->outputPath = projectDirPath + "/build";
-            this->projectConfigData->outputFilename = projectName + ".exe";
-            this->projectConfigData->projectPath = projectDirPath;
-            this->projectConfigData->projectName = this->projectName;
+            ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
+            ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
+            ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, projectDirPath + "/build");
+            ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
+            ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, projectDirPath);
+            ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, this->projectName);
 
-            ProjectConfig project_config(this->projectConfigData, this);
+            ProjectConfig project_config(this);
             project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
         }

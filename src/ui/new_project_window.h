@@ -38,8 +38,6 @@ public:
 
     ~NewProjectWindow() override;
 
-    ProjectConfigData *getProjectConfigData();
-
 private:
     Ui::NewProjectWindow *ui;
 
@@ -50,8 +48,6 @@ private:
     QString pythonPath;
     QString virtualenvPath;
     QString uvPath;
-
-    ProjectConfigData *projectConfigData;
 
     void connectPath();
 

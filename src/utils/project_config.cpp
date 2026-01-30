@@ -4,8 +4,7 @@
 
 #include "project_config.h"
 
-ProjectConfig::ProjectConfig(ProjectConfigData *data, QWidget *parent) {
-    this->data = data;
+ProjectConfig::ProjectConfig(QWidget *parent) {
     this->parent = parent;
 }
 

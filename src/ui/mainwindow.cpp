@@ -12,8 +12,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    this->data = new ProjectConfigData;
-    this->projectConfig = new ProjectConfig(this->data, this);
+    this->projectConfig = new ProjectConfig(this);
 
     if (!QFile::exists(Config::instance().getConfigPath())) {
         Config::instance().writeConfig();
@@ -39,7 +38,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 MainWindow::~MainWindow() {
-    delete this->data;
     delete this->projectConfig;
     delete ui;
 }
@@ -239,9 +237,8 @@ void MainWindow::newProject() {
     newProjectWindow->setWindowFlags(newProjectWindow->windowFlags() | Qt::Window);
     newProjectWindow->setAttribute(Qt::WA_DeleteOnClose);
     newProjectWindow->exec();
-
-    this->data = newProjectWindow->getProjectConfigData();
     this->updateUI();
+    this->genFileInfo();
 }
 
 // Slots

@@ -17,13 +17,12 @@
 
 class ProjectConfig {
 public:
-    ProjectConfig(ProjectConfigData* data, QWidget* parent);
+    explicit ProjectConfig(QWidget* parent);
     ~ProjectConfig();
 
     void importProject(const QString& path = "");
     void exportProject(const QString& path = "");
 private:
-    ProjectConfigData* data;
     QWidget *parent;
 };
 
