@@ -55,8 +55,7 @@ int main(int argc, char *argv[]) {
 
 
 /*
-Version 1.2.0 TO-DO
-TODO: 新建项目时自动安装nuitka
+Version 1.2.0.0 TO-DO
 TODO: 重构打包UI界面
 TODO: 重构设置UI页面（如果需要）
 TODO: 添加打包日志功能，数据存储在npf文件中
@@ -68,12 +67,15 @@ TODO: 美化ui（优先级最低）
 */
 
 /*
+重大修改：
+1. 修改了版本号命名方式，由x.x.x改为了x.x.x.x
 
-修改：
+普通修改：
 1. 填写项目路径，自动填写其他路径
 2. 将项目配置的存储方式从struct改为了ProjectConfigManager
 3. 添加程序信息配置
 4. 修改了NPF文件格式，由文本改为二进制
+5. 新建项目时自动安装nuitka
 
 修复的问题：
 修复了导出数据列表窗口会存在空项的问题

@@ -37,6 +37,7 @@ public:
     explicit NewProjectWindow(QWidget *parent = nullptr);
 
     ~NewProjectWindow() override;
+    void installNuitka(QProcess* process);
 
 private:
     Ui::NewProjectWindow *ui;

@@ -186,7 +186,7 @@ void MainWindow::startPack() {
     // pack timer
     this->startPackTime = QDateTime::currentDateTime();
     this->packTimer->start(Config::instance().getPackTimerTriggerInterval());
-    // use time obj
+    // console output
     ui->consoleOutputEdit->append(
         ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath) + " " + args.
         join(" "));
@@ -234,9 +234,22 @@ void MainWindow::exportProject() {
 
 void MainWindow::newProject() {
     auto *newProjectWindow = new NewProjectWindow(this);
+    auto *process = new QProcess(this);
     newProjectWindow->setWindowFlags(newProjectWindow->windowFlags() | Qt::Window);
-    newProjectWindow->setAttribute(Qt::WA_DeleteOnClose);
     newProjectWindow->exec();
+    this->messageLabel->setText(
+        QString("正在为项目%1安装nuitka...").arg(
+            ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName)));
+    newProjectWindow->installNuitka(process);
+    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, [=](int exitCode, QProcess::ExitStatus exitStatus) {
+                this->messageLabel->setText(QString("项目%1的nuitka安装完毕").arg(
+                    ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName)));
+                QTimer::singleShot(3000, this, [=]() {
+                    this->messageLabel->clear();
+                });
+                newProjectWindow->deleteLater();
+            });
     this->updateUI();
     this->genFileInfo();
 }
@@ -646,7 +659,7 @@ void MainWindow::connectPackPage() {
         auto now = QDateTime::currentDateTime();
         qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
         QString timeString = Utils::formatMilliseconds(time);
-        this->timerLabel->setText(timeString);
+        this->messageLabel->setText(timeString);
     });
 
     // Gen paths button
@@ -834,10 +847,10 @@ void MainWindow::initExportPage() {
 
 void MainWindow::initStatusBar() {
     // Status bar
-    this->timerLabel = new QLabel;
-    this->timerLabel->setAlignment(Qt::AlignCenter);
-    ui->statusbar->addWidget(this->timerLabel);
-    ui->statusbar->addPermanentWidget(this->timerLabel, 0);
+    this->messageLabel = new QLabel;
+    this->messageLabel->setAlignment(Qt::AlignCenter);
+    ui->statusbar->addWidget(this->messageLabel);
+    ui->statusbar->addPermanentWidget(this->messageLabel, 0);
 }
 
 // gen path functions

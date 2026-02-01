@@ -65,7 +65,7 @@ private:
     QCheckBox *onefileCheckbox;
     QCheckBox *removeOutputCheckbox;
     QComboBox *ltoModeCombobox;
-    QLabel *timerLabel;
+    QLabel *messageLabel;
 
     // functions
     // Update UI functions

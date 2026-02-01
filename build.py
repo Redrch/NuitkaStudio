@@ -4,7 +4,7 @@ import os
 import shutil
 import tomllib
 
-VERSION = "1.1.0"
+VERSION = "1.2.0.0"
 
 config_dict = tomllib.load(open("config.toml", "rb"))
 path_dict = config_dict["Path"]

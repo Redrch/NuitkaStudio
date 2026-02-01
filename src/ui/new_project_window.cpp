@@ -56,22 +56,22 @@ void NewProjectWindow::connectPath() {
     });
 
     // edit
-    connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->projectPath = text;
     });
-    connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->projectName = text;
     });
-    connect(ui->pyFileEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->pyFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->pythonPath = text;
     });
-    connect(ui->venvPyFilePathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->venvPyFilePathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->pythonPath = text;
     });
-    connect(ui->uvPyFilePathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->uvPyFilePathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->pythonPath = text;
     });
-    connect(ui->uvPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->uvPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->uvPath = text;
     });
 }
@@ -95,13 +95,6 @@ void NewProjectWindow::newProject() {
     switch (this->interpreterType) {
         case InterpreterType::Python: {
             ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, this->pythonPath);
-            ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
-            ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, projectDirPath + "/build");
-            ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
-            ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, projectDirPath);
-            ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, this->projectName);
-            ProjectConfig project_config(this);
-            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
             break;
         }
         case InterpreterType::Virtualenv: {
@@ -110,15 +103,8 @@ void NewProjectWindow::newProject() {
             p.start(this->pythonPath, QStringList() << "-m" << "venv" << ".venv");
             p.waitForFinished();
 
-            ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
-            ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
-            ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, projectDirPath + "/build");
-            ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
-            ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, projectDirPath);
-            ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, this->projectName);
-
-            ProjectConfig project_config(this);
-            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
+            ProjectConfigManager::instance().setItem(ConfigValue::PythonPath,
+                                                     projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
             break;
         }
         case InterpreterType::UV: {
@@ -126,19 +112,25 @@ void NewProjectWindow::newProject() {
             p.setWorkingDirectory(projectDirPath);
             p.start(this->uvPath, QStringList() << "init" << "-p" << this->pythonPath << "--no-readme");
             p.waitForFinished();
+            p.start(this->uvPath, QStringList() << "venv");
+            p.waitForFinished();
 
-            ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
-            ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
-            ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, projectDirPath + "/build");
-            ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
-            ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, projectDirPath);
-            ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, this->projectName);
-
-            ProjectConfig project_config(this);
-            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
+            ProjectConfigManager::instance().setItem(ConfigValue::PythonPath,
+                                                     projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
             break;
         }
     }
+
+    ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
+    ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, projectDirPath + "/build");
+    ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
+    ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, projectDirPath);
+    ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, this->projectName);
+    ProjectConfigManager::instance().setItem(ConfigValue::FileVersion, "1.0.0.0");
+    ProjectConfigManager::instance().setItem(ConfigValue::ProductVersion, "1.0.0.0");
+
+    ProjectConfig project_config(this);
+    project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
     ui->newProjectBtn->setDisabled(true);
 
     this->accept();
@@ -160,4 +152,53 @@ void NewProjectWindow::onPyTypeComboBoxCurrentIndexChanged(int index) {
     }
 
     ui->projectPyPathStackedWidget->setCurrentIndex(index);
+}
+
+void NewProjectWindow::installNuitka(QProcess *process) {
+    QString projectDirPath = QFileInfo(this->projectPath, this->projectName).absoluteFilePath();
+    switch (this->interpreterType) {
+        case InterpreterType::Python: {
+            process->setWorkingDirectory(projectDirPath);
+            // find nuitka
+            process->start(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath),
+                           QStringList() << "-m" << "pip" << "list");
+            process->waitForFinished();
+            QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
+
+            if (!out.contains("nuitka")) {
+                // install nuitka
+                process->start(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath),
+                               QStringList() << "-m" << "pip" << "install" << "nuitka");
+            }
+            break;
+        }
+        case InterpreterType::Virtualenv: {
+            process->setWorkingDirectory(projectDirPath);
+            // find nuitka
+            process->start(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath),
+                           QStringList() << "-m" << "pip" << "list");
+            process->waitForFinished();
+            QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
+
+            if (!out.contains("nuitka")) {
+                // install nuitka
+                process->start(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath),
+                               QStringList() << "-m" << "pip" << "install" << "nuitka");
+            }
+            break;
+        }
+        case InterpreterType::UV: {
+            process->setWorkingDirectory(projectDirPath);
+            // find nuitka
+            process->start(this->uvPath, QStringList() << "pip" << "list");
+            process->waitForFinished();
+            QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
+
+            if (!out.contains("nuitka")) {
+                // install nuitka
+                process->start(this->uvPath, QStringList() << "add" << "nuitka");
+            }
+            break;
+        }
+    }
 }
