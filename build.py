@@ -11,13 +11,16 @@ path_dict = config_dict["Path"]
 
 ninja_path = path_dict["ninja_path"]
 vcpkg_path = path_dict["vcpkg_path"]
+mingw_path = path_dict["mingw_path"]
 
 is_debug: bool = bool(config_dict["General"]["is_debug"])
 build_mode = "debug" if is_debug else "release"
 
 os.system(
     fr'cmake -DCMAKE_BUILD_TYPE={"Debug" if is_debug else "Release"} "-DCMAKE_MAKE_PROGRAM={ninja_path}" '
-    fr'-DCMAKE_TOOLCHAIN_FILE={vcpkg_path} -DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic -G Ninja -S . -B cmake-build-{build_mode}')
+    fr'-DCMAKE_TOOLCHAIN_FILE={vcpkg_path} -DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic -DVCPKG_HOST_TRIPLET=x64-mingw-dynamic '
+    fr'-DCMAKE_PREFIX_PATH=D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64 '
+    fr'-G Ninja -S . -B cmake-build-{build_mode}')
 os.system('cmake --build cmake-build-release --target NuitkaStudio -j 30')
 
 if not is_debug:
@@ -29,6 +32,7 @@ if not is_debug:
     shutil.copyfile("cmake-build-release/NuitkaStudio.exe", f"{output_path}/NuitkaStudio.exe")
     shutil.copyfile("cmake-build-release/libfmt.dll", f"{output_path}/libfmt.dll")
     shutil.copyfile("cmake-build-release/libspdlog.dll", f"{output_path}/libspdlog.dll")
+    shutil.copyfile("lib/libquazip1-qt5.dll", f"{output_path}/libquazip1-qt5.dll")
 
     os.chdir(output_path)
     # remove files

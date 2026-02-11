@@ -1,4 +1,12 @@
 cmake_minimum_required(VERSION 3.31)
+
+# 强制将所有路径转换为 POSIX 风格（正斜杠）
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR)
+file(TO_CMAKE_PATH "${CMAKE_BINARY_DIR}" CMAKE_BINARY_DIR)
+
+# 强制设置编译器的环境变量为正斜杠格式
+set(ENV{VCPKG_ROOT} "D:/Develop/Cpp/vcpkg")
+
 project(NuitkaStudio VERSION 1.2.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -7,8 +15,6 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
-
-set(CMAKE_PREFIX_PATH "D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64")
 
 # not Windows
 if (NOT WIN32)
@@ -30,7 +36,7 @@ if (NOT DEFINED VCPKG_TARGET_TRIPLET)
     set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "vcpkg triplet")
 endif ()
 
-set(_vcpkg_installed "${CMAKE_BINARY_DIR}/vcpkg_installed")
+set(_vcpkg_installed "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed")
 
 string(REPLACE "\\" "/" _vcpkg_installed "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
 set(spdlog_DIR "${_vcpkg_installed}/lib/cmake/spdlog" "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
@@ -53,6 +59,23 @@ find_package(Qt5 COMPONENTS
         Gui
         Widgets
         REQUIRED)
+
+set(BZIP2_ROOT "${_vcpkg_installed}/x64-mingw-dynamic/bin")
+list(APPEND CMAKE_PREFIX_PATH "${BZIP2_ROOT}")
+find_package(BZip2 REQUIRED)
+
+# 设置路径变量
+set(LOCAL_QUAZIP_ROOT    "${CMAKE_CURRENT_SOURCE_DIR}")
+set(LOCAL_QUAZIP_INCLUDE "${LOCAL_QUAZIP_ROOT}/include") # 指向 quazip 文件夹的父目录
+set(LOCAL_QUAZIP_DLL     "${LOCAL_QUAZIP_ROOT}/lib/libquazip1-qt5.dll")
+
+# 验证文件是否存在（防止配置阶段报错不清晰）
+if(NOT EXISTS "${LOCAL_QUAZIP_DLL}")
+    message(FATAL_ERROR "找不到 QuaZip DLL: ${LOCAL_QUAZIP_DLL}")
+endif()
+
+# 创建导入目标 (MinGW 下直接链接 DLL 也是可以的)
+add_library(QuaZip::Local SHARED IMPORTED)
 
 set(SOURCES
         src/main.cpp
@@ -77,6 +100,8 @@ set(SOURCES
         src/types/project_config_type.h
         src/types/project_config_manager.cpp
         src/types/project_config_manager.h
+        src/utils/compress.cpp
+        src/utils/compress.h
 )
 set(RESOURCES
         resource.qrc
@@ -109,6 +134,14 @@ target_link_libraries(NuitkaStudio
         Qt5::Gui
         Qt5::Widgets
         spdlog::spdlog
+        BZip2::BZip2
+        QuaZip::Local
+)
+
+set_target_properties(QuaZip::Local PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${LOCAL_QUAZIP_INCLUDE}"
+        IMPORTED_LOCATION             "${LOCAL_QUAZIP_DLL}"
+        IMPORTED_IMPLIB               "${LOCAL_QUAZIP_DLL}" # MinGW 支持直接把 DLL 当作导入库链接
 )
 
 target_include_directories(NuitkaStudio PRIVATE
