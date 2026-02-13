@@ -6,6 +6,6 @@
 #define PCM_H
 
 #include "project_config_manager.h"
-using PCM = ProjectConfigManager;
+inline ProjectConfigManager &PCM = ProjectConfigManager::instance();
 
 #endif //PCM_H

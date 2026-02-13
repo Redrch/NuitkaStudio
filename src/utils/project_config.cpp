@@ -48,13 +48,13 @@ void ProjectConfig::importProject(const QString &path) {
         if (value.userType() >= QMetaType::User && value.canConvert<int>()) {
             value = value.toInt();
         }
-        const int index = PCM::instance().getIndex(key);
+        const int index = PCM.getIndex(key);
         if (index == -1) {
             Logger::error("ProjectConfig::importProject: 此npf文件已损坏，请尝试更换文件");
             QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件已损坏，请尝试更换文件");
             return;
         }
-        PCM::instance().setItem(index, value);
+        PCM.setItem(index, value);
     }
 
     Logger::info("导入NPF文件");
@@ -91,7 +91,7 @@ void ProjectConfig::exportProject(const QString &path) {
     root.insert("npf_version", NPF_VERSION);
 
     QJsonObject project;
-    for (const ProjectConfigType *item: *PCM::instance().getList()) {
+    for (const ProjectConfigType *item: *PCM.getList()) {
         QVariant itemValue = item->get_itemValue();
         // another type
         if (itemValue.userType() >= QMetaType::User && itemValue.canConvert<int>()) {
