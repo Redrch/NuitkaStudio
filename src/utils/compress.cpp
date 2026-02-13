@@ -29,7 +29,7 @@ QString Compress::getZipPath() const {
     return this->zip->getZipName();
 }
 
-void Compress::writeZip(const QString &internalPath, const QByteArray& data) {
+void Compress::writeZip(const QString &internalPath, const QByteArray& data, QuaZip::Mode mode) {
     if (!this->zip->open(QuaZip::mdAppend)) {
         Logger::warn(QString("Compress::writeZip: Error opening zip file: ") + this->zipPath);
         return;
@@ -128,3 +128,19 @@ void Compress::createEmptyZip(const QString &zipPath) {
         Logger::warn("Compress::createEmptyZip: Error opening zip file: " + zipPath);
     }
 }
+
+void Compress::initZip() {
+    QuaZipFile outFile(this->zip);
+    if (!this->zip->open(QuaZip::mdAppend)) {
+        Logger::warn("无法打开zip文件");
+        return;
+    }
+    if (outFile.open(QIODevice::WriteOnly, QuaZipNewInfo(NPF_PACK_LOG_PATH + "/"))) {
+        outFile.close();
+        this->zip->close();
+    } else {
+        Logger::warn("初始化压缩包失败");
+        this->zip->close();
+    }
+}
+

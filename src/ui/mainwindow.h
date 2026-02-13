@@ -35,6 +35,8 @@
 #include "../types/project_config_manager.h"
 #include "../utils/utils.h"
 #include "../utils/project_config.h"
+#include "../utils/compress.h"
+#include "../types/pcm.h"
 
 QT_BEGIN_NAMESPACE
 

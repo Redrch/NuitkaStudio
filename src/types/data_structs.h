@@ -2,9 +2,9 @@
 // Created by redrch on 2026/1/7.
 //
 
+#pragma once
 #ifndef DATASTRUCTS_H
 #define DATASTRUCTS_H
-#pragma once
 
 #include <QString>
 #include <QMap>
@@ -98,4 +98,9 @@ enum class ConfigValue {
     LegalCopyright,
     LegalTrademarks,
 };
+
+// npf file info
+constexpr double NPF_VERSION = 1;
+const QString NPF_PACK_LOG_PATH = "pack_log";
+
 #endif //DATASTRUCTS_H

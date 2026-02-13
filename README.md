@@ -72,11 +72,13 @@ python解释器路径：项目所使用的python解释器的路径，需含有nu
 
 **此处仅讨论NuitkaStudio1.2.0.0以上的版本中使用的NPF文件，不讨论NuitkaStudio1.2.0.0以下版本所使用的NPF文件**
 
-本质上，NPF文件是一个ZIP压缩包，格式为：
+本质上，NPF文件是一个ZIP压缩包，格式如下所示
 
 ```
 - /
---- <project_name>.json       // 存储npf文件的基本信息，例如NPF格式版本号，以及使用nuitka打包时的参数
---- <project_name>_log.txt    // nuitka打包日志
+--- data.json            // 存储npf文件的基本信息，例如NPF格式版本号，以及使用nuitka打包时的参数
+--- pack_log/            // nuitka打包日志
+------  yyyy-mm-dd_hh-MM-ss.log           // 具体文件
+------  ...
 ```
 

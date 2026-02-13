@@ -102,6 +102,7 @@ set(SOURCES
         src/types/project_config_manager.h
         src/utils/compress.cpp
         src/utils/compress.h
+        src/types/pcm.h
 )
 set(RESOURCES
         resource.qrc

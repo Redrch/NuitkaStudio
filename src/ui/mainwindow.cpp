@@ -46,6 +46,10 @@ void MainWindow::startPack() {
     ui->startPackBtn->setEnabled(false);
     ui->stopPackBtn->setEnabled(true);
     QElapsedTimer timer;
+    QDateTime now = QDateTime::currentDateTime();
+    QString nowString = now.toString("yyyy-MM-dd_HH-mm-ss");
+    QString logPath = NPF_PACK_LOG_PATH + "/" + nowString + ".log";
+
     timer.start();
 
     this->packProcess = new QProcess(this);
@@ -88,25 +92,25 @@ void MainWindow::startPack() {
         Logger::error("Error: " + Utils::processErrorToString(error));
     });
 
-    if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath).isEmpty()) {
+    if (PCM::instance().getItemValueToString(ConfigValue::PythonPath).isEmpty()) {
         ui->consoleOutputEdit->append("python解释器路径为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
         return;
     }
-    if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::MainfilePath).isEmpty()) {
+    if (PCM::instance().getItemValueToString(ConfigValue::MainfilePath).isEmpty()) {
         ui->consoleOutputEdit->append("主文件路径为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
         return;
     }
-    if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputPath).isEmpty()) {
+    if (PCM::instance().getItemValueToString(ConfigValue::OutputPath).isEmpty()) {
         ui->consoleOutputEdit->append("输出目录为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
         return;
     }
-    if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputFilename).isEmpty()) {
+    if (PCM::instance().getItemValueToString(ConfigValue::OutputFilename).isEmpty()) {
         ui->consoleOutputEdit->append("输出文件名为必填项");
         ui->startPackBtn->setEnabled(true);
         ui->startPackBtn->setEnabled(false);
@@ -116,18 +120,18 @@ void MainWindow::startPack() {
     // build args
     QStringList args = QStringList();
     args << "-m" << "nuitka";
-    if (ProjectConfigManager::instance().getItemValueToBool(ConfigValue::Standalone)) {
+    if (PCM::instance().getItemValueToBool(ConfigValue::Standalone)) {
         args << "--standalone";
     }
-    if (ProjectConfigManager::instance().getItemValueToBool(ConfigValue::Onefile)) {
+    if (PCM::instance().getItemValueToBool(ConfigValue::Onefile)) {
         args << "--onefile";
     }
-    if (ProjectConfigManager::instance().getItemValueToBool(ConfigValue::RemoveOutput)) {
+    if (PCM::instance().getItemValueToBool(ConfigValue::RemoveOutput)) {
         args << "--remove-output";
     }
 
     // LTO
-    switch (ProjectConfigManager::instance().getItem(ConfigValue::LtoMode)->get_itemValue().value<LTOMode>()) {
+    switch (PCM::instance().getItem(ConfigValue::LtoMode)->get_itemValue().value<LTOMode>()) {
         case LTOMode::No:
             args << "--lto=no";
             break;
@@ -139,45 +143,45 @@ void MainWindow::startPack() {
             break;
     }
 
-    args << ProjectConfigManager::instance().getItemValueToString(ConfigValue::MainfilePath);
-    args << "--output-dir=" + ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputPath);
-    args << "--output-filename=" + ProjectConfigManager::instance().getItemValueToString(
+    args << PCM::instance().getItemValueToString(ConfigValue::MainfilePath);
+    args << "--output-dir=" + PCM::instance().getItemValueToString(ConfigValue::OutputPath);
+    args << "--output-filename=" + PCM::instance().getItemValueToString(
         ConfigValue::OutputFilename);
 
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::IconPath).isEmpty()) {
-        args << "--windows-icon-from-ico=" + ProjectConfigManager::instance().getItemValueToString(
+    if (!PCM::instance().getItemValueToString(ConfigValue::IconPath).isEmpty()) {
+        args << "--windows-icon-from-ico=" + PCM::instance().getItemValueToString(
             ConfigValue::IconPath);
     }
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileVersion).isEmpty()) {
-        args << "--file-version=" + ProjectConfigManager::instance().getItemValueToString(
+    if (!PCM::instance().getItemValueToString(ConfigValue::FileVersion).isEmpty()) {
+        args << "--file-version=" + PCM::instance().getItemValueToString(
             ConfigValue::FileVersion);
     }
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company).isEmpty()) {
-        args << "--company-name=" + ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company);
+    if (!PCM::instance().getItemValueToString(ConfigValue::Company).isEmpty()) {
+        args << "--company-name=" + PCM::instance().getItemValueToString(ConfigValue::Company);
     }
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductName).isEmpty()) {
-        args << "--product-name=" + ProjectConfigManager::instance().getItemValueToString(
+    if (!PCM::instance().getItemValueToString(ConfigValue::ProductName).isEmpty()) {
+        args << "--product-name=" + PCM::instance().getItemValueToString(
             ConfigValue::ProductName);
     }
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductVersion).isEmpty()) {
-        args << "--product-version=" + ProjectConfigManager::instance().getItemValueToString(
+    if (!PCM::instance().getItemValueToString(ConfigValue::ProductVersion).isEmpty()) {
+        args << "--product-version=" + PCM::instance().getItemValueToString(
             ConfigValue::ProductVersion);
     }
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileDescription).isEmpty()) {
-        args << "--file-description=" + ProjectConfigManager::instance().getItemValueToString(
+    if (!PCM::instance().getItemValueToString(ConfigValue::FileDescription).isEmpty()) {
+        args << "--file-description=" + PCM::instance().getItemValueToString(
             ConfigValue::FileDescription);
     }
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalCopyright).isEmpty()) {
-        args << "--copyright=" + ProjectConfigManager::instance().getItemValueToString(
+    if (!PCM::instance().getItemValueToString(ConfigValue::LegalCopyright).isEmpty()) {
+        args << "--copyright=" + PCM::instance().getItemValueToString(
             ConfigValue::LegalCopyright);
     }
-    if (!ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalTrademarks).isEmpty()) {
-        args << "--trademarks=" + ProjectConfigManager::instance().getItemValueToString(
+    if (!PCM::instance().getItemValueToString(ConfigValue::LegalTrademarks).isEmpty()) {
+        args << "--trademarks=" + PCM::instance().getItemValueToString(
             ConfigValue::LegalTrademarks);
     }
 
     this->packProcess->start(
-        ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath), args);
+        PCM::instance().getItemValueToString(ConfigValue::PythonPath), args);
 
     // console output
     QString outputString = QString("-------------- 开始打包 %1 -------------").arg(
@@ -188,11 +192,11 @@ void MainWindow::startPack() {
     this->packTimer->start(Config::instance().getPackTimerTriggerInterval());
     // console output
     ui->consoleOutputEdit->append(
-        ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath) + " " + args.
+        PCM::instance().getItemValueToString(ConfigValue::PythonPath) + " " + args.
         join(" "));
     Logger::info(
         "开始打包  打包命令: " + QString(
-            ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath) + " " + args.
+            PCM::instance().getItemValueToString(ConfigValue::PythonPath) + " " + args.
             join(" ")));
 }
 
@@ -239,12 +243,12 @@ void MainWindow::newProject() {
     newProjectWindow->exec();
     this->messageLabel->setText(
         QString("正在为项目%1安装nuitka...").arg(
-            ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName)));
+            PCM::instance().getItemValueToString(ConfigValue::ProjectName)));
     newProjectWindow->installNuitka(process);
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [=](int exitCode, QProcess::ExitStatus exitStatus) {
                 this->messageLabel->setText(QString("项目%1的nuitka安装完毕").arg(
-                    ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName)));
+                    PCM::instance().getItemValueToString(ConfigValue::ProjectName)));
                 QTimer::singleShot(3000, this, [=]() {
                     this->messageLabel->clear();
                 });
@@ -262,7 +266,7 @@ void MainWindow::onAddDataFileItemClicked() {
         return;
     }
     ui->dataListWidget->addItem(filePath);
-    ProjectConfigManager::instance().appendItemToStringList(ConfigValue::DataList, filePath);
+    PCM::instance().appendItemToStringList(ConfigValue::DataList, filePath);
 }
 
 void MainWindow::onAddDataDirItemClicked() {
@@ -274,7 +278,7 @@ void MainWindow::onAddDataDirItemClicked() {
     }
 
     ui->dataListWidget->addItem(dirPath);
-    ProjectConfigManager::instance().appendItemToStringList(ConfigValue::DataList, dirPath);
+    PCM::instance().appendItemToStringList(ConfigValue::DataList, dirPath);
 }
 
 void MainWindow::onRemoveItemClicked() {
@@ -283,7 +287,7 @@ void MainWindow::onRemoveItemClicked() {
         return;
     }
 
-    ProjectConfigManager::instance().removeItemFromStringList(ConfigValue::DataList, removeItem->text());
+    PCM::instance().removeItemFromStringList(ConfigValue::DataList, removeItem->text());
     delete removeItem;
 }
 
@@ -348,68 +352,68 @@ void MainWindow::updateUI() {
 void MainWindow::updateExportTable() {
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::PythonPath)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::PythonPath)));
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::MainfilePath)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::MainfilePath)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::MainfilePath)));
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::OutputPath)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputPath)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::OutputPath)));
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::OutputFilename)), 1, new QTableWidgetItem(
-            ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputFilename)));
+            PCM::instance().getItemValueToString(ConfigValue::OutputFilename)));
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::IconPath)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::IconPath)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::IconPath)));
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::ProjectPath)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::ProjectPath)));
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::ProjectName)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::ProjectName)));
 
     // file info
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::FileVersion)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileVersion)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::FileVersion)));
 
     ui->projectTable->setItem(
         configListAndUiListMap.value(static_cast<int>(ConfigValue::Company)), 1,
-        new QTableWidgetItem(ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company)));
+        new QTableWidgetItem(PCM::instance().getItemValueToString(ConfigValue::Company)));
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::ProductName)), 1,
                               new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductName)));
+                                  PCM::instance().getItemValueToString(ConfigValue::ProductName)));
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::ProductVersion)), 1,
                               new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductVersion)));
+                                  PCM::instance().getItemValueToString(ConfigValue::ProductVersion)));
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::FileDescription)), 1,
                               new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileDescription)));
+                                  PCM::instance().getItemValueToString(ConfigValue::FileDescription)));
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::LegalCopyright)), 1,
                               new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalCopyright)));
+                                  PCM::instance().getItemValueToString(ConfigValue::LegalCopyright)));
     ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(ConfigValue::LegalTrademarks)), 1,
                               new QTableWidgetItem(
-                                  ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalTrademarks)));
+                                  PCM::instance().getItemValueToString(ConfigValue::LegalTrademarks)));
 
 
     if (this->standaloneCheckbox)
         this->standaloneCheckbox->setCheckState(
-            ProjectConfigManager::instance().getItemValueToBool(ConfigValue::Standalone)
+            PCM::instance().getItemValueToBool(ConfigValue::Standalone)
                 ? Qt::CheckState::Checked
                 : Qt::CheckState::Unchecked);
     if (this->onefileCheckbox)
         this->onefileCheckbox->setCheckState(
-            ProjectConfigManager::instance().getItemValueToBool(ConfigValue::Onefile)
+            PCM::instance().getItemValueToBool(ConfigValue::Onefile)
                 ? Qt::CheckState::Checked
                 : Qt::CheckState::Unchecked);
     if (this->removeOutputCheckbox)
         this->removeOutputCheckbox->setCheckState(
-            ProjectConfigManager::instance().getItemValueToBool(ConfigValue::RemoveOutput)
+            PCM::instance().getItemValueToBool(ConfigValue::RemoveOutput)
                 ? Qt::CheckState::Checked
                 : Qt::CheckState::Unchecked);
 
-    QStringList list = ProjectConfigManager::instance().getItemValue(ConfigValue::DataList).toStringList();
+    QStringList list = PCM::instance().getItemValue(ConfigValue::DataList).toStringList();
     for (int i = 0; i < list.size(); i++) {
         if (list.at(i).isEmpty()) {
             list.removeAt(i);
@@ -419,31 +423,31 @@ void MainWindow::updateExportTable() {
                               new QTableWidgetItem(list.join(";")));
 
     this->ltoModeCombobox->setCurrentIndex(
-        static_cast<int>(ProjectConfigManager::instance().getItemValue(ConfigValue::LtoMode).value<LTOMode>()));
+        static_cast<int>(PCM::instance().getItemValue(ConfigValue::LtoMode).value<LTOMode>()));
 }
 
 void MainWindow::updatePackUI() {
-    ui->pythonFileEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath));
-    ui->mainPathEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::MainfilePath));
-    ui->outputPathEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputPath));
-    ui->outputFileEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputFilename));
-    ui->iconFileEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::IconPath));
-    ui->projectPathEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath));
-    ui->projectNameEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName));
+    ui->pythonFileEdit->setText(PCM::instance().getItemValueToString(ConfigValue::PythonPath));
+    ui->mainPathEdit->setText(PCM::instance().getItemValueToString(ConfigValue::MainfilePath));
+    ui->outputPathEdit->setText(PCM::instance().getItemValueToString(ConfigValue::OutputPath));
+    ui->outputFileEdit->setText(PCM::instance().getItemValueToString(ConfigValue::OutputFilename));
+    ui->iconFileEdit->setText(PCM::instance().getItemValueToString(ConfigValue::IconPath));
+    ui->projectPathEdit->setText(PCM::instance().getItemValueToString(ConfigValue::ProjectPath));
+    ui->projectNameEdit->setText(PCM::instance().getItemValueToString(ConfigValue::ProjectName));
 
     ui->standaloneCheckbox->setCheckState(
-        ProjectConfigManager::instance().getItemValueToBool(ConfigValue::Standalone)
+        PCM::instance().getItemValueToBool(ConfigValue::Standalone)
             ? Qt::CheckState::Checked
             : Qt::CheckState::Unchecked);
-    ui->onefileCheckbox->setCheckState(ProjectConfigManager::instance().getItemValueToBool(ConfigValue::Onefile)
+    ui->onefileCheckbox->setCheckState(PCM::instance().getItemValueToBool(ConfigValue::Onefile)
                                            ? Qt::CheckState::Checked
                                            : Qt::CheckState::Unchecked);
     ui->removeOutputCheckbox->setCheckState(
-        ProjectConfigManager::instance().getItemValueToBool(ConfigValue::RemoveOutput)
+        PCM::instance().getItemValueToBool(ConfigValue::RemoveOutput)
             ? Qt::CheckState::Checked
             : Qt::CheckState::Unchecked);
     // LTO
-    switch (ProjectConfigManager::instance().getItemValue(ConfigValue::LtoMode).value<LTOMode>()) {
+    switch (PCM::instance().getItemValue(ConfigValue::LtoMode).value<LTOMode>()) {
         case LTOMode::Yes:
             ui->ltoYes->setCheckState(Qt::CheckState::Checked);
             break;
@@ -456,7 +460,7 @@ void MainWindow::updatePackUI() {
     }
     // Data list
     ui->dataListWidget->clear();
-    QStringList dataList = ProjectConfigManager::instance().getItemValueToStringList(ConfigValue::DataList);
+    QStringList dataList = PCM::instance().getItemValueToStringList(ConfigValue::DataList);
     for (const QString &item: dataList) {
         if (item != "") {
             ui->dataListWidget->addItem(item);
@@ -464,16 +468,16 @@ void MainWindow::updatePackUI() {
     }
 
     // File info
-    ui->fileVersionEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileVersion));
-    ui->companyEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::Company));
-    ui->productNameEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductName));
-    ui->productVersionEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProductVersion));
+    ui->fileVersionEdit->setText(PCM::instance().getItemValueToString(ConfigValue::FileVersion));
+    ui->companyEdit->setText(PCM::instance().getItemValueToString(ConfigValue::Company));
+    ui->productNameEdit->setText(PCM::instance().getItemValueToString(ConfigValue::ProductName));
+    ui->productVersionEdit->setText(PCM::instance().getItemValueToString(ConfigValue::ProductVersion));
 
     ui->fileDescriptitonEdit->setText(
-        ProjectConfigManager::instance().getItemValueToString(ConfigValue::FileDescription));
-    ui->legalCopyrightEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalCopyright));
+        PCM::instance().getItemValueToString(ConfigValue::FileDescription));
+    ui->legalCopyrightEdit->setText(PCM::instance().getItemValueToString(ConfigValue::LegalCopyright));
     ui->legalTrademarksEdit->setText(
-        ProjectConfigManager::instance().getItemValueToString(ConfigValue::LegalTrademarks));
+        PCM::instance().getItemValueToString(ConfigValue::LegalTrademarks));
 }
 
 // Connect functions
@@ -504,45 +508,45 @@ void MainWindow::connectPackPage() {
     // Browse buttons
     // Python file browse button
     connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, QFileDialog::getOpenFileName(
+        PCM::instance().setItem(ConfigValue::PythonPath, QFileDialog::getOpenFileName(
                                                      this, "Nuitka Studio  Python解释器选择",
                                                      Config::instance().getDefaultPythonPath(), "exe(*.exe)"));
-        ui->pythonFileEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::PythonPath));
+        ui->pythonFileEdit->setText(PCM::instance().getItemValueToString(ConfigValue::PythonPath));
     });
 
     // Main file path browse button
     connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, QFileDialog::getOpenFileName(
+        PCM::instance().setItem(ConfigValue::MainfilePath, QFileDialog::getOpenFileName(
                                                      this, "Nuitka Studio  主文件选择",
                                                      Config::instance().getDefaultMainFilePath(),
                                                      "Python file(*.py)"));
-        ui->mainPathEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::MainfilePath));
+        ui->mainPathEdit->setText(PCM::instance().getItemValueToString(ConfigValue::MainfilePath));
     });
 
     // Output file path browse button
     connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, QFileDialog::getExistingDirectory(
+        PCM::instance().setItem(ConfigValue::OutputPath, QFileDialog::getExistingDirectory(
                                                      this, "Nuitka Studio  输出路径",
                                                      Config::instance().getDefaultOutputPath(),
                                                      QFileDialog::ShowDirsOnly));
-        ui->outputPathEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::OutputPath));
+        ui->outputPathEdit->setText(PCM::instance().getItemValueToString(ConfigValue::OutputPath));
     });
 
     // Project path browse button
     connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, QFileDialog::getExistingDirectory(
+        PCM::instance().setItem(ConfigValue::ProjectPath, QFileDialog::getExistingDirectory(
                                                      this, "Nuitka Studio  项目路径",
                                                      Config::instance().getDefaultMainFilePath(),
                                                      QFileDialog::ShowDirsOnly));
         ui->projectPathEdit->setText(
-            ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath));
+            PCM::instance().getItemValueToString(ConfigValue::ProjectPath));
 
-        ProjectConfigManager::instance().setItem(ConfigValue::ProjectName,
-                                                 ProjectConfigManager::instance().getItemValueToString(
+        PCM::instance().setItem(ConfigValue::ProjectName,
+                                                 PCM::instance().getItemValueToString(
                                                      ConfigValue::ProjectPath).split("/").last());
         ui->projectNameEdit->setText(
-            ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName));
-        if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath).isEmpty()) return;
+            PCM::instance().getItemValueToString(ConfigValue::ProjectName));
+        if (PCM::instance().getItemValueToString(ConfigValue::ProjectPath).isEmpty()) return;
 
         this->genData();
     });
@@ -550,57 +554,57 @@ void MainWindow::connectPackPage() {
     // Edits
     // Python file edit
     connect(ui->pythonFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, text);
+        PCM::instance().setItem(ConfigValue::PythonPath, text);
     });
 
     // Main file path edit
     connect(ui->mainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath, text);
+        PCM::instance().setItem(ConfigValue::MainfilePath, text);
     });
 
     // Output file path edit
     connect(ui->outputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::OutputPath, text);
+        PCM::instance().setItem(ConfigValue::OutputPath, text);
     });
 
     // Output file name edit
     connect(ui->outputFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename, text);
+        PCM::instance().setItem(ConfigValue::OutputFilename, text);
     });
 
     // Project path edit
     connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::ProjectPath, text);
+        PCM::instance().setItem(ConfigValue::ProjectPath, text);
     });
 
     // Project name edit
     connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::ProjectName, text);
+        PCM::instance().setItem(ConfigValue::ProjectName, text);
     });
 
     // Build Settings
     // Standalone
     connect(ui->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
         if (state == Qt::Unchecked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::Standalone, false);
+            PCM::instance().setItem(ConfigValue::Standalone, false);
         } else if (state == Qt::Checked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::Standalone, true);
+            PCM::instance().setItem(ConfigValue::Standalone, true);
         }
     });
     // Onefile
     connect(ui->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
         if (state == Qt::Unchecked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::Onefile, false);
+            PCM::instance().setItem(ConfigValue::Onefile, false);
         } else if (state == Qt::Checked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::Onefile, true);
+            PCM::instance().setItem(ConfigValue::Onefile, true);
         }
     });
     // Remove Output
     connect(ui->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
         if (state == Qt::Unchecked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::RemoveOutput, false);
+            PCM::instance().setItem(ConfigValue::RemoveOutput, false);
         } else if (state == Qt::Checked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::RemoveOutput, true);
+            PCM::instance().setItem(ConfigValue::RemoveOutput, true);
         }
     });
 
@@ -608,21 +612,21 @@ void MainWindow::connectPackPage() {
     // No
     connect(ui->ltoNo, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+            PCM::instance().setItem(ConfigValue::LtoMode,
                                                      QVariant::fromValue<LTOMode>(LTOMode::No));
         }
     });
     // Yes
     connect(ui->ltoYes, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoYes->checkState() == Qt::CheckState::Checked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+            PCM::instance().setItem(ConfigValue::LtoMode,
                                                      QVariant::fromValue<LTOMode>(LTOMode::Yes));
         }
     });
     // Auto
     connect(ui->ltoAuto, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoAuto->checkState() == Qt::CheckState::Checked) {
-            ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+            PCM::instance().setItem(ConfigValue::LtoMode,
                                                      QVariant::fromValue<LTOMode>(LTOMode::Auto));
         }
     });
@@ -637,10 +641,10 @@ void MainWindow::connectPackPage() {
 
     // Icon browse
     connect(ui->iconFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        ProjectConfigManager::instance().setItem(ConfigValue::IconPath, QFileDialog::getOpenFileName(
+        PCM::instance().setItem(ConfigValue::IconPath, QFileDialog::getOpenFileName(
                                                      this, "Nuitka Studio  图标路径", "C:\\",
                                                      "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)"));
-        ui->iconFileEdit->setText(ProjectConfigManager::instance().getItemValueToString(ConfigValue::IconPath));
+        ui->iconFileEdit->setText(PCM::instance().getItemValueToString(ConfigValue::IconPath));
     });
 
     // Start pack
@@ -669,27 +673,27 @@ void MainWindow::connectPackPage() {
 
     // file info
     connect(ui->fileVersionEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::FileVersion, text);
+        PCM::instance().setItem(ConfigValue::FileVersion, text);
         this->genFileInfo();
         this->updateUI();
     });
     connect(ui->companyEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::Company, text);
+        PCM::instance().setItem(ConfigValue::Company, text);
     });
     connect(ui->productNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::ProductName, text);
+        PCM::instance().setItem(ConfigValue::ProductName, text);
     });
     connect(ui->productVersionEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::ProductVersion, text);
+        PCM::instance().setItem(ConfigValue::ProductVersion, text);
     });
     connect(ui->fileDescriptitonEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::FileDescription, text);
+        PCM::instance().setItem(ConfigValue::FileDescription, text);
     });
     connect(ui->legalCopyrightEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::LegalCopyright, text);
+        PCM::instance().setItem(ConfigValue::LegalCopyright, text);
     });
     connect(ui->legalTrademarksEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        ProjectConfigManager::instance().setItem(ConfigValue::LegalTrademarks, text);
+        PCM::instance().setItem(ConfigValue::LegalTrademarks, text);
     });
 }
 
@@ -786,38 +790,38 @@ void MainWindow::connectExportPage() {
         int row = item->row();
         if (row == configListAndUiListMap.value(static_cast<int>(ConfigValue::DataList))) {
             QStringList stringDataList = item->text().split(";");
-            ProjectConfigManager::instance().setItem(configListAndUiListInverseMap.value(row), stringDataList);
+            PCM::instance().setItem(configListAndUiListInverseMap.value(row), stringDataList);
         } else if (row == configListAndUiListMap.value(static_cast<int>(ConfigValue::LtoMode))) {
             int value = item->text().toInt();
-            ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+            PCM::instance().setItem(ConfigValue::LtoMode,
                                                      QVariant::fromValue<LTOMode>(static_cast<LTOMode>(value)));
         } else {
-            ProjectConfigManager::instance().setItem(configListAndUiListInverseMap.value(row), item->text());
+            PCM::instance().setItem(configListAndUiListInverseMap.value(row), item->text());
         }
     });
     // Checkboxes
     connect(this->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        ProjectConfigManager::instance().setItem(ConfigValue::Standalone, state == Qt::CheckState::Checked);
+        PCM::instance().setItem(ConfigValue::Standalone, state == Qt::CheckState::Checked);
     });
     connect(this->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        ProjectConfigManager::instance().setItem(ConfigValue::Onefile, state == Qt::CheckState::Checked);
+        PCM::instance().setItem(ConfigValue::Onefile, state == Qt::CheckState::Checked);
     });
     connect(this->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        ProjectConfigManager::instance().setItem(ConfigValue::RemoveOutput, state == Qt::CheckState::Checked);
+        PCM::instance().setItem(ConfigValue::RemoveOutput, state == Qt::CheckState::Checked);
     });
     // LTO Mode Combobox
     connect(this->ltoModeCombobox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         switch (index) {
             case 0:
-                ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+                PCM::instance().setItem(ConfigValue::LtoMode,
                                                          QVariant::fromValue<LTOMode>(LTOMode::Auto));
                 break;
             case 1:
-                ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+                PCM::instance().setItem(ConfigValue::LtoMode,
                                                          QVariant::fromValue<LTOMode>(LTOMode::Yes));
                 break;
             case 2:
-                ProjectConfigManager::instance().setItem(ConfigValue::LtoMode,
+                PCM::instance().setItem(ConfigValue::LtoMode,
                                                          QVariant::fromValue<LTOMode>(LTOMode::No));
                 break;
             default:
@@ -855,15 +859,15 @@ void MainWindow::initStatusBar() {
 
 // gen path functions
 void MainWindow::genData(bool isUpdateUI) {
-    if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath).isEmpty()) {
+    if (PCM::instance().getItemValueToString(ConfigValue::ProjectPath).isEmpty()) {
         QMessageBox::warning(this, "Nuitka Studio Warning", "请填写项目路径");
         return;
     }
-    if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName).isEmpty()) {
-        ProjectConfigManager::instance().setItem(ConfigValue::ProjectName,
-                                                 ProjectConfigManager::instance().getItemValueToString(
+    if (PCM::instance().getItemValueToString(ConfigValue::ProjectName).isEmpty()) {
+        PCM::instance().setItem(ConfigValue::ProjectName,
+                                                 PCM::instance().getItemValueToString(
                                                      ConfigValue::ProjectPath).split("/").last());
-        if (ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectName).isEmpty()) {
+        if (PCM::instance().getItemValueToString(ConfigValue::ProjectName).isEmpty()) {
             QMessageBox::warning(this, "Nuitka Studio Warning", "项目名为空且无法自动填写项目名");
             return;
         }
@@ -881,11 +885,11 @@ void MainWindow::genData(bool isUpdateUI) {
 }
 
 void MainWindow::genPythonPath() {
-    QDir projectDir(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath));
+    QDir projectDir(PCM::instance().getItemValueToString(ConfigValue::ProjectPath));
     if (projectDir.exists(
-        ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath) + "/.venv")) {
-        ProjectConfigManager::instance().setItem(ConfigValue::PythonPath,
-                                                 ProjectConfigManager::instance().getItemValueToString(
+        PCM::instance().getItemValueToString(ConfigValue::ProjectPath) + "/.venv")) {
+        PCM::instance().setItem(ConfigValue::PythonPath,
+                                                 PCM::instance().getItemValueToString(
                                                      ConfigValue::ProjectPath) + "/.venv" + "/Scripts" +
                                                  "/python.exe");
     } else {
@@ -897,7 +901,7 @@ void MainWindow::genPythonPath() {
                 QDir dir(part);
                 QFileInfo fi(dir.filePath("python.exe"));
                 if (fi.exists() && fi.isFile()) {
-                    ProjectConfigManager::instance().setItem(ConfigValue::PythonPath, fi.filePath());
+                    PCM::instance().setItem(ConfigValue::PythonPath, fi.filePath());
                 }
             }
         }
@@ -905,37 +909,37 @@ void MainWindow::genPythonPath() {
 }
 
 void MainWindow::genMainfilePath() {
-    QDir projectDir(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath));
-    if (projectDir.exists(ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath) + "/src")
+    QDir projectDir(PCM::instance().getItemValueToString(ConfigValue::ProjectPath));
+    if (projectDir.exists(PCM::instance().getItemValueToString(ConfigValue::ProjectPath) + "/src")
         || projectDir.exists(
-            ProjectConfigManager::instance().getItemValueToString(ConfigValue::ProjectPath) + "/source")) {
-        ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath,
-                                                 ProjectConfigManager::instance().getItemValueToString(
+            PCM::instance().getItemValueToString(ConfigValue::ProjectPath) + "/source")) {
+        PCM::instance().setItem(ConfigValue::MainfilePath,
+                                                 PCM::instance().getItemValueToString(
                                                      ConfigValue::ProjectPath) + "/src/main.py");
     } else {
-        ProjectConfigManager::instance().setItem(ConfigValue::MainfilePath,
-                                                 ProjectConfigManager::instance().getItemValueToString(
+        PCM::instance().setItem(ConfigValue::MainfilePath,
+                                                 PCM::instance().getItemValueToString(
                                                      ConfigValue::ProjectPath) +
                                                  "/main.py");
     }
 }
 
 void MainWindow::genOutputPath() {
-    ProjectConfigManager::instance().setItem(ConfigValue::OutputPath,
-                                             ProjectConfigManager::instance().getItemValueToString(
+    PCM::instance().setItem(ConfigValue::OutputPath,
+                                             PCM::instance().getItemValueToString(
                                                  ConfigValue::ProjectPath) +
                                              "/output");
 }
 
 void MainWindow::genOutputName() {
-    ProjectConfigManager::instance().setItem(ConfigValue::OutputFilename,
-                                             ProjectConfigManager::instance().getItemValueToString(
+    PCM::instance().setItem(ConfigValue::OutputFilename,
+                                             PCM::instance().getItemValueToString(
                                                  ConfigValue::ProjectName) +
                                              ".exe");
 }
 
 void MainWindow::genFileInfo() {
-    ProjectConfigManager::instance().setItem(ConfigValue::ProductName,
-                                             ProjectConfigManager::instance().getItemValueToString(
+    PCM::instance().setItem(ConfigValue::ProductName,
+                                             PCM::instance().getItemValueToString(
                                                  ConfigValue::ProjectName));
 }

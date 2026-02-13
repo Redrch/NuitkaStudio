@@ -1,34 +1,35 @@
 #include <QApplication>
 #include "ui/mainwindow.h"
 #include "utils/logger.h"
+#include "types/pcm.h"
 
 bool isDebug = true;
 
 void initProjectConfig() {
     // path data
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("pythonPath", QVariant("")));  // 0
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("mainFilePath", QVariant("")));  // 1
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("outputPath", QVariant("")));  // 2
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("outputFilename", QVariant("")));  // 3
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("projectPath", QVariant("")));  // 4
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("projectName", QVariant("")));  // 5
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("iconPath", QVariant("")));  // 6
+    PCM::instance().addItem(new ProjectConfigType("pythonPath", QVariant("")));  // 0
+    PCM::instance().addItem(new ProjectConfigType("mainFilePath", QVariant("")));  // 1
+    PCM::instance().addItem(new ProjectConfigType("outputPath", QVariant("")));  // 2
+    PCM::instance().addItem(new ProjectConfigType("outputFilename", QVariant("")));  // 3
+    PCM::instance().addItem(new ProjectConfigType("projectPath", QVariant("")));  // 4
+    PCM::instance().addItem(new ProjectConfigType("projectName", QVariant("")));  // 5
+    PCM::instance().addItem(new ProjectConfigType("iconPath", QVariant("")));  // 6
     // bool data
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("standalone", QVariant(true)));  // 7
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("onefile", QVariant(false)));  // 8
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("removeOutput", QVariant(false)));  // 9
+    PCM::instance().addItem(new ProjectConfigType("standalone", QVariant(true)));  // 7
+    PCM::instance().addItem(new ProjectConfigType("onefile", QVariant(false)));  // 8
+    PCM::instance().addItem(new ProjectConfigType("removeOutput", QVariant(false)));  // 9
     // lto mode
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("ltoMode", QVariant::fromValue(LTOMode::Auto)));  // 10
+    PCM::instance().addItem(new ProjectConfigType("ltoMode", QVariant::fromValue(LTOMode::Auto)));  // 10
     // data list
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("dataList", QVariant(QStringList())));  // 11
+    PCM::instance().addItem(new ProjectConfigType("dataList", QVariant(QStringList())));  // 11
     // file data
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("fileVersion", QVariant("")));  // 12
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("company", QVariant("")));  // 13
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("productName", QVariant("")));  // 14
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("productVersion", QVariant("")));  // 15
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("fileDescription", QVariant("")));  // 16
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("legalCopyright", QVariant("")));  // 17
-    ProjectConfigManager::instance().addItem(new ProjectConfigType("legalTrademarks", QVariant("")));  // 18
+    PCM::instance().addItem(new ProjectConfigType("fileVersion", QVariant("")));  // 12
+    PCM::instance().addItem(new ProjectConfigType("company", QVariant("")));  // 13
+    PCM::instance().addItem(new ProjectConfigType("productName", QVariant("")));  // 14
+    PCM::instance().addItem(new ProjectConfigType("productVersion", QVariant("")));  // 15
+    PCM::instance().addItem(new ProjectConfigType("fileDescription", QVariant("")));  // 16
+    PCM::instance().addItem(new ProjectConfigType("legalCopyright", QVariant("")));  // 17
+    PCM::instance().addItem(new ProjectConfigType("legalTrademarks", QVariant("")));  // 18
 }
 
 int main(int argc, char *argv[]) {
@@ -68,10 +69,11 @@ TODO: 美化ui（优先级最低）
 重大修改：
 1. 修改了版本号命名方式，由x.x.x改为了x.x.x.x
 2. 修改了NPF文件格式，从二进制改为zip格式
+3. 可以使用PCM代替ProjectConfigManager，使代码更加简洁
 
 普通修改：
 1. 填写项目路径，自动填写其他路径
-2. 将项目配置的存储方式从struct改为了ProjectConfigManager
+2. 将项目配置的存储方式从struct改为了PCM
 3. 添加程序信息配置
 4. 新建项目时自动安装nuitka
 5. 优化了使用UV新建项目的体验
