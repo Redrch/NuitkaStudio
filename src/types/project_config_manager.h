@@ -12,9 +12,6 @@
 #include "../utils/utils.h"
 #include "data_structs.h"
 
-#include <QDebug>
-
-
 class ProjectConfigManager {
 public:
     static ProjectConfigManager &instance() {
@@ -28,10 +25,11 @@ public:
     ProjectConfigManager();
     ~ProjectConfigManager();
 
-    void addItem(ProjectConfigType *config);
+    void addItem(ProjectConfigType *config) const;
     void setList(QList<ProjectConfigType *> *list);
-    int getLength();
-    QList<ProjectConfigType *> *getList();
+    int getLength() const;
+    QList<ProjectConfigType *> *getList() const;
+    int getIndex(const QString &name) const;
 
     ProjectConfigType *getItem(int index);
     ProjectConfigType *getItem(ConfigValue value);

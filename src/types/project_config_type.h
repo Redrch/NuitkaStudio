@@ -7,6 +7,9 @@
 #define PROJECTCONFIGTYPE_H
 
 #include <QVariant>
+#include <QJsonObject>
+
+#include "data_structs.h"
 
 class ProjectConfigType {
 public:

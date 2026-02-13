@@ -11,43 +11,65 @@ Compress::Compress() {
 
 Compress::Compress(const QString& zipPath) {
     this->zip = new QuaZip(zipPath);
+    this->zipPath = zipPath;
     zip->setFileNameCodec("UTF-8");
 }
 
 Compress::~Compress() {
+    this->zip->close();
     delete this->zip;
 }
 
-void Compress::writeZip(const QString &filepath, const QByteArray& data) {
-    if (!QFile::exists(filepath)) {
-        Logger::warn(QString("Compress::writeZip: File does not exist: ") + filepath);
-        return;
-    }
-    if (!this->zip->open(QuaZip::mdAppend)) {
-        Logger::warn(QString("Compress::writeZip: Error opening zip file: ") + filepath);
-        return;
-    }
-
-    zip->setCurrentFile(filepath);
-    QuaZipFile zipFile(zip);
-    zipFile.write(data);
-
-    zipFile.close();
+void Compress::setZipPath(const QString& zipPath) {
+    this->zip->setZipName(zipPath);
+    this->zipPath = zipPath;
 }
 
-QByteArray Compress::readZip(const QString &filepath) {
-    if (!QFile::exists(filepath)) {
-        Logger::warn(QString("Compress::writeZip: File does not exist: ") + filepath);
+QString Compress::getZipPath() const {
+    return this->zip->getZipName();
+}
+
+void Compress::writeZip(const QString &internalPath, const QByteArray& data) {
+    if (!this->zip->open(QuaZip::mdAppend)) {
+        Logger::warn(QString("Compress::writeZip: Error opening zip file: ") + this->zipPath);
+        return;
+    }
+
+    QuaZipFile outFile(this->zip);
+    if (outFile.open(QIODevice::WriteOnly, QuaZipNewInfo(internalPath))) {
+        outFile.write(data);
+        outFile.close();
+        this->zip->close();
+    } else {
+        Logger::warn(QString("Compress::writeZip: Error opening zip file: ") + this->zipPath);
+    }
+}
+
+QByteArray Compress::readZip(const QString &internalPath) {
+    if (!QFile::exists(this->zipPath)) {
+        Logger::warn(QString("Compress::readZip: File does not exist: ") + this->zipPath);
         return {};
     }
     if (!this->zip->open(QuaZip::mdUnzip)) {
-        Logger::warn(QString("Compress::writeZip: Error opening zip file: ") + filepath);
+        Logger::warn(QString("Compress::readZip: Error opening zip file: ") + this->zipPath);
         return {};
     }
 
-    zip->setCurrentFile(filepath);
-    QuaZipFile zipFile(zip);
-    return zipFile.readAll();
+    if (!this->zip->setCurrentFile(internalPath)) {
+        Logger::warn("Compress::readZip: Cannot find file in zip: " + internalPath);
+        this->zip->close();
+        return {};
+    }
+
+    QuaZipFile inFile(zip);
+    if (inFile.open(QIODevice::ReadOnly)) {
+        QByteArray data = inFile.readAll();
+        inFile.close();
+        this->zip->close();
+        return data;
+    }
+    Logger::warn(QString("Compress::readZip: Error opening zip file: ") + this->zipPath);
+    return {};
 }
 
 void Compress::extractZip(const QString& zipPath, const QString& outputPath) {
@@ -98,3 +120,11 @@ bool Compress::compressFiles(const QStringList &contentList, const QString &zipP
     return success;
 }
 
+void Compress::createEmptyZip(const QString &zipPath) {
+    QuaZip zip(zipPath);
+    if (zip.open(QuaZip::mdCreate)) {
+        zip.close();
+    } else {
+        Logger::warn("Compress::createEmptyZip: Error opening zip file: " + zipPath);
+    }
+}

@@ -8,12 +8,18 @@
 #include <QString>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 #include "../types/data_structs.h"
 #include "../types/project_config_manager.h"
+#include "compress.h"
 #include "config.h"
 #include "logger.h"
 #include "utils.h"
+
+#define NPF_VERSION   1
 
 class ProjectConfig {
 public:
@@ -24,6 +30,7 @@ public:
     void exportProject(const QString& path = "");
 private:
     QWidget *parent;
+    Compress* compress;
 };
 
 

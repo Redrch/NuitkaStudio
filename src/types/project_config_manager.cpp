@@ -15,7 +15,7 @@ ProjectConfigManager::~ProjectConfigManager() {
     delete this->configList;
 };
 
-void ProjectConfigManager::addItem(ProjectConfigType *config) {
+void ProjectConfigManager::addItem(ProjectConfigType *config) const {
     if (config == nullptr) return;
 
     if (this->configList->contains(config)) {
@@ -24,8 +24,18 @@ void ProjectConfigManager::addItem(ProjectConfigType *config) {
     this->configList->append(config);
 }
 
-QList<ProjectConfigType *> *ProjectConfigManager::getList() {
+QList<ProjectConfigType *> *ProjectConfigManager::getList() const {
     return this->configList;
+}
+
+int ProjectConfigManager::getIndex(const QString &name) const {
+    for (int i = 0; i < this->configList->count(); i++) {
+        ProjectConfigType *config = this->configList->at(i);
+        if (config->get_itemName() == name) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 ProjectConfigType *ProjectConfigManager::getItem(int index) {
@@ -74,7 +84,7 @@ bool ProjectConfigManager::getItemValueToBool(ConfigValue value) {
     return getItemValue(value).toBool();
 }
 
-int ProjectConfigManager::getLength() {
+int ProjectConfigManager::getLength() const {
     return this->configList->size();
 }
 

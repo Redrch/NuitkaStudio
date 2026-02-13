@@ -17,8 +17,10 @@ public:
     explicit Compress(const QString& zipPath);
     ~Compress();
 
-    QByteArray readZip(const QString& filepath);
-    void writeZip(const QString& filepath, const QByteArray& data);
+    void setZipPath(const QString& zipPath);
+    [[nodiscard]] QString getZipPath() const;
+    QByteArray readZip(const QString &internalPath);
+    void writeZip(const QString &internalPath, const QByteArray& data);
 
     static void extractZip(const QString& zipPath, const QString& outputPath);
     static void extractFile(const QString& filePath, const QString& zipPath, const QString& outputPath);
@@ -26,9 +28,11 @@ public:
     static bool compressDir(const QString& contentPath, const QString& zipPath);
     static bool compressFile(const QString& contentPath, const QString& zipPath);
     static bool compressFiles(const QStringList& contentList, const QString& zipPath);
+    static void createEmptyZip(const QString& zipPath);
 
 private:
     QuaZip* zip;
+    QString zipPath;
 };
 
 

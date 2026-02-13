@@ -59,3 +59,24 @@ python解释器路径：项目所使用的python解释器的路径，需含有nu
 3. 打开cmd，将工作目录移动到项目根目录
 4. 修改config.toml，将文件中的路径改为您设备上的路径
 5. 执行`python build.py`，执行完成后如果是debug模式构建结果在`cmake-build-debug`中，release模式在`releases/NuitkaStudio{版本号}·`目录下
+
+
+
+------------------------
+
+## 附件
+
+### NPF文件格式
+
+**此文件中的NPF文件仅代表NuitkaStudio所使用的Nuitka Project File(NPF)文件**
+
+**此处仅讨论NuitkaStudio1.2.0.0以上的版本中使用的NPF文件，不讨论NuitkaStudio1.2.0.0以下版本所使用的NPF文件**
+
+本质上，NPF文件是一个ZIP压缩包，格式为：
+
+```
+- /
+--- <project_name>.json       // 存储npf文件的基本信息，例如NPF格式版本号，以及使用nuitka打包时的参数
+--- <project_name>_log.txt    // nuitka打包日志
+```
+
