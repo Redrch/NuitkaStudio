@@ -12,14 +12,14 @@ ProjectConfig::ProjectConfig(QWidget *parent) {
 ProjectConfig::~ProjectConfig() {
 }
 
-void ProjectConfig::importProject(const QString &path) {
+QString ProjectConfig::importProject(const QString &path) const {
     QString filePath;
     if (path.isEmpty()) {
         filePath = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
                                                 Config::instance().getDefaultDataPath(),
                                                 "Nuitka Project File(*.npf);;All files(*)");
         if (filePath.isEmpty()) {
-            return;
+            return "";
         }
     } else {
         filePath = path;
@@ -32,13 +32,13 @@ void ProjectConfig::importProject(const QString &path) {
     if (!doc.isObject()) {
         Logger::error(QString("ProjectConfig::importProject: npf文件%1已损坏，请尝试更换文件").arg(filePath));
         QMessageBox::critical(this->parent, "Nuitka Studio Error", QString("npf文件%1已损坏，请尝试更换文件").arg(filePath));
-        return;
+        return "";
     }
     QJsonObject root = doc.object();
     if (root.value("npf_version") != NPF_VERSION) {
         Logger::error("ProjectConfig::importProject: 此npf文件的格式版本错误，请尝试更换文件");
         QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件的格式版本错误，请尝试更换文件");
-        return;
+        return "";
     }
     QJsonObject project = root.value("project").toObject();
     for (auto item = project.begin(); item != project.end(); ++item) {
@@ -52,22 +52,23 @@ void ProjectConfig::importProject(const QString &path) {
         if (index == -1) {
             Logger::error("ProjectConfig::importProject: 此npf文件已损坏，请尝试更换文件");
             QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件已损坏，请尝试更换文件");
-            return;
+            return "";
         }
         PCM.setItem(index, value);
     }
 
     Logger::info("导入NPF文件");
+    return filePath;
 }
 
-void ProjectConfig::exportProject(const QString &path) {
+QString ProjectConfig::exportProject(const QString &path) const {
     QString filePath = "";
     if (path == "") {
         filePath = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
                                                 Config::instance().getDefaultDataPath(),
                                                 "Nuitka Project File(*.npf);;All files(*)");
         if (filePath.isEmpty()) {
-            return;
+            return "";
         }
     } else {
         filePath = path;
@@ -76,11 +77,11 @@ void ProjectConfig::exportProject(const QString &path) {
 
     if (QFile::exists(filePath)) {
         auto f = QMessageBox::question(this->parent, "Nuitka Studio",
-            "这一个NPF文件已存在，再次导出将会覆盖所有数据，是否确认覆盖");
+                                       "这一个NPF文件已存在，再次导出将会覆盖所有数据，是否确认覆盖");
         if (f == QMessageBox::Yes) {
             QFile::remove(filePath);
         } else {
-            return;
+            return "";
         }
     }
 
@@ -108,4 +109,5 @@ void ProjectConfig::exportProject(const QString &path) {
     this->compress->writeZip(jsonPath, docString.toUtf8());
 
     Logger::info("导出NPF文件");
+    return filePath;
 }

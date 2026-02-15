@@ -11,7 +11,7 @@
 
 #include "../utils/config.h"
 #include "../types/project_config_manager.h"
-#include "../types/pcm.h"
+#include "../types/simname.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ExportDataListWindow; }

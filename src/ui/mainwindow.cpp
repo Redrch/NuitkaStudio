@@ -227,13 +227,18 @@ void MainWindow::stopPack() {
 }
 
 void MainWindow::importProject() {
-    this->projectConfig->importProject();
+    QString filePath = this->projectConfig->importProject();
+    GDM.set(npf_file_path, filePath);
     // Update UI
     this->updateUI();
+    this->setWindowTitle(filePath + " - Nuitka Studio");
 }
 
 void MainWindow::exportProject() {
-    this->projectConfig->exportProject();
+    QString filePath = this->projectConfig->exportProject();
+    GDM.set(npf_file_path, filePath);
+
+    this->setWindowTitle(filePath + " - Nuitka Studio");
 }
 
 void MainWindow::newProject() {
@@ -509,41 +514,41 @@ void MainWindow::connectPackPage() {
     // Python file browse button
     connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(ConfigValue::PythonPath, QFileDialog::getOpenFileName(
-                                                     this, "Nuitka Studio  Python解释器选择",
-                                                     Config::instance().getDefaultPythonPath(), "exe(*.exe)"));
+                        this, "Nuitka Studio  Python解释器选择",
+                        Config::instance().getDefaultPythonPath(), "exe(*.exe)"));
         ui->pythonFileEdit->setText(PCM.getItemValueToString(ConfigValue::PythonPath));
     });
 
     // Main file path browse button
     connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(ConfigValue::MainfilePath, QFileDialog::getOpenFileName(
-                                                     this, "Nuitka Studio  主文件选择",
-                                                     Config::instance().getDefaultMainFilePath(),
-                                                     "Python file(*.py)"));
+                        this, "Nuitka Studio  主文件选择",
+                        Config::instance().getDefaultMainFilePath(),
+                        "Python file(*.py)"));
         ui->mainPathEdit->setText(PCM.getItemValueToString(ConfigValue::MainfilePath));
     });
 
     // Output file path browse button
     connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(ConfigValue::OutputPath, QFileDialog::getExistingDirectory(
-                                                     this, "Nuitka Studio  输出路径",
-                                                     Config::instance().getDefaultOutputPath(),
-                                                     QFileDialog::ShowDirsOnly));
+                        this, "Nuitka Studio  输出路径",
+                        Config::instance().getDefaultOutputPath(),
+                        QFileDialog::ShowDirsOnly));
         ui->outputPathEdit->setText(PCM.getItemValueToString(ConfigValue::OutputPath));
     });
 
     // Project path browse button
     connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(ConfigValue::ProjectPath, QFileDialog::getExistingDirectory(
-                                                     this, "Nuitka Studio  项目路径",
-                                                     Config::instance().getDefaultMainFilePath(),
-                                                     QFileDialog::ShowDirsOnly));
+                        this, "Nuitka Studio  项目路径",
+                        Config::instance().getDefaultMainFilePath(),
+                        QFileDialog::ShowDirsOnly));
         ui->projectPathEdit->setText(
             PCM.getItemValueToString(ConfigValue::ProjectPath));
 
         PCM.setItem(ConfigValue::ProjectName,
-                                                 PCM.getItemValueToString(
-                                                     ConfigValue::ProjectPath).split("/").last());
+                    PCM.getItemValueToString(
+                        ConfigValue::ProjectPath).split("/").last());
         ui->projectNameEdit->setText(
             PCM.getItemValueToString(ConfigValue::ProjectName));
         if (PCM.getItemValueToString(ConfigValue::ProjectPath).isEmpty()) return;
@@ -613,21 +618,21 @@ void MainWindow::connectPackPage() {
     connect(ui->ltoNo, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
             PCM.setItem(ConfigValue::LtoMode,
-                                                     QVariant::fromValue<LTOMode>(LTOMode::No));
+                        QVariant::fromValue<LTOMode>(LTOMode::No));
         }
     });
     // Yes
     connect(ui->ltoYes, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoYes->checkState() == Qt::CheckState::Checked) {
             PCM.setItem(ConfigValue::LtoMode,
-                                                     QVariant::fromValue<LTOMode>(LTOMode::Yes));
+                        QVariant::fromValue<LTOMode>(LTOMode::Yes));
         }
     });
     // Auto
     connect(ui->ltoAuto, &QCheckBox::stateChanged, this, [=]() {
         if (ui->ltoAuto->checkState() == Qt::CheckState::Checked) {
             PCM.setItem(ConfigValue::LtoMode,
-                                                     QVariant::fromValue<LTOMode>(LTOMode::Auto));
+                        QVariant::fromValue<LTOMode>(LTOMode::Auto));
         }
     });
 
@@ -642,8 +647,8 @@ void MainWindow::connectPackPage() {
     // Icon browse
     connect(ui->iconFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(ConfigValue::IconPath, QFileDialog::getOpenFileName(
-                                                     this, "Nuitka Studio  图标路径", "C:\\",
-                                                     "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)"));
+                        this, "Nuitka Studio  图标路径", "C:\\",
+                        "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)"));
         ui->iconFileEdit->setText(PCM.getItemValueToString(ConfigValue::IconPath));
     });
 
@@ -794,7 +799,7 @@ void MainWindow::connectExportPage() {
         } else if (row == configListAndUiListMap.value(static_cast<int>(ConfigValue::LtoMode))) {
             int value = item->text().toInt();
             PCM.setItem(ConfigValue::LtoMode,
-                                                     QVariant::fromValue<LTOMode>(static_cast<LTOMode>(value)));
+                        QVariant::fromValue<LTOMode>(static_cast<LTOMode>(value)));
         } else {
             PCM.setItem(configListAndUiListInverseMap.value(row), item->text());
         }
@@ -814,15 +819,15 @@ void MainWindow::connectExportPage() {
         switch (index) {
             case 0:
                 PCM.setItem(ConfigValue::LtoMode,
-                                                         QVariant::fromValue<LTOMode>(LTOMode::Auto));
+                            QVariant::fromValue<LTOMode>(LTOMode::Auto));
                 break;
             case 1:
                 PCM.setItem(ConfigValue::LtoMode,
-                                                         QVariant::fromValue<LTOMode>(LTOMode::Yes));
+                            QVariant::fromValue<LTOMode>(LTOMode::Yes));
                 break;
             case 2:
                 PCM.setItem(ConfigValue::LtoMode,
-                                                         QVariant::fromValue<LTOMode>(LTOMode::No));
+                            QVariant::fromValue<LTOMode>(LTOMode::No));
                 break;
             default:
                 QMessageBox::warning(this, "Nuitka Studio Warning", "LTO模式值错误");
@@ -865,8 +870,8 @@ void MainWindow::genData(bool isUpdateUI) {
     }
     if (PCM.getItemValueToString(ConfigValue::ProjectName).isEmpty()) {
         PCM.setItem(ConfigValue::ProjectName,
-                                                 PCM.getItemValueToString(
-                                                     ConfigValue::ProjectPath).split("/").last());
+                    PCM.getItemValueToString(
+                        ConfigValue::ProjectPath).split("/").last());
         if (PCM.getItemValueToString(ConfigValue::ProjectName).isEmpty()) {
             QMessageBox::warning(this, "Nuitka Studio Warning", "项目名为空且无法自动填写项目名");
             return;
@@ -889,9 +894,9 @@ void MainWindow::genPythonPath() {
     if (projectDir.exists(
         PCM.getItemValueToString(ConfigValue::ProjectPath) + "/.venv")) {
         PCM.setItem(ConfigValue::PythonPath,
-                                                 PCM.getItemValueToString(
-                                                     ConfigValue::ProjectPath) + "/.venv" + "/Scripts" +
-                                                 "/python.exe");
+                    PCM.getItemValueToString(
+                        ConfigValue::ProjectPath) + "/.venv" + "/Scripts" +
+                    "/python.exe");
     } else {
         const QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         QString path = env.value("PATH");
@@ -914,32 +919,32 @@ void MainWindow::genMainfilePath() {
         || projectDir.exists(
             PCM.getItemValueToString(ConfigValue::ProjectPath) + "/source")) {
         PCM.setItem(ConfigValue::MainfilePath,
-                                                 PCM.getItemValueToString(
-                                                     ConfigValue::ProjectPath) + "/src/main.py");
+                    PCM.getItemValueToString(
+                        ConfigValue::ProjectPath) + "/src/main.py");
     } else {
         PCM.setItem(ConfigValue::MainfilePath,
-                                                 PCM.getItemValueToString(
-                                                     ConfigValue::ProjectPath) +
-                                                 "/main.py");
+                    PCM.getItemValueToString(
+                        ConfigValue::ProjectPath) +
+                    "/main.py");
     }
 }
 
 void MainWindow::genOutputPath() {
     PCM.setItem(ConfigValue::OutputPath,
-                                             PCM.getItemValueToString(
-                                                 ConfigValue::ProjectPath) +
-                                             "/output");
+                PCM.getItemValueToString(
+                    ConfigValue::ProjectPath) +
+                "/output");
 }
 
 void MainWindow::genOutputName() {
     PCM.setItem(ConfigValue::OutputFilename,
-                                             PCM.getItemValueToString(
-                                                 ConfigValue::ProjectName) +
-                                             ".exe");
+                PCM.getItemValueToString(
+                    ConfigValue::ProjectName) +
+                ".exe");
 }
 
 void MainWindow::genFileInfo() {
     PCM.setItem(ConfigValue::ProductName,
-                                             PCM.getItemValueToString(
-                                                 ConfigValue::ProjectName));
+                PCM.getItemValueToString(
+                    ConfigValue::ProjectName));
 }

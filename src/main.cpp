@@ -1,7 +1,7 @@
 #include <QApplication>
 #include "ui/mainwindow.h"
 #include "utils/logger.h"
-#include "types/pcm.h"
+#include "types/simname.h"
 
 bool isDebug = true;
 
@@ -78,8 +78,11 @@ TODO: 美化ui（优先级最低）
 4. 新建项目时自动安装nuitka
 5. 优化了使用UV新建项目的体验
 6. 重构打包，设置UI界面
+7. 添加了全局变量管理类GlobalData
+8. 修改了软件的标题格式，让其可以根据NPF文件路径显示
+9. 新增了types/simname.h文件，可以通过此文件定义一些常用数据的简写
 
 修复的问题：
-修复了导出数据列表窗口会存在空项的问题
-修复了导入新版NPF文件会崩溃的问题
+1. 修复了导出数据列表窗口会存在空项的问题
+2. 修复了导入新版NPF文件会崩溃的问题
 */

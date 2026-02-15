@@ -14,7 +14,7 @@
 
 #include "../types/data_structs.h"
 #include "../types/project_config_manager.h"
-#include "../types/pcm.h"
+#include "../types/simname.h"
 #include "compress.h"
 #include "config.h"
 #include "logger.h"
@@ -27,8 +27,8 @@ public:
     explicit ProjectConfig(QWidget* parent);
     ~ProjectConfig();
 
-    void importProject(const QString& path = "");
-    void exportProject(const QString& path = "");
+    QString importProject(const QString& path = "") const;
+    QString exportProject(const QString& path = "") const;
 private:
     QWidget *parent;
     Compress* compress;

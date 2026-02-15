@@ -36,7 +36,7 @@
 #include "../utils/utils.h"
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
-#include "../types/pcm.h"
+#include "../types/simname.h"
 
 QT_BEGIN_NAMESPACE
 
