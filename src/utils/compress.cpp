@@ -29,8 +29,8 @@ QString Compress::getZipPath() const {
     return this->zip->getZipName();
 }
 
-void Compress::writeZip(const QString &internalPath, const QByteArray& data, QuaZip::Mode mode) {
-    if (!this->zip->open(QuaZip::mdAppend)) {
+void Compress::writeZip(const QString &internalPath, const QByteArray& data, QuaZip::Mode mode) const {
+    if (!this->zip->open(mode)) {
         Logger::warn(QString("Compress::writeZip: Error opening zip file: ") + this->zipPath);
         return;
     }
@@ -39,13 +39,12 @@ void Compress::writeZip(const QString &internalPath, const QByteArray& data, Qua
     if (outFile.open(QIODevice::WriteOnly, QuaZipNewInfo(internalPath))) {
         outFile.write(data);
         outFile.close();
-        this->zip->close();
     } else {
         Logger::warn(QString("Compress::writeZip: Error opening zip file: ") + this->zipPath);
     }
 }
 
-QByteArray Compress::readZip(const QString &internalPath) {
+QByteArray Compress::readZip(const QString &internalPath) const {
     if (!QFile::exists(this->zipPath)) {
         Logger::warn(QString("Compress::readZip: File does not exist: ") + this->zipPath);
         return {};
@@ -73,10 +72,11 @@ QByteArray Compress::readZip(const QString &internalPath) {
 }
 
 void Compress::extractZip(const QString& zipPath, const QString& outputPath) {
+    QDir().mkpath(outputPath);
+
     QStringList files = JlCompress::extractDir(zipPath, outputPath);
     if (files.isEmpty()) {
-        Logger::warn("Compress::extractZip: File does not exist or file content is null: " + zipPath);
-        return;
+        Logger::warn("JlCompress::extractDir 返回为空，路径：" + zipPath);
     }
 }
 
@@ -104,7 +104,7 @@ bool Compress::compressDir(const QString& contentPath, const QString& zipPath) {
     return success;
 }
 
-bool Compress::compressFile(const QString &contentPath, const QString &zipPath) {
+bool Compress:: compressFile(const QString &contentPath, const QString &zipPath) {
     bool success = JlCompress::compressFile(contentPath, zipPath);
     if (!success) {
         Logger::warn("Compress::compressFile: Error compressing zip file: " + zipPath);
@@ -129,7 +129,7 @@ void Compress::createEmptyZip(const QString &zipPath) {
     }
 }
 
-void Compress::initZip() {
+void Compress::initZip() const {
     QuaZipFile outFile(this->zip);
     if (!this->zip->open(QuaZip::mdAppend)) {
         Logger::warn("无法打开zip文件");

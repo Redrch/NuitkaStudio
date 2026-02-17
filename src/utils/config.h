@@ -11,6 +11,7 @@
 #include <QDebug>
 
 #include <QSettings>
+#include <QDir>
 
 enum class EncodingEnum {
     utf8 = 0,
@@ -43,7 +44,7 @@ public:
     const QString &getDefaultPythonPath() const { return defaultPythonPath; }
     void setDefaultPythonPath(const QString &v) { defaultPythonPath = v; }
 
-    const QString getDefaultMainFilePath() const { return defaultMainFilePath; }
+    QString getDefaultMainFilePath() const { return defaultMainFilePath; }
     void setDefaultMainFilePath(const QString &v) { defaultMainFilePath = v; }
 
     const QString &getDefaultOutputPath() const { return defaultOutputPath; }
@@ -66,6 +67,13 @@ public:
 
     const QString& getConfigPath() const { return configPath; }
 
+    [[nodiscard]] const QString & getTempPath() const {
+        return tempPath;
+    }
+
+    void setTempPath(const QString &temp_path) {
+        tempPath = temp_path;
+    }
 private:
     QSettings* settings;
 
@@ -76,6 +84,7 @@ private:
     QString defaultOutputPath;
     QString defaultIconPath;
     QString defaultDataPath;
+    QString tempPath;
 
     EncodingEnum consoleInputEncoding;
     EncodingEnum consoleOutputEncoding;

@@ -16,7 +16,7 @@ QString ProjectConfig::importProject(const QString &path) const {
     QString filePath;
     if (path.isEmpty()) {
         filePath = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
-                                                Config::instance().getDefaultDataPath(),
+                                                config.getDefaultDataPath(),
                                                 "Nuitka Project File(*.npf);;All files(*)");
         if (filePath.isEmpty()) {
             return "";
@@ -65,7 +65,7 @@ QString ProjectConfig::exportProject(const QString &path) const {
     QString filePath = "";
     if (path == "") {
         filePath = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
-                                                Config::instance().getDefaultDataPath(),
+                                                config.getDefaultDataPath(),
                                                 "Nuitka Project File(*.npf);;All files(*)");
         if (filePath.isEmpty()) {
             return "";

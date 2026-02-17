@@ -31,27 +31,27 @@ void NewProjectWindow::connectPath() {
     // button
     connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->projectPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  项目路径",
-                                                              Config::instance().getDefaultMainFilePath());
+                                                              config.getDefaultMainFilePath());
         ui->projectPathEdit->setText(this->projectPath);
     });
     connect(ui->pyFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        Config::instance().getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getDefaultPythonPath(), "exe(*.exe)");
         ui->pyFileEdit->setText(this->pythonPath);
     });
     connect(ui->venvPyFilePathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        Config::instance().getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getDefaultPythonPath(), "exe(*.exe)");
         ui->venvPyFilePathEdit->setText(this->pythonPath);
     });
     connect(ui->uvPyFilePathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        Config::instance().getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getDefaultPythonPath(), "exe(*.exe)");
         ui->uvPyFilePathEdit->setText(this->pythonPath);
     });
     connect(ui->uvPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->uvPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  UV路径",
-                                                    Config::instance().getDefaultMainFilePath(), "exe(*.exe)");
+                                                    config.getDefaultMainFilePath(), "exe(*.exe)");
         ui->uvPathEdit->setText(this->uvPath);
     });
 

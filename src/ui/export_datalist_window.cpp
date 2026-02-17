@@ -14,7 +14,7 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) : QWidget(parent), u
     // Connect Signals and slots
     connect(ui->addFileBtn, &QPushButton::clicked, this, [=]() {
         QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
-                                                        Config::instance().getDefaultDataPath());
+                                                        config.getDefaultDataPath());
         if (filePath == "") {
             return;
         }
@@ -25,7 +25,7 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) : QWidget(parent), u
 
     connect(ui->addDirBtn, &QPushButton::clicked, this, [=]() {
         QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
-                                                            Config::instance().getDefaultDataPath(),
+                                                            config.getDefaultDataPath(),
                                                             QFileDialog::ShowDirsOnly);
         if (dirPath == "") {
             return;

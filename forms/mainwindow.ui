@@ -780,8 +780,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>354</width>
-             <height>122</height>
+             <width>865</width>
+             <height>208</height>
             </rect>
            </property>
            <attribute name="label">
@@ -933,6 +933,22 @@
              </widget>
             </item>
             <item>
+             <widget class="QWidget" name="tempPath" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_29">
+               <item>
+                <widget class="QLabel" name="label_17">
+                 <property name="text">
+                  <string>缓存路径</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="tempPathEdit"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_8">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -952,7 +968,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>280</width>
+             <width>865</width>
              <height>247</height>
             </rect>
            </property>

@@ -18,6 +18,7 @@
 #include <QProcess>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QFile>
 
 #include <QDateTime>
 #include <QElapsedTimer>
@@ -71,8 +72,8 @@ private:
 
     // functions
     // Update UI functions
-    void updateExportTable();
-    void updatePackUI();
+    void updateExportTable() const;
+    void updatePackUI() const;
     void updateUI();
 
     // Connect signals and slots functions

@@ -20,6 +20,12 @@ QVariant GlobalData::get(const QString &name) const {
     return result;
 }
 
+QString GlobalData::getString(const QString &name) const {
+    QMutexLocker lock(mutex);
+    QVariant result = this->dataMap->value(name);
+    return result.toString();
+}
+
 void GlobalData::set(const QString &name, const QVariant &value) const {
     QMutexLocker lock(mutex);
     this->dataMap->insert(name, value);

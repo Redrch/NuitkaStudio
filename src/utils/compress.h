@@ -20,9 +20,9 @@ public:
 
     void setZipPath(const QString& zipPath);
     [[nodiscard]] QString getZipPath() const;
-    QByteArray readZip(const QString &internalPath);
-    void writeZip(const QString &internalPath, const QByteArray& data, QuaZip::Mode mode = QuaZip::mdCreate);
-    void initZip();
+    QByteArray readZip(const QString &internalPath) const;
+    void writeZip(const QString &internalPath, const QByteArray& data, QuaZip::Mode mode = QuaZip::mdCreate) const;
+    void initZip() const;
 
     static void extractZip(const QString& zipPath, const QString& outputPath);
     static void extractFile(const QString& filePath, const QString& zipPath, const QString& outputPath);

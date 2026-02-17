@@ -17,6 +17,7 @@ Config::Config() {
     this->defaultMainFilePath = QString("C:/");
     this->defaultIconPath = QString("C:/");
     this->defaultDataPath = QString("C:/");
+    this->tempPath = QDir::tempPath() + "/NuitkaStudio";
 
     this->packTimerTriggerInterval = 100;
 }
@@ -40,6 +41,7 @@ void Config::writeConfig() {
     this->settings->setValue("defaultOutputPath", QVariant(this->getDefaultOutputPath()));
     this->settings->setValue("defaultIconPath", QVariant(this->getDefaultIconPath()));
     this->settings->setValue("defaultDataPath", QVariant(this->getDefaultDataPath()));
+    this->settings->setValue("tempPath", QVariant(this->getTempPath()));
     this->settings->endGroup();
 }
 
@@ -58,6 +60,7 @@ void Config::readConfig() {
     this->setDefaultOutputPath(this->settings->value("defaultOutputPath").toString());
     this->setDefaultIconPath(this->settings->value("defaultIconPath").toString());
     this->setDefaultDataPath(this->settings->value("defaultDataPath").toString());
+    this->setTempPath(this->settings->value("tempPath").toString());
     this->settings->endGroup();
 }
 

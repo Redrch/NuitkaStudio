@@ -24,6 +24,7 @@ public:
     ~GlobalData();
 
     QVariant get(const QString &name) const;
+    QString getString(const QString &name) const;
     void set(const QString &name, const QVariant &value) const;
 
 private:
