@@ -3,6 +3,7 @@
 //
 
 #include "project_config_manager.h"
+#include "simname.h"
 
 ProjectConfigManager::ProjectConfigManager() {
     this->configList = new QList<ProjectConfigType *>();
@@ -42,7 +43,7 @@ ProjectConfigType *ProjectConfigManager::getItem(int index) {
     return this->configList->at(index);
 }
 
-ProjectConfigType *ProjectConfigManager::getItem(ConfigValue value) {
+ProjectConfigType *ProjectConfigManager::getItem(PCE value) {
     int index = static_cast<int>(value);
     ProjectConfigType *config = getItem(index);
     if (config == nullptr) return nullptr;
@@ -55,7 +56,7 @@ QVariant ProjectConfigManager::getItemValue(int index) {
     return config->get_itemValue();
 }
 
-QVariant ProjectConfigManager::getItemValue(ConfigValue configValue) {
+QVariant ProjectConfigManager::getItemValue(PCE configValue) {
     int index = static_cast<int>(configValue);
     return getItemValue(index);
 }
@@ -64,7 +65,7 @@ QString ProjectConfigManager::getItemValueToString(int index) {
     return getItemValue(index).toString();
 }
 
-QString ProjectConfigManager::getItemValueToString(ConfigValue value) {
+QString ProjectConfigManager::getItemValueToString(PCE value) {
     return getItemValue(value).toString();
 }
 
@@ -72,7 +73,7 @@ QStringList ProjectConfigManager::getItemValueToStringList(int index) {
     return getItemValue(index).toStringList();
 }
 
-QStringList ProjectConfigManager::getItemValueToStringList(ConfigValue value) {
+QStringList ProjectConfigManager::getItemValueToStringList(PCE value) {
     return this->getItemValueToStringList(static_cast<int>(value));
 }
 
@@ -80,7 +81,7 @@ bool ProjectConfigManager::getItemValueToBool(int index) {
     return getItemValue(index).toBool();
 }
 
-bool ProjectConfigManager::getItemValueToBool(ConfigValue value) {
+bool ProjectConfigManager::getItemValueToBool(PCE value) {
     return getItemValue(value).toBool();
 }
 
@@ -93,7 +94,7 @@ void ProjectConfigManager::setItem(const int index, const QVariant &value) {
     configItem->set_itemValue(value);
 }
 
-void ProjectConfigManager::setItem(ConfigValue configValue, const QVariant &value) {
+void ProjectConfigManager::setItem(PCE configValue, const QVariant &value) {
     int index = static_cast<int>(configValue);
     ProjectConfigType *configItem = getItem(index);
     configItem->set_itemValue(value);
@@ -106,7 +107,7 @@ void ProjectConfigManager::appendItemToStringList(int index, const QString &valu
     this->setItem(index, QVariant(stringList));
 }
 
-void ProjectConfigManager::appendItemToStringList(ConfigValue configValue, const QString &value) {
+void ProjectConfigManager::appendItemToStringList(PCE configValue, const QString &value) {
     int index = static_cast<int>(configValue);
     this->appendItemToStringList(index, value);
 }
@@ -123,11 +124,11 @@ void ProjectConfigManager::removeItemFromStringList(int index, int valueIndex) {
     this->setItem(index, QVariant(stringList));
 }
 
-void ProjectConfigManager::removeItemFromStringList(ConfigValue configValue, const QString &value) {
+void ProjectConfigManager::removeItemFromStringList(PCE configValue, const QString &value) {
     this->removeItemFromStringList(static_cast<int>(configValue), value);
 }
 
-void ProjectConfigManager::removeItemFromStringList(ConfigValue configValue, int valueIndex) {
+void ProjectConfigManager::removeItemFromStringList(PCE configValue, int valueIndex) {
     this->removeItemFromStringList(static_cast<int>(configValue), valueIndex);
 }
 

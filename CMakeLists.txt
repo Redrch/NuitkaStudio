@@ -105,6 +105,7 @@ set(SOURCES
         src/types/simname.h
         src/types/global_data.cpp
         src/types/global_data.h
+        src/types/constants.h
 )
 set(RESOURCES
         resource.qrc

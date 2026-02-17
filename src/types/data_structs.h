@@ -11,6 +11,7 @@
 #include <QList>
 #include <QMetaType>
 #include <QVariant>
+#include "constants.h"
 
 enum class LTOMode {
     Auto,
@@ -77,7 +78,7 @@ inline QMap<int, int> configListAndUiListInverseMap = {
     {18, 18},
 };
 
-enum class ConfigValue {
+enum class ProjectConfigEnum {
     PythonPath,
     MainfilePath,
     OutputPath,
@@ -98,9 +99,7 @@ enum class ConfigValue {
     LegalCopyright,
     LegalTrademarks,
 };
+using PCE = ProjectConfigEnum;
 
-// npf file info
-constexpr double NPF_VERSION = 1;
-const QString NPF_PACK_LOG_PATH = "pack_log";
 
 #endif //DATASTRUCTS_H

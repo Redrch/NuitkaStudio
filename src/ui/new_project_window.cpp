@@ -94,7 +94,7 @@ void NewProjectWindow::newProject() {
 
     switch (this->interpreterType) {
         case InterpreterType::Python: {
-            PCM.setItem(ConfigValue::PythonPath, this->pythonPath);
+            PCM.setItem(PCE::PythonPath, this->pythonPath);
             break;
         }
         case InterpreterType::Virtualenv: {
@@ -103,7 +103,7 @@ void NewProjectWindow::newProject() {
             p.start(this->pythonPath, QStringList() << "-m" << "venv" << ".venv");
             p.waitForFinished();
 
-            PCM.setItem(ConfigValue::PythonPath,
+            PCM.setItem(PCE::PythonPath,
                                                      projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
             break;
         }
@@ -115,19 +115,19 @@ void NewProjectWindow::newProject() {
             p.start(this->uvPath, QStringList() << "venv");
             p.waitForFinished();
 
-            PCM.setItem(ConfigValue::PythonPath,
+            PCM.setItem(PCE::PythonPath,
                                                      projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
             break;
         }
     }
 
-    PCM.setItem(ConfigValue::MainfilePath, projectDirPath + "/main.py");
-    PCM.setItem(ConfigValue::OutputPath, projectDirPath + "/build");
-    PCM.setItem(ConfigValue::OutputFilename, this->projectName + ".exe");
-    PCM.setItem(ConfigValue::ProjectPath, projectDirPath);
-    PCM.setItem(ConfigValue::ProjectName, this->projectName);
-    PCM.setItem(ConfigValue::FileVersion, "1.0.0.0");
-    PCM.setItem(ConfigValue::ProductVersion, "1.0.0.0");
+    PCM.setItem(PCE::MainfilePath, projectDirPath + "/main.py");
+    PCM.setItem(PCE::OutputPath, projectDirPath + "/build");
+    PCM.setItem(PCE::OutputFilename, this->projectName + ".exe");
+    PCM.setItem(PCE::ProjectPath, projectDirPath);
+    PCM.setItem(PCE::ProjectName, this->projectName);
+    PCM.setItem(PCE::FileVersion, "1.0.0.0");
+    PCM.setItem(PCE::ProductVersion, "1.0.0.0");
 
     ProjectConfig project_config(this);
     project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
@@ -160,14 +160,14 @@ void NewProjectWindow::installNuitka(QProcess *process) {
         case InterpreterType::Python: {
             process->setWorkingDirectory(projectDirPath);
             // find nuitka
-            process->start(PCM.getItemValueToString(ConfigValue::PythonPath),
+            process->start(PCM.getItemValueToString(PCE::PythonPath),
                            QStringList() << "-m" << "pip" << "list");
             process->waitForFinished();
             QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
 
             if (!out.contains("nuitka")) {
                 // install nuitka
-                process->start(PCM.getItemValueToString(ConfigValue::PythonPath),
+                process->start(PCM.getItemValueToString(PCE::PythonPath),
                                QStringList() << "-m" << "pip" << "install" << "nuitka");
             }
             break;
@@ -175,14 +175,14 @@ void NewProjectWindow::installNuitka(QProcess *process) {
         case InterpreterType::Virtualenv: {
             process->setWorkingDirectory(projectDirPath);
             // find nuitka
-            process->start(PCM.getItemValueToString(ConfigValue::PythonPath),
+            process->start(PCM.getItemValueToString(PCE::PythonPath),
                            QStringList() << "-m" << "pip" << "list");
             process->waitForFinished();
             QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
 
             if (!out.contains("nuitka")) {
                 // install nuitka
-                process->start(PCM.getItemValueToString(ConfigValue::PythonPath),
+                process->start(PCM.getItemValueToString(PCE::PythonPath),
                                QStringList() << "-m" << "pip" << "install" << "nuitka");
             }
             break;

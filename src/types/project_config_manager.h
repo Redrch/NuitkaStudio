@@ -32,25 +32,25 @@ public:
     int getIndex(const QString &name) const;
 
     ProjectConfigType *getItem(int index);
-    ProjectConfigType *getItem(ConfigValue value);
+    ProjectConfigType *getItem(PCE value);
 
     QVariant getItemValue(int index);
-    QVariant getItemValue(ConfigValue value);
+    QVariant getItemValue(PCE value);
     QString getItemValueToString(int index);
-    QString getItemValueToString(ConfigValue value);
+    QString getItemValueToString(PCE value);
     QStringList getItemValueToStringList(int index);
-    QStringList getItemValueToStringList(ConfigValue value);
+    QStringList getItemValueToStringList(PCE value);
     bool getItemValueToBool(int index);
-    bool getItemValueToBool(ConfigValue value);
+    bool getItemValueToBool(PCE value);
 
     void setItem(int index, const QVariant& value);
-    void setItem(ConfigValue configValue, const QVariant& value);
+    void setItem(PCE configValue, const QVariant& value);
     void appendItemToStringList(int index, const QString& value);
-    void appendItemToStringList(ConfigValue configValue, const QString& value);
+    void appendItemToStringList(PCE configValue, const QString& value);
     void removeItemFromStringList(int index, const QString& value);
     void removeItemFromStringList(int index, int valueIndex);
-    void removeItemFromStringList(ConfigValue configValue, const QString& value);
-    void removeItemFromStringList(ConfigValue configValue, int valueIndex);
+    void removeItemFromStringList(PCE configValue, const QString& value);
+    void removeItemFromStringList(PCE configValue, int valueIndex);
 
 private:
     QList<ProjectConfigType *> *configList;

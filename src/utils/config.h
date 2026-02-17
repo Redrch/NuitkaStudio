@@ -7,6 +7,7 @@
 
 #include <QString>
 #include <QVariant>
+#include <QMap>
 
 #include <QDebug>
 
@@ -17,6 +18,18 @@ enum class EncodingEnum {
     utf8 = 0,
     gbk = 1,
     ascii = 2
+};
+
+enum class SettingsEnum {
+    DefaultPythonPath,
+    DefaultMainFilePath,
+    DefaultOutputPath,
+    DefaultIconPath,
+    DefaultDataPath,
+    TempPath,
+    ConsoleInputEncoding,
+    ConsoleOutputEncoding,
+    PackTimerTriggerInterval,
 };
 
 // Singleton class
@@ -90,6 +103,8 @@ private:
     EncodingEnum consoleOutputEncoding;
 
     int packTimerTriggerInterval;
+
+    QMap<QString, QVariant> configMap;
 };
 
 

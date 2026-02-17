@@ -20,7 +20,7 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) : QWidget(parent), u
         }
 
         ui->dataListWidget->addItem(filePath);
-        PCM.appendItemToStringList(ConfigValue::DataList, filePath);
+        PCM.appendItemToStringList(PCE::DataList, filePath);
     });
 
     connect(ui->addDirBtn, &QPushButton::clicked, this, [=]() {
@@ -32,7 +32,7 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) : QWidget(parent), u
         }
 
         ui->dataListWidget->addItem(dirPath);
-        PCM.appendItemToStringList(ConfigValue::DataList, dirPath);
+        PCM.appendItemToStringList(PCE::DataList, dirPath);
     });
 
     connect(ui->removeItemBtn, &QPushButton::clicked, this, [=]() {
@@ -52,7 +52,7 @@ ExportDataListWindow::~ExportDataListWindow() {
 
 void ExportDataListWindow::updateUI() {
     ui->dataListWidget->clear();
-    for (const QString &dataItem: PCM.getItemValue(ConfigValue::DataList).toStringList()) {
+    for (const QString &dataItem: PCM.getItemValue(PCE::DataList).toStringList()) {
         if (dataItem.isEmpty()) {
             continue;
         }
