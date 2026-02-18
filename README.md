@@ -55,7 +55,7 @@ python解释器路径：项目所使用的python解释器的路径，需含有nu
 ## 构建项目
 
 1. 从Github上克隆仓库到本地  `git clone https://github.com/Redrch/NuitkaStudio.git`
-2. 确保设备安装有 mingw64  cmake  vcpkg  python3.5+(推荐3.13)，并且cmake  vcpkg  python 配有环境变量，如果没有请安装
+2. 确保设备安装有 mingw64  cmake  vcpkg  python3.11+(推荐3.13)，并且cmake  vcpkg  python 配有环境变量，如果没有请安装
 3. 打开cmd，将工作目录移动到项目根目录
 4. 修改config.toml，将文件中的路径改为您设备上的路径
 5. 执行`python build.py`，执行完成后如果是debug模式构建结果在`cmake-build-debug`中，release模式在`releases/NuitkaStudio{版本号}·`目录下
@@ -92,3 +92,38 @@ fmt: https://github.com/fmtlib/fmt
 ------  ...
 ```
 
+data.json 中的格式如下所示
+
+```json
+{
+    "npf_version": 1,
+    "project": {
+        "company": "COMPANY",
+        "dataList": [
+            ""
+        ],
+        "fileDescription": "description",
+        "fileVersion": "version",
+        "iconPath": "logo path",
+        "legalCopyright": "legal copyright",
+        "legalTrademarks": "legal trademarks",
+        "ltoMode": 0/1/2,
+        "mainFilePath": "main path",
+        "onefile": true/false,
+        "outputFilename": "output name",
+        "outputPath": "output path",
+        "productName": "name",
+        "productVersion": "version",
+        "projectName": "name",
+        "projectPath": "path",
+        "pythonPath": "python path",
+        "removeOutput": true/false,
+        "standalone": true/false
+    }
+}
+
+```
+
+ltoMode值中，0代表Auto，1代表Yes，2代表No
+
+npf_version值目前为1
