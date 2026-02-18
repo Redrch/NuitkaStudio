@@ -58,7 +58,6 @@ int main(int argc, char *argv[]) {
 
 /*
 Version 1.2.0.0 TO-DO
-TODO: 添加新增项的配置
 TODO: 添加最小化到系统托盘的功能
 TODO: 添加将打包/停止按钮吸附在其他窗口上的功能
 TODO: 美化ui（优先级最低）

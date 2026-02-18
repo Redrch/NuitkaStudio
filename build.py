@@ -33,6 +33,7 @@ if not is_debug:
     shutil.copyfile("cmake-build-release/libfmt.dll", f"{output_path}/libfmt.dll")
     shutil.copyfile("cmake-build-release/libspdlog.dll", f"{output_path}/libspdlog.dll")
     shutil.copyfile("lib/libquazip1-qt5.dll", f"{output_path}/libquazip1-qt5.dll")
+    shutil.copytree("licenses", f"{output_path}/licenses")
 
     os.chdir(output_path)
     # remove files

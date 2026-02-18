@@ -108,7 +108,6 @@ set(SOURCES
         src/types/constants.h
         src/ui/pack_log_window.cpp
         src/ui/pack_log_window.h
-        forms/pack_log_window.ui
 )
 set(RESOURCES
         resource.qrc
@@ -117,8 +116,7 @@ set(RESOURCES
         forms/mainwindow.ui
         forms/about_window.ui
         forms/new_project_window.ui
-        licenses/FmtLicense
-        licenses/SpdlogLicense
+        forms/pack_log_window.ui
 )
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
