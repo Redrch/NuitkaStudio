@@ -64,9 +64,11 @@ python解释器路径：项目所使用的python解释器的路径，需含有nu
 
 ## 特别鸣谢
 
-[Quazip]: https://github.com/stachenov/quazip
-[spdlog]: https://github.com/gabime/spdlog
-[fmt]: https://github.com/fmtlib/fmt
+Quazip: https://github.com/stachenov/quazip 
+
+spdlog: https://github.com/gabime/spdlog 
+
+fmt: https://github.com/fmtlib/fmt
 
 
 
