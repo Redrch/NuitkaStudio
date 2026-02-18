@@ -19,8 +19,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->packTimer = new QTimer(this);
 
     // Create the temp path
-    if (!QDir(config.getTempPath()).exists()) {
-        if (!QDir().mkpath(config.getTempPath())) {
+    if (!QDir(config.getConfigToString(SettingsEnum::TempPath)).exists()) {
+        if (!QDir().mkpath(config.getConfigToString(SettingsEnum::TempPath))) {
             Logger::warn("缓存文件夹创建失败");
         }
     }
@@ -54,8 +54,8 @@ void MainWindow::startPack() {
     QDateTime now = QDateTime::currentDateTime();
     QString nowString = now.toString("yyyy-MM-dd_HH-mm-ss");
     QString zipLogPath = NPF_PACK_LOG_PATH + "/" + nowString + ".log";
-    QString logPath = config.getTempPath() + "/pack_log/" + nowString + ".log";
-    QString logDir = config.getTempPath() + "/pack_log";
+    QString logPath = config.getConfigToString(SettingsEnum::TempPath) + "/pack_log/" + nowString + ".log";
+    QString logDir = config.getConfigToString(SettingsEnum::TempPath) + "/pack_log";
     if (!QDir(logDir).exists()) {
         if (!QDir().mkpath(logDir)) {
             Logger::warn("打包日志缓存文件夹创建失败");
@@ -106,9 +106,12 @@ void MainWindow::startPack() {
                     logFile->deleteLater();
                 }
 
-                QString tempExtractPath = config.getTempPath() + "/npf_repack_" + nowString;
+                QString tempExtractPath = config.getConfigToString(SettingsEnum::TempPath) + "/npf_repack_" + nowString;
 
-                QDir().mkpath(tempExtractPath);
+                if (!QDir().mkpath(tempExtractPath)) {
+                    Logger::error("创建解压文件夹失败，已停止归档");
+                    return;
+                }
 
                 QStringList extractedFiles = JlCompress::extractDir(GDM.getString(NPF_FILE_PATH), tempExtractPath);
                 if (extractedFiles.isEmpty()) {
@@ -122,7 +125,10 @@ void MainWindow::startPack() {
                 }
 
                 QString newLogTargetDir = tempExtractPath + "/pack_log";
-                QDir().mkpath(newLogTargetDir);
+                if (!QDir().mkpath(newLogTargetDir)) {
+                    Logger::error("创建缓存日志文件失败，已停止归档");
+                    return;
+                }
                 QString newLogFilePath = newLogTargetDir + "/" + nowString + ".log";
                 QFile::copy(logPath, newLogFilePath);
 
@@ -242,7 +248,7 @@ void MainWindow::startPack() {
     ui->consoleOutputEdit->append(outputString);
     // pack timer
     this->startPackTime = QDateTime::currentDateTime();
-    this->packTimer->start(config.getPackTimerTriggerInterval());
+    this->packTimer->start(config.getConfigToInt(SettingsEnum::PackTimerTriggerInterval));
     // console output
     ui->consoleOutputEdit->append(
         PCM.getItemValueToString(PCE::PythonPath) + " " + args.
@@ -319,7 +325,7 @@ void MainWindow::newProject() {
 // Slots
 void MainWindow::onAddDataFileItemClicked() {
     QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
-                                                    config.getDefaultDataPath());
+                                                    config.getConfigToString(SettingsEnum::DefaultDataPath));
     if (filePath == "") {
         return;
     }
@@ -329,7 +335,7 @@ void MainWindow::onAddDataFileItemClicked() {
 
 void MainWindow::onAddDataDirItemClicked() {
     QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
-                                                        config.getDefaultDataPath(),
+                                                        config.getConfigToString(SettingsEnum::DefaultDataPath),
                                                         QFileDialog::ShowDirsOnly);
     if (dirPath == "") {
         return;
@@ -394,17 +400,17 @@ void MainWindow::updateUI() {
     this->updateExportTable();
     this->updatePackUI();
 
-    ui->defaultPyPathEdit->setText(config.getDefaultPythonPath());
-    ui->defaultMainPathEdit->setText(config.getDefaultMainFilePath());
-    ui->defaultOutputPathEdit->setText(config.getDefaultOutputPath());
-    ui->defaultIconPathEdit->setText(config.getDefaultIconPath());
-    ui->defaultDataPathEdit->setText(config.getDefaultDataPath());
-    ui->tempPathEdit->setText(config.getTempPath());
+    ui->defaultPyPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultPythonPath));
+    ui->defaultMainPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultMainFilePath));
+    ui->defaultOutputPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultOutputPath));
+    ui->defaultIconPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultIconPath));
+    ui->defaultDataPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultDataPath));
+    ui->tempPathEdit->setText(config.getConfigToString(SettingsEnum::TempPath));
 
     ui->consoleInputEncodingCombo->setCurrentIndex(
-        config.encodingEnumToInt(config.getConsoleInputEncoding()));
+        config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleInputEncoding)));
     ui->consoleOutputEncodingCombo->setCurrentIndex(
-        config.encodingEnumToInt(config.getConsoleOutputEncoding()));
+        config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
     Logger::info("刷新UI");
 }
 
@@ -569,7 +575,7 @@ void MainWindow::connectPackPage() {
     connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::PythonPath, QFileDialog::getOpenFileName(
                         this, "Nuitka Studio  Python解释器选择",
-                        config.getDefaultPythonPath(), "exe(*.exe)"));
+                        config.getConfigToString(SettingsEnum::DefaultPythonPath), "exe(*.exe)"));
         ui->pythonFileEdit->setText(PCM.getItemValueToString(PCE::PythonPath));
     });
 
@@ -577,7 +583,7 @@ void MainWindow::connectPackPage() {
     connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::MainfilePath, QFileDialog::getOpenFileName(
                         this, "Nuitka Studio  主文件选择",
-                        config.getDefaultMainFilePath(),
+                        config.getConfigToString(SettingsEnum::DefaultMainFilePath),
                         "Python file(*.py)"));
         ui->mainPathEdit->setText(PCM.getItemValueToString(PCE::MainfilePath));
     });
@@ -586,7 +592,7 @@ void MainWindow::connectPackPage() {
     connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::OutputPath, QFileDialog::getExistingDirectory(
                         this, "Nuitka Studio  输出路径",
-                        config.getDefaultOutputPath(),
+                        config.getConfigToString(SettingsEnum::DefaultOutputPath),
                         QFileDialog::ShowDirsOnly));
         ui->outputPathEdit->setText(PCM.getItemValueToString(PCE::OutputPath));
     });
@@ -595,7 +601,7 @@ void MainWindow::connectPackPage() {
     connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::ProjectPath, QFileDialog::getExistingDirectory(
                         this, "Nuitka Studio  项目路径",
-                        config.getDefaultMainFilePath(),
+                        config.getConfigToString(SettingsEnum::DefaultMainFilePath),
                         QFileDialog::ShowDirsOnly));
         ui->projectPathEdit->setText(
             PCM.getItemValueToString(PCE::ProjectPath));
@@ -762,21 +768,21 @@ void MainWindow::connectSettingsPage() {
     connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [=](int index) {
                 EncodingEnum encoding = config.encodingEnumFromInt(index);
-                config.setConsoleInputEncoding(encoding);
+                config.setConfigFromEncodingEnum(SettingsEnum::ConsoleInputEncoding, encoding);
             });
     // Console Output Encoding
     connect(ui->consoleOutputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [=](int index) {
                 EncodingEnum encoding = config.encodingEnumFromInt(index);
-                config.setConsoleOutputEncoding(encoding);
+                config.setConfigFromEncodingEnum(SettingsEnum::ConsoleOutputEncoding, encoding);
             });
     // Pack Timer Trigger Interval
     connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int value) {
-        config.setPackTimerTriggerInterval(value);
+        config.setConfig(SettingsEnum::PackTimerTriggerInterval, value);
     });
     // Temp Path
     connect(ui->tempPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setTempPath(text);
+        config.setConfig(SettingsEnum::TempPath, text);
     });
 
 
@@ -784,57 +790,57 @@ void MainWindow::connectSettingsPage() {
     // Browse Buttons
     // Default Python Path Browse
     connect(ui->defaultPyPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setDefaultPythonPath(
-            QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
-                                              config.getDefaultPythonPath(),
-                                              QFileDialog::ShowDirsOnly));
-        ui->defaultPyPathEdit->setText(config.getDefaultPythonPath());
+        config.setConfig(SettingsEnum::DefaultPythonPath,
+                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
+                                                           config.getConfigToString(SettingsEnum::DefaultPythonPath),
+                                                           QFileDialog::ShowDirsOnly));
+        ui->defaultPyPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultPythonPath));
     });
     // Default Main File Path Browse
     connect(ui->defaultMainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setDefaultMainFilePath(
-            QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
-                                              config.getDefaultMainFilePath(),
-                                              QFileDialog::ShowDirsOnly));
-        ui->defaultMainPathEdit->setText(config.getDefaultMainFilePath());
+        config.setConfig(SettingsEnum::DefaultMainFilePath,
+                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
+                                                           config.getConfigToString(SettingsEnum::DefaultMainFilePath),
+                                                           QFileDialog::ShowDirsOnly));
+        ui->defaultMainPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultMainFilePath));
     });
     // Default Output Path Browse
     connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setDefaultOutputPath(
+        config.setConfig(SettingsEnum::DefaultOutputPath,
             QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
-                                              config.getDefaultIconPath(),
+                                              config.getConfigToString(SettingsEnum::DefaultOutputPath),
                                               QFileDialog::ShowDirsOnly));
-        ui->defaultOutputPathEdit->setText(config.getDefaultOutputPath());
+        ui->defaultOutputPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultOutputPath));
     });
     // Default Icon Path Browse
     connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setDefaultIconPath(
+        config.setConfig(SettingsEnum::DefaultIconPath,
             QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
-                                              config.getDefaultIconPath(),
+                                              config.getConfigToString(SettingsEnum::DefaultIconPath),
                                               QFileDialog::ShowDirsOnly));
-        ui->defaultIconPathEdit->setText(config.getDefaultIconPath());
+        ui->defaultIconPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultIconPath));
     });
 
     // Line Edits
     // Python Edit
     connect(ui->defaultPyPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setDefaultPythonPath(text);
+        config.setConfigFromString(SettingsEnum::DefaultPythonPath, text);
     });
     // Main file Edit
     connect(ui->defaultMainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setDefaultMainFilePath(text);
+        config.setConfigFromString(SettingsEnum::DefaultMainFilePath, text);
     });
     // Output Edit
     connect(ui->defaultOutputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setDefaultOutputPath(text);
+        config.setConfigFromString(SettingsEnum::DefaultOutputPath, text);
     });
     // Icon Edit
     connect(ui->defaultIconPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setDefaultIconPath(text);
+        config.setConfigFromString(SettingsEnum::DefaultIconPath, text);
     });
     // Data Edit
     connect(ui->defaultDataPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setDefaultDataPath(text);
+        config.setConfigFromString(SettingsEnum::DefaultDataPath, text);
     });
 
     // Save button

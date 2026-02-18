@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 启动高DPI缩放
     qRegisterMetaType<LTOMode>("LTOMode");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
+    qRegisterMetaType<EncodingEnum>("EncodingEnum");
     initProjectConfig();
 
     QApplication a(argc, argv);
@@ -81,6 +82,7 @@ TODO: 美化ui（优先级最低）
 7. 添加了全局变量管理类GlobalData
 8. 修改了软件的标题格式，让其可以根据NPF文件路径显示
 9. 新增了types/simname.h文件，可以通过此文件定义一些常用数据的简写
+10. 重构了Config类
 
 修复的问题：
 1. 修复了导出数据列表窗口会存在空项的问题

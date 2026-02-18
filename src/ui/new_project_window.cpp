@@ -31,27 +31,27 @@ void NewProjectWindow::connectPath() {
     // button
     connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->projectPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  项目路径",
-                                                              config.getDefaultMainFilePath());
+                                                              config.getConfigToString(SettingsEnum::DefaultMainFilePath));
         ui->projectPathEdit->setText(this->projectPath);
     });
     connect(ui->pyFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        config.getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getConfigToString(SettingsEnum::DefaultPythonPath), "exe(*.exe)");
         ui->pyFileEdit->setText(this->pythonPath);
     });
     connect(ui->venvPyFilePathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        config.getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getConfigToString(SettingsEnum::DefaultPythonPath), "exe(*.exe)");
         ui->venvPyFilePathEdit->setText(this->pythonPath);
     });
     connect(ui->uvPyFilePathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        config.getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getConfigToString(SettingsEnum::DefaultPythonPath), "exe(*.exe)");
         ui->uvPyFilePathEdit->setText(this->pythonPath);
     });
     connect(ui->uvPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->uvPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  UV路径",
-                                                    config.getDefaultMainFilePath(), "exe(*.exe)");
+                                                    config.getConfigToString(SettingsEnum::DefaultMainFilePath), "exe(*.exe)");
         ui->uvPathEdit->setText(this->uvPath);
     });
 

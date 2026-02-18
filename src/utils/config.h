@@ -8,11 +8,14 @@
 #include <QString>
 #include <QVariant>
 #include <QMap>
+#include <QMetaEnum>
 
 #include <QDebug>
 
 #include <QSettings>
 #include <QDir>
+
+#include "logger.h"
 
 enum class EncodingEnum {
     utf8 = 0,
@@ -20,20 +23,31 @@ enum class EncodingEnum {
     ascii = 2
 };
 
-enum class SettingsEnum {
-    DefaultPythonPath,
-    DefaultMainFilePath,
-    DefaultOutputPath,
-    DefaultIconPath,
-    DefaultDataPath,
-    TempPath,
-    ConsoleInputEncoding,
-    ConsoleOutputEncoding,
-    PackTimerTriggerInterval,
-};
+namespace SettingsEnumNS {
+    Q_NAMESPACE
+
+    enum class SettingsEnum {
+        DefaultPythonPath,
+        DefaultMainFilePath,
+        DefaultOutputPath,
+        DefaultIconPath,
+        DefaultDataPath,
+        TempPath,
+        ConsoleInputEncoding,
+        ConsoleOutputEncoding,
+        PackTimerTriggerInterval,
+        NONE
+    };
+    Q_ENUM_NS(SettingsEnum)
+}
+
+using namespace SettingsEnumNS;
+
+Q_DECLARE_METATYPE(EncodingEnum)
 
 // Singleton class
 class Config {
+    Q_GADGET
 public:
     static Config& instance() {
         static Config inst;
@@ -53,58 +67,33 @@ public:
     EncodingEnum encodingEnumFromString(const QString& string);
     EncodingEnum encodingEnumFromInt(int value);
 
+    QString settingsEnumToString(SettingsEnum enumValue);
+    SettingsEnum settingsEnumFromString(const QString& string);
+
     // Getter and setter
-    const QString &getDefaultPythonPath() const { return defaultPythonPath; }
-    void setDefaultPythonPath(const QString &v) { defaultPythonPath = v; }
+    QVariant getConfig(const QString &configValue) const;
+    QVariant getConfig(SettingsEnum configValue);
+    QString getConfigToString(SettingsEnum configValue);
+    int getConfigToInt(SettingsEnum configValue);
+    EncodingEnum getConfigEncodingEnum(SettingsEnum configValue);
 
-    QString getDefaultMainFilePath() const { return defaultMainFilePath; }
-    void setDefaultMainFilePath(const QString &v) { defaultMainFilePath = v; }
+    void setConfig(SettingsEnum configValue, const QVariant& value);
+    void setConfig(const QString &configValue, const QVariant& value) const;
+    void setConfigFromString(SettingsEnum configValue, const QString& string);
+    void setConfigFromInt(SettingsEnum configValue, int value);
+    void setConfigFromEncodingEnum(SettingsEnum configValue, EncodingEnum encodingValue);
 
-    const QString &getDefaultOutputPath() const { return defaultOutputPath; }
-    void setDefaultOutputPath(const QString &v) { defaultOutputPath = v; }
-
-    const QString &getDefaultIconPath() const { return defaultIconPath; }
-    void setDefaultIconPath(const QString &v) { defaultIconPath = v; }
-
-    const QString &getDefaultDataPath() const { return defaultDataPath; }
-    void setDefaultDataPath(const QString &v) { defaultDataPath = v; }
-
-    EncodingEnum getConsoleInputEncoding() const { return consoleInputEncoding; }
-    void setConsoleInputEncoding(EncodingEnum e) { consoleInputEncoding = e; }
-
-    EncodingEnum getConsoleOutputEncoding() const { return consoleOutputEncoding; }
-    void setConsoleOutputEncoding(EncodingEnum e) { consoleOutputEncoding = e; }
-
-    int getPackTimerTriggerInterval() const { return packTimerTriggerInterval; }
-    void setPackTimerTriggerInterval(int v) { packTimerTriggerInterval = v; }
-
-    const QString& getConfigPath() const { return configPath; }
-
-    [[nodiscard]] const QString & getTempPath() const {
-        return tempPath;
+    [[nodiscard]] const QString& getConfigPath() const {
+        return this->configPath;
     }
+    void setConfigPath(const QString& path) {
+        this->configPath = path;
+    };
 
-    void setTempPath(const QString &temp_path) {
-        tempPath = temp_path;
-    }
 private:
     QSettings* settings;
-
     QString configPath;
-
-    QString defaultPythonPath;
-    QString defaultMainFilePath;
-    QString defaultOutputPath;
-    QString defaultIconPath;
-    QString defaultDataPath;
-    QString tempPath;
-
-    EncodingEnum consoleInputEncoding;
-    EncodingEnum consoleOutputEncoding;
-
-    int packTimerTriggerInterval;
-
-    QMap<QString, QVariant> configMap;
+    QMap<QString, QVariant>* configMap;
 };
 
 
