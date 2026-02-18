@@ -29,15 +29,18 @@
 
 #include "export_datalist_window.h"
 #include "about_window.h"
-#include "../utils/config.h"
-#include "../utils/logger.h"
 #include "new_project_window.h"
+#include "pack_log_window.h"
+
 #include "../types/data_structs.h"
 #include "../types/project_config_manager.h"
+#include "../types/simname.h"
+
 #include "../utils/utils.h"
+#include "../utils/config.h"
+#include "../utils/logger.h"
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
-#include "../types/simname.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -74,7 +77,8 @@ private:
     // Update UI functions
     void updateExportTable() const;
     void updatePackUI() const;
-    void updateUI();
+    void updateSettingsUI() const;
+    void updateUI() const;
 
     // Connect signals and slots functions
     void connectStackedWidget();
@@ -96,6 +100,7 @@ private slots:
     void onProjectTableCellDoubleClicked(int row, int column);
 
     void onFileMenuTriggered(QAction *action);
+    void onToolMenuTriggered(QAction *action);
     void onHelpMenuTriggered(QAction *action);
 
     void startPack();

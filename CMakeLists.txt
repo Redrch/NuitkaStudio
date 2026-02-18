@@ -106,6 +106,9 @@ set(SOURCES
         src/types/global_data.cpp
         src/types/global_data.h
         src/types/constants.h
+        src/ui/pack_log_window.cpp
+        src/ui/pack_log_window.h
+        forms/pack_log_window.ui
 )
 set(RESOURCES
         resource.qrc

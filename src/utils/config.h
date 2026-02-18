@@ -36,6 +36,7 @@ namespace SettingsEnumNS {
         ConsoleInputEncoding,
         ConsoleOutputEncoding,
         PackTimerTriggerInterval,
+        MaxPackLogCount,
         NONE
     };
     Q_ENUM_NS(SettingsEnum)

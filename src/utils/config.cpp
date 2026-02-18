@@ -7,6 +7,18 @@
 Config::Config() {
     this->configPath = "config.ini";
     this->configMap = new QMap<QString, QVariant>();
+    this->configMap->insert("ConsoleInputEncoding", QVariant::fromValue<EncodingEnum>(EncodingEnum::utf8));
+    this->configMap->insert("ConsoleOutputEncoding", QVariant::fromValue<EncodingEnum>(EncodingEnum::utf8));
+    this->configMap->insert("PackTimerTriggerInterval", 100);
+    this->configMap->insert("MaxPackLogCount", 20);
+
+    this->configMap->insert("DefaultPythonPath", "C:/");
+    this->configMap->insert("DefaultMainFilePath", "C:/");
+    this->configMap->insert("DefaultOutputPath", "C:/");
+    this->configMap->insert("DefaultIconPath", "C:/");
+    this->configMap->insert("DefaultDataPath", "C:/");
+    this->configMap->insert("TempPath", QDir::tempPath() + "/NuitkaStudio");
+
     this->settings = new QSettings(this->configPath, QSettings::IniFormat);
 }
 
@@ -16,18 +28,23 @@ Config::~Config() {
 
 void Config::writeConfig() {
     this->settings->beginGroup("General");
-    this->settings->setValue("consoleInputEncoding", this->getConfig(SettingsEnum::ConsoleInputEncoding));
-    this->settings->setValue("consoleOutputEncoding", this->getConfig(SettingsEnum::ConsoleOutputEncoding));
-    this->settings->setValue("packTimerTriggerInterval", this->getConfig(SettingsEnum::PackTimerTriggerInterval));
+    this->settings->setValue("ConsoleInputEncoding",
+                             encodingEnumToInt(
+                                 this->getConfigEncodingEnum(SettingsEnum::ConsoleInputEncoding)));
+    this->settings->setValue("ConsoleOutputEncoding",
+                             encodingEnumToInt(
+                                 this->getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
+    this->settings->setValue("PackTimerTriggerInterval", this->getConfig(SettingsEnum::PackTimerTriggerInterval));
+    this->settings->setValue("MaxPackLogCount", this->getConfig(SettingsEnum::MaxPackLogCount));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
-    this->settings->setValue("defaultPythonPath", this->getConfig(SettingsEnum::DefaultPythonPath));
-    this->settings->setValue("defaultMainFilePath", this->getConfig(SettingsEnum::DefaultMainFilePath));
-    this->settings->setValue("defaultOutputPath", this->getConfig(SettingsEnum::DefaultOutputPath));
-    this->settings->setValue("defaultIconPath", this->getConfig(SettingsEnum::DefaultIconPath));
-    this->settings->setValue("defaultDataPath", this->getConfig(SettingsEnum::DefaultDataPath));
-    this->settings->setValue("tempPath", this->getConfig(SettingsEnum::TempPath));
+    this->settings->setValue("DefaultPythonPath", this->getConfig(SettingsEnum::DefaultPythonPath));
+    this->settings->setValue("DefaultMainFilePath", this->getConfig(SettingsEnum::DefaultMainFilePath));
+    this->settings->setValue("DefaultOutputPath", this->getConfig(SettingsEnum::DefaultOutputPath));
+    this->settings->setValue("DefaultIconPath", this->getConfig(SettingsEnum::DefaultIconPath));
+    this->settings->setValue("DefaultDataPath", this->getConfig(SettingsEnum::DefaultDataPath));
+    this->settings->setValue("TempPath", this->getConfig(SettingsEnum::TempPath));
     this->settings->endGroup();
 }
 
@@ -35,21 +52,22 @@ void Config::readConfig() {
     this->settings->beginGroup("General");
     this->setConfigFromEncodingEnum(SettingsEnum::ConsoleInputEncoding,
                                     this->encodingEnumFromString(
-                                        this->settings->value("consoleInputEncoding").toString()));
+                                        this->settings->value("ConsoleInputEncoding").toString()));
     this->setConfigFromEncodingEnum(SettingsEnum::ConsoleOutputEncoding,
                                     this->encodingEnumFromString(
-                                        this->settings->value("consoleOutputEncoding").toString())
+                                        this->settings->value("ConsoleOutputEncoding").toString())
     );
-    this->setConfig(SettingsEnum::PackTimerTriggerInterval, this->settings->value("packTimerTriggerInterval").toInt());
+    this->setConfig(SettingsEnum::PackTimerTriggerInterval, this->settings->value("PackTimerTriggerInterval").toInt());
+    this->setConfig(SettingsEnum::MaxPackLogCount, this->settings->value("MaxPackLogCount").toInt());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
-    this->setConfig(SettingsEnum::DefaultPythonPath, this->settings->value("defaultPythonPath").toString());
-    this->setConfig(SettingsEnum::DefaultMainFilePath, this->settings->value("defaultMainFilePath").toString());
-    this->setConfig(SettingsEnum::DefaultOutputPath, this->settings->value("defaultOutputPath").toString());
-    this->setConfig(SettingsEnum::DefaultIconPath, this->settings->value("defaultIconPath").toString());
-    this->setConfig(SettingsEnum::DefaultDataPath, this->settings->value("defaultDataPath").toString());
-    this->setConfig(SettingsEnum::TempPath, this->settings->value("tempPath").toString());
+    this->setConfig(SettingsEnum::DefaultPythonPath, this->settings->value("DefaultPythonPath").toString());
+    this->setConfig(SettingsEnum::DefaultMainFilePath, this->settings->value("DefaultMainFilePath").toString());
+    this->setConfig(SettingsEnum::DefaultOutputPath, this->settings->value("DefaultOutputPath").toString());
+    this->setConfig(SettingsEnum::DefaultIconPath, this->settings->value("DefaultIconPath").toString());
+    this->setConfig(SettingsEnum::DefaultDataPath, this->settings->value("DefaultDataPath").toString());
+    this->setConfig(SettingsEnum::TempPath, this->settings->value("TempPath").toString());
     this->settings->endGroup();
 }
 

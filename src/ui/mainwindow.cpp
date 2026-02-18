@@ -132,6 +132,12 @@ void MainWindow::startPack() {
                 QString newLogFilePath = newLogTargetDir + "/" + nowString + ".log";
                 QFile::copy(logPath, newLogFilePath);
 
+                QStringList fileList = QDir(newLogTargetDir).entryList(QDir::Files, QDir::LocaleAware | QDir::Name);
+                while (fileList.count() > config.getConfigToInt(SettingsEnum::MaxPackLogCount)) {
+                    fileList.removeFirst();
+                    QFile::remove(newLogTargetDir + "/" + fileList[0]);
+                }
+
                 if (Compress::compressDir(tempExtractPath, GDM.getString(NPF_FILE_PATH))) {
                     ui->consoleOutputEdit->append("日志归档成功！");
                 } else {
@@ -380,6 +386,43 @@ void MainWindow::onFileMenuTriggered(QAction *action) {
     }
 }
 
+void MainWindow::onToolMenuTriggered(QAction *action) {
+    QString text = action->text();
+    Logger::info(QString("菜单：工具, 菜单项 %1 触发triggered事件").arg(text));
+
+    if (text == "打包日志(&P)") {
+        if (GDM.getString(NPF_FILE_PATH).isEmpty()) {
+            QMessageBox::critical(this, "Nuitka Studio Error", "请先指定NPF文件再使用此功能");
+            return;
+        }
+
+        // read the pack log
+        QString nowString = QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss");
+        QString zipTempPath = config.getConfigToString(SettingsEnum::TempPath) + "/npf_repack_" + nowString;
+        QString packLogPath = zipTempPath + "/pack_log";
+        Compress::extractZip(GDM.getString(NPF_FILE_PATH), zipTempPath);
+        QStringList logList = QDir(packLogPath).entryList(QDir::Files | QDir::NoDotAndDotDot);
+        QMap<QString, QString> logMap;
+        for (const QString& logFileName : logList) {
+            QFile file(packLogPath + "/" + logFileName);
+            if (!file.open(QIODevice::ReadOnly)) {
+                QMessageBox::warning(this, "Nuitka Studio Warning", "无法打开打包日志文件" + logFileName);
+                Logger::warn("无法打开打包日志文件" + logFileName);
+                continue;
+            }
+            QString log = QString::fromUtf8(file.readAll());
+            logMap.insert(logFileName, log);
+        }
+        // remove temp files
+        QDir(zipTempPath).removeRecursively();
+        // show the pack log window
+        PackLogWindow* logWindow = new PackLogWindow;
+        logWindow->setWindowFlags(logWindow->windowFlags() | Qt::Window);
+        logWindow->setLog(logMap);
+        logWindow->show();
+    }
+}
+
 void MainWindow::onHelpMenuTriggered(QAction *action) {
     QString text = action->text();
     Logger::info(QString("菜单：帮助, 菜单项 %1 触发triggered事件").arg(text));
@@ -396,21 +439,11 @@ void MainWindow::onHelpMenuTriggered(QAction *action) {
 }
 
 // Update UI functions
-void MainWindow::updateUI() {
+void MainWindow::updateUI() const {
     this->updateExportTable();
     this->updatePackUI();
+    this->updateSettingsUI();
 
-    ui->defaultPyPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultPythonPath));
-    ui->defaultMainPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultMainFilePath));
-    ui->defaultOutputPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultOutputPath));
-    ui->defaultIconPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultIconPath));
-    ui->defaultDataPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultDataPath));
-    ui->tempPathEdit->setText(config.getConfigToString(SettingsEnum::TempPath));
-
-    ui->consoleInputEncodingCombo->setCurrentIndex(
-        config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleInputEncoding)));
-    ui->consoleOutputEncodingCombo->setCurrentIndex(
-        config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
     Logger::info("刷新UI");
 }
 
@@ -545,6 +578,23 @@ void MainWindow::updatePackUI() const {
         PCM.getItemValueToString(PCE::LegalTrademarks));
 }
 
+
+void MainWindow::updateSettingsUI() const {
+    ui->defaultPyPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultPythonPath));
+    ui->defaultMainPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultMainFilePath));
+    ui->defaultOutputPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultOutputPath));
+    ui->defaultIconPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultIconPath));
+    ui->defaultDataPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultDataPath));
+    ui->tempPathEdit->setText(config.getConfigToString(SettingsEnum::TempPath));
+
+    ui->consoleInputEncodingCombo->setCurrentIndex(
+        config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleInputEncoding)));
+    ui->consoleOutputEncodingCombo->setCurrentIndex(
+        config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
+    ui->packTimerTriggerIntervalSpin->setValue(config.getConfigToInt(SettingsEnum::PackTimerTriggerInterval));
+    ui->maxPackLogCountSpin->setValue(config.getConfigToInt(SettingsEnum::MaxPackLogCount));
+}
+
 // Connect functions
 void MainWindow::connectStackedWidget() {
     connect(ui->pack_btn, &QPushButton::clicked, this, [=]() {
@@ -567,6 +617,7 @@ void MainWindow::connectStackedWidget() {
 void MainWindow::connectMenubar() {
     connect(ui->fileMenu, &QMenu::triggered, this, &MainWindow::onFileMenuTriggered);
     connect(ui->helpMenu, &QMenu::triggered, this, &MainWindow::onHelpMenuTriggered);
+    connect(ui->toolMenu, &QMenu::triggered, this, &MainWindow::onToolMenuTriggered);
 }
 
 void MainWindow::connectPackPage() {
@@ -645,6 +696,11 @@ void MainWindow::connectPackPage() {
     // Project name edit
     connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         PCM.setItem(PCE::ProjectName, text);
+    });
+
+    // Icon edit
+    connect(ui->iconFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        PCM.setItem(PCE::IconPath, text);
     });
 
     // Build Settings
@@ -780,6 +836,10 @@ void MainWindow::connectSettingsPage() {
     connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int value) {
         config.setConfig(SettingsEnum::PackTimerTriggerInterval, value);
     });
+    // Max Pack Log Count
+    connect(ui->maxPackLogCountSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int value) {
+        config.setConfig(SettingsEnum::MaxPackLogCount, value);
+    });
     // Temp Path
     connect(ui->tempPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         config.setConfig(SettingsEnum::TempPath, text);
@@ -819,6 +879,14 @@ void MainWindow::connectSettingsPage() {
                                               config.getConfigToString(SettingsEnum::DefaultIconPath),
                                               QFileDialog::ShowDirsOnly));
         ui->defaultIconPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultIconPath));
+    });
+    // Default Data Path Browse
+    connect(ui->defaultDataPathBrowseBtn, &QPushButton::clicked, this, [=]() {
+        config.setConfig(SettingsEnum::DefaultDataPath,
+            QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认数据路径选择",
+                                              config.getConfigToString(SettingsEnum::DefaultDataPath),
+                                              QFileDialog::ShowDirsOnly));
+        ui->defaultDataPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultDataPath));
     });
 
     // Line Edits

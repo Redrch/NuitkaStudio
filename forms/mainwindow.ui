@@ -873,10 +873,7 @@
             </item>
             <item>
              <widget class="QWidget" name="widget_13" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_27">
-               <property name="topMargin">
-                <number>0</number>
-               </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_35">
                <item>
                 <widget class="QWidget" name="widget_14" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_26">
@@ -910,6 +907,41 @@
                    <widget class="QLabel" name="label_15">
                     <property name="text">
                      <string>ms</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="widget_15" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_27">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>9</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label_18">
+                    <property name="text">
+                     <string>单个NPF文件最大日志数量</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="maxPackLogCountSpin">
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>9999</number>
+                    </property>
+                    <property name="value">
+                     <number>20</number>
                     </property>
                    </widget>
                   </item>
@@ -1415,7 +1447,14 @@
     <addaction name="helpAction"/>
     <addaction name="aboutAction"/>
    </widget>
+   <widget class="QMenu" name="toolMenu">
+    <property name="title">
+     <string>工具(&amp;T)</string>
+    </property>
+    <addaction name="packLogAction"/>
+   </widget>
    <addaction name="fileMenu"/>
+   <addaction name="toolMenu"/>
    <addaction name="helpMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -1447,6 +1486,11 @@
   <action name="newAction">
    <property name="text">
     <string>新建(&amp;N)</string>
+   </property>
+  </action>
+  <action name="packLogAction">
+   <property name="text">
+    <string>打包日志(&amp;P)</string>
    </property>
   </action>
  </widget>
