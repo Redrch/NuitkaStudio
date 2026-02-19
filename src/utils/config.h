@@ -37,6 +37,8 @@ namespace SettingsEnumNS {
         ConsoleOutputEncoding,
         PackTimerTriggerInterval,
         MaxPackLogCount,
+        IsShowCloseWindow,
+        IsHideOnClose,
         NONE
     };
     Q_ENUM_NS(SettingsEnum)
@@ -76,12 +78,14 @@ public:
     QVariant getConfig(SettingsEnum configValue);
     QString getConfigToString(SettingsEnum configValue);
     int getConfigToInt(SettingsEnum configValue);
+    bool getConfigToBool(SettingsEnum configValue);
     EncodingEnum getConfigEncodingEnum(SettingsEnum configValue);
 
     void setConfig(SettingsEnum configValue, const QVariant& value);
     void setConfig(const QString &configValue, const QVariant& value) const;
     void setConfigFromString(SettingsEnum configValue, const QString& string);
     void setConfigFromInt(SettingsEnum configValue, int value);
+    void setConfigFromBool(SettingsEnum configValue, bool value);
     void setConfigFromEncodingEnum(SettingsEnum configValue, EncodingEnum encodingValue);
 
     [[nodiscard]] const QString& getConfigPath() const {

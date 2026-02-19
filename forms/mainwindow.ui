@@ -105,7 +105,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="packPage">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -780,8 +780,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>865</width>
-             <height>208</height>
+             <width>852</width>
+             <height>212</height>
             </rect>
            </property>
            <attribute name="label">
@@ -965,6 +965,39 @@
              </widget>
             </item>
             <item>
+             <widget class="QWidget" name="widget" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_36">
+               <item>
+                <widget class="QCheckBox" name="showCloseWindowCheckbox">
+                 <property name="text">
+                  <string>显示退出操作页面</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="hideOnCloseCheckbox">
+                 <property name="text">
+                  <string>在退出时最小化到托盘</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <widget class="QWidget" name="tempPath" native="true">
               <layout class="QHBoxLayout" name="horizontalLayout_29">
                <item>
@@ -979,19 +1012,6 @@
                </item>
               </layout>
              </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_8">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
             </item>
            </layout>
           </widget>

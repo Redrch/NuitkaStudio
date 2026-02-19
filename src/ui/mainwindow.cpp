@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Init UI
     this->initExportPage();
     this->initStatusBar();
+    this->initTrayMenu();
 
     // Connect signal and slot
     this->connectStackedWidget();
@@ -35,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->connectPackPage();
     this->connectSettingsPage();
     this->connectExportPage();
+    this->connectTrayMenu();
 
     this->updateUI();
 
@@ -403,7 +405,7 @@ void MainWindow::onToolMenuTriggered(QAction *action) {
         Compress::extractZip(GDM.getString(NPF_FILE_PATH), zipTempPath);
         QStringList logList = QDir(packLogPath).entryList(QDir::Files | QDir::NoDotAndDotDot);
         QMap<QString, QString> logMap;
-        for (const QString& logFileName : logList) {
+        for (const QString &logFileName: logList) {
             QFile file(packLogPath + "/" + logFileName);
             if (!file.open(QIODevice::ReadOnly)) {
                 QMessageBox::warning(this, "Nuitka Studio Warning", "无法打开打包日志文件" + logFileName);
@@ -416,7 +418,7 @@ void MainWindow::onToolMenuTriggered(QAction *action) {
         // remove temp files
         QDir(zipTempPath).removeRecursively();
         // show the pack log window
-        PackLogWindow* logWindow = new PackLogWindow;
+        PackLogWindow *logWindow = new PackLogWindow;
         logWindow->setWindowFlags(logWindow->windowFlags() | Qt::Window);
         logWindow->setLog(logMap);
         logWindow->show();
@@ -578,21 +580,30 @@ void MainWindow::updatePackUI() const {
         PCM.getItemValueToString(PCE::LegalTrademarks));
 }
 
-
 void MainWindow::updateSettingsUI() const {
     ui->defaultPyPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultPythonPath));
     ui->defaultMainPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultMainFilePath));
     ui->defaultOutputPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultOutputPath));
     ui->defaultIconPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultIconPath));
     ui->defaultDataPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultDataPath));
-    ui->tempPathEdit->setText(config.getConfigToString(SettingsEnum::TempPath));
 
     ui->consoleInputEncodingCombo->setCurrentIndex(
         config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleInputEncoding)));
     ui->consoleOutputEncodingCombo->setCurrentIndex(
         config.encodingEnumToInt(config.getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
+
     ui->packTimerTriggerIntervalSpin->setValue(config.getConfigToInt(SettingsEnum::PackTimerTriggerInterval));
     ui->maxPackLogCountSpin->setValue(config.getConfigToInt(SettingsEnum::MaxPackLogCount));
+
+    ui->showCloseWindowCheckbox->setChecked(config.getConfigToBool(SettingsEnum::IsShowCloseWindow));
+    ui->hideOnCloseCheckbox->setChecked(config.getConfigToBool(SettingsEnum::IsHideOnClose));
+    if (config.getConfigToBool(SettingsEnum::IsShowCloseWindow)) {
+        ui->hideOnCloseCheckbox->setEnabled(false);
+    } else {
+        ui->hideOnCloseCheckbox->setEnabled(true);
+    }
+
+    ui->tempPathEdit->setText(config.getConfigToString(SettingsEnum::TempPath));
 }
 
 // Connect functions
@@ -840,6 +851,28 @@ void MainWindow::connectSettingsPage() {
     connect(ui->maxPackLogCountSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int value) {
         config.setConfig(SettingsEnum::MaxPackLogCount, value);
     });
+    // Is Show Close Window
+    connect(ui->showCloseWindowCheckbox, QCheckBox::toggled, this, [=](bool checked) {
+        if (checked) {
+            config.setConfigFromBool(SettingsEnum::IsShowCloseWindow, true);
+        } else {
+            config.setConfigFromBool(SettingsEnum::IsShowCloseWindow, false);
+        }
+        // Is Enabled hideOnCloseCheckbox
+        if (config.getConfigToBool(SettingsEnum::IsShowCloseWindow)) {
+            ui->hideOnCloseCheckbox->setEnabled(false);
+        } else {
+            ui->hideOnCloseCheckbox->setEnabled(true);
+        }
+    });
+    // Is Hide On Close
+    connect(ui->hideOnCloseCheckbox, QCheckBox::toggled, this, [=](bool checked) {
+        if (checked) {
+            config.setConfigFromBool(SettingsEnum::IsHideOnClose, true);
+        } else {
+            config.setConfigFromBool(SettingsEnum::IsHideOnClose, false);
+        }
+    });
     // Temp Path
     connect(ui->tempPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         config.setConfig(SettingsEnum::TempPath, text);
@@ -867,25 +900,25 @@ void MainWindow::connectSettingsPage() {
     // Default Output Path Browse
     connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         config.setConfig(SettingsEnum::DefaultOutputPath,
-            QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
-                                              config.getConfigToString(SettingsEnum::DefaultOutputPath),
-                                              QFileDialog::ShowDirsOnly));
+                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
+                                                           config.getConfigToString(SettingsEnum::DefaultOutputPath),
+                                                           QFileDialog::ShowDirsOnly));
         ui->defaultOutputPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultOutputPath));
     });
     // Default Icon Path Browse
     connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         config.setConfig(SettingsEnum::DefaultIconPath,
-            QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
-                                              config.getConfigToString(SettingsEnum::DefaultIconPath),
-                                              QFileDialog::ShowDirsOnly));
+                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
+                                                           config.getConfigToString(SettingsEnum::DefaultIconPath),
+                                                           QFileDialog::ShowDirsOnly));
         ui->defaultIconPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultIconPath));
     });
     // Default Data Path Browse
     connect(ui->defaultDataPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         config.setConfig(SettingsEnum::DefaultDataPath,
-            QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认数据路径选择",
-                                              config.getConfigToString(SettingsEnum::DefaultDataPath),
-                                              QFileDialog::ShowDirsOnly));
+                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认数据路径选择",
+                                                           config.getConfigToString(SettingsEnum::DefaultDataPath),
+                                                           QFileDialog::ShowDirsOnly));
         ui->defaultDataPathEdit->setText(config.getConfigToString(SettingsEnum::DefaultDataPath));
     });
 
@@ -968,6 +1001,25 @@ void MainWindow::connectExportPage() {
     });
 }
 
+void MainWindow::connectTrayMenu() {
+    // tray icon
+    connect(this->trayIcon, &QSystemTrayIcon::activated, this, [=](QSystemTrayIcon::ActivationReason reason) {
+        if (reason == QSystemTrayIcon::DoubleClick) {
+            this->showNormal();
+            this->activateWindow();
+        }
+    });
+    // show action
+    connect(this->showAction, &QAction::triggered, this, [=]() {
+        this->showNormal();
+        this->activateWindow();
+    });
+    // quit action
+    connect(this->quitAction, &QAction::triggered, this, [=]() {
+        qApp->quit();
+    });
+}
+
 // Init functions
 void MainWindow::initExportPage() {
     // Export
@@ -992,6 +1044,21 @@ void MainWindow::initStatusBar() {
     this->messageLabel->setAlignment(Qt::AlignCenter);
     ui->statusbar->addWidget(this->messageLabel);
     ui->statusbar->addPermanentWidget(this->messageLabel, 0);
+}
+
+void MainWindow::initTrayMenu() {
+    this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
+    this->trayIcon->setToolTip("Nuitka Studio");
+    // tray menu
+    this->trayMenu = new QMenu(this);
+    this->showAction = new QAction("显示", this);
+    this->quitAction = new QAction("退出", this);
+
+    trayMenu->addAction(showAction);
+    trayMenu->addAction(quitAction);
+    trayIcon->setContextMenu(trayMenu);
+
+    trayIcon->show();
 }
 
 // gen path functions
@@ -1079,4 +1146,69 @@ void MainWindow::genFileInfo() {
     PCM.setItem(PCE::ProductName,
                 PCM.getItemValueToString(
                     PCE::ProjectName));
+}
+
+// events
+void MainWindow::closeEvent(QCloseEvent *event) {
+    if (config.getConfigToBool(SettingsEnum::IsShowCloseWindow)) {
+        QDialog dialog(this);
+        QVBoxLayout mainLayout;
+        dialog.setLayout(&mainLayout);
+        // label
+        QLabel label("您想要将软件关闭还是最小化至系统托盘");
+        label.setAlignment(Qt::AlignCenter);
+        mainLayout.addWidget(&label);
+        // buttons
+        QPushButton trayBtn("最小化至系统托盘");
+        mainLayout.addWidget(&trayBtn);
+        QPushButton exitBtn("退出软件");
+        mainLayout.addWidget(&exitBtn);
+        // hide
+        QCheckBox hideCheckbox("不再显示该窗口（隐藏后行为可以在设置中看到）");
+        mainLayout.addWidget(&hideCheckbox);
+
+        bool shouldHide = false;
+        bool shouldQuit = false;
+        // connect
+        connect(&trayBtn, &QPushButton::clicked, [&] {
+            shouldHide = true;
+            dialog.accept();
+        });
+        connect(&exitBtn, &QPushButton::clicked, [&] {
+            shouldQuit = true;
+            dialog.accept();
+        });
+        connect(&hideCheckbox, &QCheckBox::stateChanged, [=](int state) {
+            if (state == Qt::Checked) {
+                config.setConfigFromBool(SettingsEnum::IsShowCloseWindow, false);
+            } else if (state == Qt::Unchecked) {
+                config.setConfigFromBool(SettingsEnum::IsShowCloseWindow, true);
+            }
+            config.writeConfig();
+        });
+
+        dialog.exec();
+
+        if (shouldQuit) {
+            config.setConfigFromBool(SettingsEnum::IsHideOnClose, false);
+            event->accept();
+            config.writeConfig();
+            qApp->quit();
+        } else if (shouldHide) {
+            config.setConfigFromBool(SettingsEnum::IsHideOnClose, true);
+            this->hide();
+            event->ignore();
+            config.writeConfig();
+        } else {
+            event->ignore();
+        }
+    } else {
+        if (config.getConfigToBool(SettingsEnum::IsHideOnClose)) {
+            this->hide();
+            event->ignore();
+        } else {
+            event->accept();
+            qApp->quit();
+        }
+    }
 }

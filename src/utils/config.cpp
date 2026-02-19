@@ -11,6 +11,8 @@ Config::Config() {
     this->configMap->insert("ConsoleOutputEncoding", QVariant::fromValue<EncodingEnum>(EncodingEnum::utf8));
     this->configMap->insert("PackTimerTriggerInterval", 100);
     this->configMap->insert("MaxPackLogCount", 20);
+    this->configMap->insert("IsShowCloseWindow", QVariant(true));
+    this->configMap->insert("IsHideOnClose", QVariant(true));
 
     this->configMap->insert("DefaultPythonPath", "C:/");
     this->configMap->insert("DefaultMainFilePath", "C:/");
@@ -36,6 +38,8 @@ void Config::writeConfig() {
                                  this->getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
     this->settings->setValue("PackTimerTriggerInterval", this->getConfig(SettingsEnum::PackTimerTriggerInterval));
     this->settings->setValue("MaxPackLogCount", this->getConfig(SettingsEnum::MaxPackLogCount));
+    this->settings->setValue("IsShowCloseWindow", this->getConfigToBool(SettingsEnum::IsShowCloseWindow));
+    this->settings->setValue("IsHideOnClose", this->getConfigToBool(SettingsEnum::IsHideOnClose));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -59,6 +63,8 @@ void Config::readConfig() {
     );
     this->setConfig(SettingsEnum::PackTimerTriggerInterval, this->settings->value("PackTimerTriggerInterval").toInt());
     this->setConfig(SettingsEnum::MaxPackLogCount, this->settings->value("MaxPackLogCount").toInt());
+    this->setConfig(SettingsEnum::IsShowCloseWindow, this->settings->value("IsShowCloseWindow").toBool());
+    this->setConfig(SettingsEnum::IsHideOnClose, this->settings->value("IsHideOnClose").toBool());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -79,16 +85,20 @@ QVariant Config::getConfig(const SettingsEnum configValue) {
     return this->getConfig(this->settingsEnumToString(configValue));
 }
 
-QString Config::getConfigToString(SettingsEnum configValue) {
+QString Config::getConfigToString(const SettingsEnum configValue) {
     return this->getConfig(configValue).toString();
 }
 
-int Config::getConfigToInt(SettingsEnum configValue) {
+int Config::getConfigToInt(const SettingsEnum configValue) {
     return this->getConfig(configValue).toInt();
 }
 
-EncodingEnum Config::getConfigEncodingEnum(SettingsEnum configValue) {
+EncodingEnum Config::getConfigEncodingEnum(const SettingsEnum configValue) {
     return this->getConfig(configValue).value<EncodingEnum>();
+}
+
+bool Config::getConfigToBool(const SettingsEnum configValue) {
+    return this->getConfig(configValue).toBool();
 }
 
 void Config::setConfig(const QString &configValue, const QVariant &value) const {
@@ -109,6 +119,10 @@ void Config::setConfigFromInt(SettingsEnum configValue, int value) {
 
 void Config::setConfigFromEncodingEnum(SettingsEnum configValue, EncodingEnum encodingValue) {
     this->setConfig(configValue, QVariant::fromValue<EncodingEnum>(encodingValue));
+}
+
+void Config::setConfigFromBool(SettingsEnum configValue, bool value) {
+    this->setConfig(configValue, QVariant(value));
 }
 
 QString Config::settingsEnumToString(SettingsEnum enumValue) {
@@ -164,7 +178,6 @@ EncodingEnum Config::encodingEnumFromString(const QString &string) {
     } else if (string == "2") {
         return EncodingEnum::ascii;
     } else {
-        qDebug() << string;
         throw std::runtime_error("'Encoding Enum' value error.Please use >= 0 and <= 2 value");
     }
 }
@@ -177,7 +190,6 @@ EncodingEnum Config::encodingEnumFromInt(int value) {
     } else if (value == 2) {
         return EncodingEnum::ascii;
     } else {
-        qDebug() << value;
         throw std::runtime_error("'Encoding Enum' value error.Please use >= 0 and <= 2 value");
     }
 }

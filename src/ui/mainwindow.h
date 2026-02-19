@@ -19,6 +19,9 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QFile>
+#include <QSystemTrayIcon>
+#include <QIcon>
+#include <QCloseEvent>
 
 #include <QDateTime>
 #include <QElapsedTimer>
@@ -72,6 +75,11 @@ private:
     QCheckBox *removeOutputCheckbox;
     QComboBox *ltoModeCombobox;
     QLabel *messageLabel;
+    // tray menu
+    QSystemTrayIcon *trayIcon;
+    QMenu *trayMenu;
+    QAction *showAction;
+    QAction *quitAction;
 
     // functions
     // Update UI functions
@@ -86,11 +94,12 @@ private:
     void connectPackPage();
     void connectSettingsPage();
     void connectExportPage();
+    void connectTrayMenu();
 
     // Init functions
     void initExportPage();
     void initStatusBar();
-
+    void initTrayMenu();
 
 private slots:
     void onAddDataFileItemClicked();
@@ -118,6 +127,9 @@ private slots:
     void genOutputName();
     // Gen file info functions
     void genFileInfo();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 };
 
 
