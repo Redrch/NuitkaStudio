@@ -26,14 +26,50 @@ QString GlobalData::getString(const QString &name) const {
     return result.toString();
 }
 
-void GlobalData::set(const QString &name, const QVariant &value) const {
+bool GlobalData::getBool(const QString &name) const {
+    QMutexLocker lock(mutex);
+    QVariant result = this->dataMap->value(name);
+    return result.toBool();
+}
+
+int GlobalData::getInt(const QString &name) const {
+    QMutexLocker lock(mutex);
+    QVariant result = this->dataMap->value(name);
+    return result.toInt();
+}
+
+double GlobalData::getDouble(const QString &name) const {
+    QMutexLocker lock(mutex);
+    QVariant result = this->dataMap->value(name);
+    return result.toDouble();
+}
+
+void GlobalData::set(const QString &name, const QVariant &value) {
     QMutexLocker lock(mutex);
     this->dataMap->insert(name, value);
+    emit this->valueChanged(name, value);
 }
 
-void GlobalData::setString(const QString &name, const QString &value) const {
+void GlobalData::setString(const QString &name, const QString &value) {
     QMutexLocker lock(mutex);
     this->dataMap->insert(name, QVariant(value));
+    emit this->valueChanged(name, value);
 }
 
+void GlobalData::setBool(const QString &name, const bool &value) {
+    QMutexLocker lock(mutex);
+    this->dataMap->insert(name, QVariant(value));
+    emit this->valueChanged(name, value);
+}
 
+void GlobalData::setInt(const QString &name, const int &value) {
+    QMutexLocker lock(mutex);
+    this->dataMap->insert(name, QVariant(value));
+    emit this->valueChanged(name, value);
+}
+
+void GlobalData::setDouble(const QString &name, const double &value) {
+    QMutexLocker lock(mutex);
+    this->dataMap->insert(name, QVariant(value));
+    emit this->valueChanged(name, value);
+}

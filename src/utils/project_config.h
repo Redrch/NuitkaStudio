@@ -27,8 +27,8 @@ public:
     explicit ProjectConfig(QWidget* parent);
     ~ProjectConfig();
 
-    QString importProject(const QString& path = "") const;
-    QString exportProject(const QString& path = "") const;
+    QString loadProject(const QString& path = "") const;
+    QString saveProject(const QString& path = "") const;
 private:
     QWidget *parent;
     Compress* compress;

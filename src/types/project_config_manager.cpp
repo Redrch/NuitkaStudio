@@ -135,3 +135,29 @@ void ProjectConfigManager::removeItemFromStringList(PCE configValue, int valueIn
 void ProjectConfigManager::setList(QList<ProjectConfigType *> *list) {
     this->configList = list;
 }
+
+void ProjectConfigManager::setDefaultValue() const {
+    for (ProjectConfigType *config: *this->configList) {
+        QVariant value = config->get_itemValue();
+        switch (config->get_itemValue().type()) {
+            case QVariant::String:
+                config->set_itemValue("");
+                break;
+            case QVariant::StringList:
+                config->set_itemValue(QStringList());
+                break;
+            case QVariant::Bool:
+                if (config->get_itemName() == "onefile" || config->get_itemName() == "removeOutput") {
+                    config->set_itemValue(false);
+                } else {
+                    config->set_itemValue(true);
+                }
+                break;
+            default:
+                int ltoModeId = qMetaTypeId<LTOMode>();
+                if (value.userType() == ltoModeId) {
+                    config->set_itemValue(QVariant::fromValue<LTOMode>(LTOMode::Auto));
+                }
+        }
+    }
+}

@@ -130,7 +130,7 @@ void NewProjectWindow::newProject() {
     PCM.setItem(PCE::ProductVersion, "1.0.0.0");
 
     ProjectConfig project_config(this);
-    project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
+    project_config.saveProject(projectDirPath + "/" + projectName + ".npf");
     ui->newProjectBtn->setDisabled(true);
 
     this->accept();

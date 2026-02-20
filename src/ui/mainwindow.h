@@ -51,6 +51,11 @@ namespace Ui {
     class MainWindow;
 }
 
+enum class TextPos {
+    TopLabel,
+    Statusbar
+};
+
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
@@ -69,15 +74,18 @@ private:
     QDateTime startPackTime;
     QTimer *packTimer;
     QProcess *packProcess;
-
+    // controls
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;
     QCheckBox *removeOutputCheckbox;
     QComboBox *ltoModeCombobox;
     QLabel *messageLabel;
+    QLabel *topTextLabel;
     // tray menu
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;
+    QAction *startPackAction;
+    QAction *stopPackAction;
     QAction *showAction;
     QAction *quitAction;
 
@@ -95,11 +103,16 @@ private:
     void connectSettingsPage();
     void connectExportPage();
     void connectTrayMenu();
+    void connectOther();
 
     // Init functions
-    void initExportPage();
-    void initStatusBar();
-    void initTrayMenu();
+    void initUI();
+
+    // ui utils functions
+    void showText(const QString& text, int showTime = -1, const QColor &color = Qt::black, TextPos position = TextPos::TopLabel) const;
+    void clearText(TextPos position = TextPos::TopLabel) const;
+    void enabledInput() const;
+    void noEnableInput() const;
 
 private slots:
     void onAddDataFileItemClicked();
@@ -130,6 +143,7 @@ private slots:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 

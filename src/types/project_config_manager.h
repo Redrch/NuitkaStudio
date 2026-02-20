@@ -52,6 +52,8 @@ public:
     void removeItemFromStringList(PCE configValue, const QString& value);
     void removeItemFromStringList(PCE configValue, int valueIndex);
 
+    void setDefaultValue() const;
+
 private:
     QList<ProjectConfigType *> *configList;
 };

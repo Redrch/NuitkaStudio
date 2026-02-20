@@ -32,5 +32,6 @@
 inline ProjectConfigManager &PCM = ProjectConfigManager::instance();
 inline GlobalData &GDM = GlobalData::instance();
 inline Config &config = Config::instance();
+namespace GDIN = GlobalDataItemName;
 
 #endif //PCM_H

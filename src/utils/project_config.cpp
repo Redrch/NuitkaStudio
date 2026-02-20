@@ -13,7 +13,7 @@ ProjectConfig::~ProjectConfig() {
     delete this->compress;
 }
 
-QString ProjectConfig::importProject(const QString &path) const {
+QString ProjectConfig::loadProject(const QString &path) const {
     QString filePath;
     if (path.isEmpty()) {
         filePath = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
@@ -57,14 +57,14 @@ QString ProjectConfig::importProject(const QString &path) const {
         }
         PCM.setItem(index, value);
     }
-    GDM.setString(NPF_FILE_PATH, filePath);
+    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
     config.setConfigFromString(SettingsEnum::NpfPath, filePath);
     config.writeConfig();
     Logger::info("导入NPF文件");
     return filePath;
 }
 
-QString ProjectConfig::exportProject(const QString &path) const {
+QString ProjectConfig::saveProject(const QString &path) const {
     QString filePath = "";
     if (path == "") {
         filePath = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
@@ -110,7 +110,7 @@ QString ProjectConfig::exportProject(const QString &path) const {
 
     // write
     this->compress->writeZip(jsonPath, docString.toUtf8());
-    GDM.setString(NPF_FILE_PATH, filePath);
+    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
     config.setConfigFromString(SettingsEnum::NpfPath, filePath);
     config.writeConfig();
     Logger::info("导出NPF文件");

@@ -25,10 +25,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
     }
 
+    // Init GDM
+    GDM.setString(GDIN::NPF_FILE_PATH, "");
+    GDM.setBool(GDIN::IS_OPEN_NPF, false);
+
+    if (!config.getConfigToString(SettingsEnum::NpfPath).isEmpty()) {
+        QString filePath = this->projectConfig->loadProject(config.getConfigToString(SettingsEnum::NpfPath));
+        if (!GDM.getString(GDIN::NPF_FILE_PATH).isEmpty()) {
+            this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
+        }
+        GDM.setBool(GDIN::IS_OPEN_NPF, true);
+    }
+
     // Init UI
-    this->initExportPage();
-    this->initStatusBar();
-    this->initTrayMenu();
+    this->initUI();
 
     // Connect signal and slot
     this->connectStackedWidget();
@@ -37,12 +47,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->connectSettingsPage();
     this->connectExportPage();
     this->connectTrayMenu();
+    this->connectOther();
 
-    if (!config.getConfigToString(SettingsEnum::NpfPath).isEmpty()) {
-        QString filePath = this->projectConfig->importProject(config.getConfigToString(SettingsEnum::NpfPath));
-        if (!GDM.getString(NPF_FILE_PATH).isEmpty()) {
-            this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
-        }
+    if (!GDM.getBool(GDIN::IS_OPEN_NPF)) {
+        this->showText("请先新建或打开一个NPF文件再进行操作", -1, Qt::red);
     }
 
     this->updateUI();
@@ -122,7 +130,8 @@ void MainWindow::startPack() {
                     return;
                 }
 
-                QStringList extractedFiles = JlCompress::extractDir(GDM.getString(NPF_FILE_PATH), tempExtractPath);
+                QStringList extractedFiles =
+                        JlCompress::extractDir(GDM.getString(GDIN::NPF_FILE_PATH), tempExtractPath);
                 if (extractedFiles.isEmpty()) {
                     ui->consoleOutputEdit->append("警告：原 NPF 文件内容解压失败或为空！归档已取消以保护原文件。");
                     return; // 防止覆盖原包
@@ -147,7 +156,7 @@ void MainWindow::startPack() {
                     QFile::remove(newLogTargetDir + "/" + fileList[0]);
                 }
 
-                if (Compress::compressDir(tempExtractPath, GDM.getString(NPF_FILE_PATH))) {
+                if (Compress::compressDir(tempExtractPath, GDM.getString(GDIN::NPF_FILE_PATH))) {
                     ui->consoleOutputEdit->append("日志归档成功！");
                 } else {
                     ui->consoleOutputEdit->append("归档失败：无法重写 NPF 文件。");
@@ -301,20 +310,23 @@ void MainWindow::stopPack() {
 }
 
 void MainWindow::importProject() {
-    QString filePath = this->projectConfig->importProject();
+    QString filePath = this->projectConfig->loadProject();
     // Update UI
     this->updateUI();
-    if (!GDM.getString(NPF_FILE_PATH).isEmpty()) {
+    if (!filePath.isEmpty()) {
         this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
     }
+    GDM.setBool(GDIN::IS_OPEN_NPF, true);
+    this->clearText();
 }
 
 void MainWindow::exportProject() {
-    QString filePath = this->projectConfig->exportProject();
+    QString filePath = this->projectConfig->saveProject();
     this->updateUI();
-    if (!GDM.getString(NPF_FILE_PATH).isEmpty()) {
+    if (!filePath.isEmpty()) {
         this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
     }
+    GDM.setBool(GDIN::IS_OPEN_NPF, true);
 }
 
 void MainWindow::newProject() {
@@ -389,11 +401,32 @@ void MainWindow::onFileMenuTriggered(QAction *action) {
     Logger::info(QString("菜单：文件, 菜单项 %1 触发triggered事件").arg(text));
 
     if (text == "新建(&N)") {
+        QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio 新建NPF文件",
+                                                    config.getConfigToString(SettingsEnum::DefaultDataPath));
+        PCM.setDefaultValue();
+        this->projectConfig->saveProject(path);
+        GDM.setString(GDIN::NPF_FILE_PATH, path);
+        GDM.setBool(GDIN::IS_OPEN_NPF, true);
+        this->clearText();
+    } else if (text == "新建项目") {
         this->newProject();
-    } else if (text == "导入(&I)") {
+    } else if (text == "打开(&O)") {
         this->importProject();
-    } else if (text == "导出(&E)") {
+        this->clearText();
+    } else if (text == "保存(&S)") {
+        this->projectConfig->saveProject(GDM.getString(GDIN::NPF_FILE_PATH));
+    } else if (text == "另存为(&A)") {
         this->exportProject();
+    } else if (text == "关闭文件(&C)") {
+        int choose = QMessageBox::question(this, "Nuitka Studio", "关闭后未保存的数据将会丢失，是否确认关闭");
+        if (choose == QMessageBox::Yes) {
+            PCM.setDefaultValue();
+            GDM.setString(GDIN::NPF_FILE_PATH, "");
+            GDM.setBool(GDIN::IS_OPEN_NPF, false);
+            config.setConfigFromString(SettingsEnum::NpfPath, "");
+            this->setWindowTitle("Nuitka Studio");
+            this->updateUI();
+        }
     }
 }
 
@@ -402,7 +435,7 @@ void MainWindow::onToolMenuTriggered(QAction *action) {
     Logger::info(QString("菜单：工具, 菜单项 %1 触发triggered事件").arg(text));
 
     if (text == "打包日志(&P)") {
-        if (GDM.getString(NPF_FILE_PATH).isEmpty()) {
+        if (GDM.getString(GDIN::NPF_FILE_PATH).isEmpty()) {
             QMessageBox::critical(this, "Nuitka Studio Error", "请先指定NPF文件再使用此功能");
             return;
         }
@@ -411,7 +444,7 @@ void MainWindow::onToolMenuTriggered(QAction *action) {
         QString nowString = QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss");
         QString zipTempPath = config.getConfigToString(SettingsEnum::TempPath) + "/npf_repack_" + nowString;
         QString packLogPath = zipTempPath + "/pack_log";
-        Compress::extractZip(GDM.getString(NPF_FILE_PATH), zipTempPath);
+        Compress::extractZip(GDM.getString(GDIN::NPF_FILE_PATH), zipTempPath);
         QStringList logList = QDir(packLogPath).entryList(QDir::Files | QDir::NoDotAndDotDot);
         QMap<QString, QString> logMap;
         for (const QString &logFileName: logList) {
@@ -1029,8 +1062,20 @@ void MainWindow::connectTrayMenu() {
     });
 }
 
+void MainWindow::connectOther() {
+    connect(&GDM, &GlobalData::valueChanged, this, [=](const QString &valueName, const QVariant &newValue) {
+        if (valueName == GDIN::IS_OPEN_NPF) {
+            if (newValue.toBool()) {
+                this->enabledInput();
+            } else {
+                this->noEnableInput();
+            }
+        }
+    });
+}
+
 // Init functions
-void MainWindow::initExportPage() {
+void MainWindow::initUI() {
     // Export
     // 自适应行宽/行高
     ui->projectTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -1045,29 +1090,39 @@ void MainWindow::initExportPage() {
     ui->projectTable->setCellWidget(6, 1, this->onefileCheckbox);
     ui->projectTable->setCellWidget(7, 1, this->removeOutputCheckbox);
     ui->projectTable->setCellWidget(9, 1, this->ltoModeCombobox);
-}
 
-void MainWindow::initStatusBar() {
     // Status bar
     this->messageLabel = new QLabel;
     this->messageLabel->setAlignment(Qt::AlignCenter);
     ui->statusbar->addWidget(this->messageLabel);
     ui->statusbar->addPermanentWidget(this->messageLabel, 0);
-}
 
-void MainWindow::initTrayMenu() {
     this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
     this->trayIcon->setToolTip("Nuitka Studio");
+
     // tray menu
     this->trayMenu = new QMenu(this);
+    this->startPackAction = new QAction("开始打包项目" + PCM.getItemValueToString(PCE::ProjectName), this);
+
+    this->stopPackAction = new QAction("停止打包项目" + PCM.getItemValueToString(PCE::ProjectName), this);
     this->showAction = new QAction("显示", this);
     this->quitAction = new QAction("退出", this);
 
+    trayMenu->addAction(startPackAction);
+    trayMenu->addAction(stopPackAction);
     trayMenu->addAction(showAction);
     trayMenu->addAction(quitAction);
     trayIcon->setContextMenu(trayMenu);
 
     trayIcon->show();
+
+    // init top text label
+    this->topTextLabel = new QLabel("", this);
+
+    // lock pack ui
+    if (!GDM.getBool(GDIN::IS_OPEN_NPF)) {
+        this->noEnableInput();
+    }
 }
 
 // gen path functions
@@ -1220,4 +1275,121 @@ void MainWindow::closeEvent(QCloseEvent *event) {
             qApp->quit();
         }
     }
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event) {
+    QMainWindow::resizeEvent(event);
+
+    int x = (this->width() - this->topTextLabel->sizeHint().width()) / 2;
+    int y = 30;
+    this->topTextLabel->move(x, y);
+    this->topTextLabel->raise();
+}
+
+// ui utils functions
+void MainWindow::showText(const QString &text, const int showTime, const QColor &color, const TextPos position) const {
+    switch (position) {
+        case TextPos::TopLabel:
+            this->topTextLabel->setText(text);
+            this->topTextLabel->setStyleSheet(QString("color: %1;").arg(color.name()));
+            if (showTime >= 0) {
+                QTimer::singleShot(showTime, this, [=]() {
+                    this->topTextLabel->clear();
+                });
+            }
+            this->topTextLabel->adjustSize();
+            break;
+        case TextPos::Statusbar:
+            this->messageLabel->setText(text);
+            this->messageLabel->setStyleSheet(QString("color: %1;").arg(color.name()));
+            if (showTime >= 0) {
+                QTimer::singleShot(showTime, this, [=]() {
+                    this->messageLabel->clear();
+                });
+            }
+            break;
+    }
+}
+
+void MainWindow::clearText(TextPos position) const {
+    switch (position) {
+        case TextPos::TopLabel:
+            this->topTextLabel->clear();
+            break;
+        case TextPos::Statusbar:
+            this->messageLabel->clear();
+            break;
+    }
+}
+
+void MainWindow::noEnableInput() const {
+    ui->projectPathEdit->setEnabled(false);
+    ui->projectPathBrowseBtn->setEnabled(false);
+    ui->projectNameEdit->setEnabled(false);
+    ui->mainPathEdit->setEnabled(false);
+    ui->mainPathBrowseBtn->setEnabled(false);
+    ui->pythonFileEdit->setEnabled(false);
+    ui->pythonFileBrowseBtn->setEnabled(false);
+    ui->outputPathEdit->setEnabled(false);
+    ui->outputPathBrowseBtn->setEnabled(false);
+    ui->outputFileEdit->setEnabled(false);
+    ui->genPathsButton->setEnabled(false);
+
+    ui->standaloneCheckbox->setEnabled(false);
+    ui->onefileCheckbox->setEnabled(false);
+    ui->removeOutputCheckbox->setEnabled(false);
+    ui->ltoAuto->setEnabled(false);
+    ui->ltoYes->setEnabled(false);
+    ui->ltoNo->setEnabled(false);
+
+    ui->dataListWidget->setEnabled(false);
+    ui->addFileBtn->setEnabled(false);
+    ui->addDirBtn->setEnabled(false);
+    ui->removeItemBtn->setEnabled(false);
+    ui->iconFileEdit->setEnabled(false);
+    ui->iconFileBrowseBtn->setEnabled(false);
+
+    ui->fileVersionEdit->setEnabled(false);
+    ui->companyEdit->setEnabled(false);
+    ui->productNameEdit->setEnabled(false);
+    ui->productVersionEdit->setEnabled(false);
+    ui->legalCopyrightEdit->setEnabled(false);
+    ui->legalTrademarksEdit->setEnabled(false);
+    ui->fileDescriptitonEdit->setEnabled(false);
+}
+
+void MainWindow::enabledInput() const {
+    ui->projectPathEdit->setEnabled(true);
+    ui->projectPathBrowseBtn->setEnabled(true);
+    ui->projectNameEdit->setEnabled(true);
+    ui->mainPathEdit->setEnabled(true);
+    ui->mainPathBrowseBtn->setEnabled(true);
+    ui->pythonFileEdit->setEnabled(true);
+    ui->pythonFileBrowseBtn->setEnabled(true);
+    ui->outputPathEdit->setEnabled(true);
+    ui->outputPathBrowseBtn->setEnabled(true);
+    ui->outputFileEdit->setEnabled(true);
+    ui->genPathsButton->setEnabled(true);
+
+    ui->standaloneCheckbox->setEnabled(true);
+    ui->onefileCheckbox->setEnabled(true);
+    ui->removeOutputCheckbox->setEnabled(true);
+    ui->ltoAuto->setEnabled(true);
+    ui->ltoYes->setEnabled(true);
+    ui->ltoNo->setEnabled(true);
+
+    ui->dataListWidget->setEnabled(true);
+    ui->addFileBtn->setEnabled(true);
+    ui->addDirBtn->setEnabled(true);
+    ui->removeItemBtn->setEnabled(true);
+    ui->iconFileEdit->setEnabled(true);
+    ui->iconFileBrowseBtn->setEnabled(true);
+
+    ui->fileVersionEdit->setEnabled(true);
+    ui->companyEdit->setEnabled(true);
+    ui->productNameEdit->setEnabled(true);
+    ui->productVersionEdit->setEnabled(true);
+    ui->legalCopyrightEdit->setEnabled(true);
+    ui->legalTrademarksEdit->setEnabled(true);
+    ui->fileDescriptitonEdit->setEnabled(true);
 }
