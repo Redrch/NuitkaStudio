@@ -38,6 +38,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->connectExportPage();
     this->connectTrayMenu();
 
+    if (!config.getConfigToString(SettingsEnum::NpfPath).isEmpty()) {
+        QString filePath = this->projectConfig->importProject(config.getConfigToString(SettingsEnum::NpfPath));
+        if (!GDM.getString(NPF_FILE_PATH).isEmpty()) {
+            this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
+        }
+    }
+
     this->updateUI();
 
     Logger::info("初始化MainWindow类完成");
@@ -295,17 +302,19 @@ void MainWindow::stopPack() {
 
 void MainWindow::importProject() {
     QString filePath = this->projectConfig->importProject();
-    GDM.set(NPF_FILE_PATH, filePath);
     // Update UI
     this->updateUI();
-    this->setWindowTitle(filePath + " - Nuitka Studio");
+    if (!GDM.getString(NPF_FILE_PATH).isEmpty()) {
+        this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
+    }
 }
 
 void MainWindow::exportProject() {
     QString filePath = this->projectConfig->exportProject();
-    GDM.set(NPF_FILE_PATH, filePath);
-
-    this->setWindowTitle(filePath + " - Nuitka Studio");
+    this->updateUI();
+    if (!GDM.getString(NPF_FILE_PATH).isEmpty()) {
+        this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
+    }
 }
 
 void MainWindow::newProject() {

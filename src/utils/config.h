@@ -39,6 +39,7 @@ namespace SettingsEnumNS {
         MaxPackLogCount,
         IsShowCloseWindow,
         IsHideOnClose,
+        NpfPath,
         NONE
     };
     Q_ENUM_NS(SettingsEnum)

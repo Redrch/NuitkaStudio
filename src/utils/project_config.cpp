@@ -57,7 +57,9 @@ QString ProjectConfig::importProject(const QString &path) const {
         }
         PCM.setItem(index, value);
     }
-
+    GDM.setString(NPF_FILE_PATH, filePath);
+    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
+    config.writeConfig();
     Logger::info("导入NPF文件");
     return filePath;
 }
@@ -108,7 +110,9 @@ QString ProjectConfig::exportProject(const QString &path) const {
 
     // write
     this->compress->writeZip(jsonPath, docString.toUtf8());
-
+    GDM.setString(NPF_FILE_PATH, filePath);
+    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
+    config.writeConfig();
     Logger::info("导出NPF文件");
     return filePath;
 }

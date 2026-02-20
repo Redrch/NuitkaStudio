@@ -31,3 +31,9 @@ void GlobalData::set(const QString &name, const QVariant &value) const {
     this->dataMap->insert(name, value);
 }
 
+void GlobalData::setString(const QString &name, const QString &value) const {
+    QMutexLocker lock(mutex);
+    this->dataMap->insert(name, QVariant(value));
+}
+
+

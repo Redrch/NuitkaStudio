@@ -13,13 +13,14 @@ Config::Config() {
     this->configMap->insert("MaxPackLogCount", 20);
     this->configMap->insert("IsShowCloseWindow", QVariant(true));
     this->configMap->insert("IsHideOnClose", QVariant(true));
+    this->configMap->insert("TempPath", QDir::tempPath() + "/NuitkaStudio");
+    this->configMap->insert("NpfPath", "");
 
     this->configMap->insert("DefaultPythonPath", "C:/");
     this->configMap->insert("DefaultMainFilePath", "C:/");
     this->configMap->insert("DefaultOutputPath", "C:/");
     this->configMap->insert("DefaultIconPath", "C:/");
     this->configMap->insert("DefaultDataPath", "C:/");
-    this->configMap->insert("TempPath", QDir::tempPath() + "/NuitkaStudio");
 
     this->settings = new QSettings(this->configPath, QSettings::IniFormat);
 }
@@ -40,6 +41,8 @@ void Config::writeConfig() {
     this->settings->setValue("MaxPackLogCount", this->getConfig(SettingsEnum::MaxPackLogCount));
     this->settings->setValue("IsShowCloseWindow", this->getConfigToBool(SettingsEnum::IsShowCloseWindow));
     this->settings->setValue("IsHideOnClose", this->getConfigToBool(SettingsEnum::IsHideOnClose));
+    this->settings->setValue("TempPath", this->getConfig(SettingsEnum::TempPath));
+    this->settings->setValue("NpfPath", this->getConfig(SettingsEnum::NpfPath));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -48,7 +51,6 @@ void Config::writeConfig() {
     this->settings->setValue("DefaultOutputPath", this->getConfig(SettingsEnum::DefaultOutputPath));
     this->settings->setValue("DefaultIconPath", this->getConfig(SettingsEnum::DefaultIconPath));
     this->settings->setValue("DefaultDataPath", this->getConfig(SettingsEnum::DefaultDataPath));
-    this->settings->setValue("TempPath", this->getConfig(SettingsEnum::TempPath));
     this->settings->endGroup();
 }
 
@@ -65,6 +67,8 @@ void Config::readConfig() {
     this->setConfig(SettingsEnum::MaxPackLogCount, this->settings->value("MaxPackLogCount").toInt());
     this->setConfig(SettingsEnum::IsShowCloseWindow, this->settings->value("IsShowCloseWindow").toBool());
     this->setConfig(SettingsEnum::IsHideOnClose, this->settings->value("IsHideOnClose").toBool());
+    this->setConfig(SettingsEnum::TempPath, this->settings->value("TempPath").toString());
+    this->setConfig(SettingsEnum::NpfPath, this->settings->value("NpfPath").toString());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -73,7 +77,6 @@ void Config::readConfig() {
     this->setConfig(SettingsEnum::DefaultOutputPath, this->settings->value("DefaultOutputPath").toString());
     this->setConfig(SettingsEnum::DefaultIconPath, this->settings->value("DefaultIconPath").toString());
     this->setConfig(SettingsEnum::DefaultDataPath, this->settings->value("DefaultDataPath").toString());
-    this->setConfig(SettingsEnum::TempPath, this->settings->value("TempPath").toString());
     this->settings->endGroup();
 }
 

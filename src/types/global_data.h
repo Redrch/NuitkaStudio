@@ -26,6 +26,7 @@ public:
     QVariant get(const QString &name) const;
     QString getString(const QString &name) const;
     void set(const QString &name, const QVariant &value) const;
+    void setString(const QString &name, const QString &value) const;
 
 private:
     QMap<QString, QVariant>* dataMap;
