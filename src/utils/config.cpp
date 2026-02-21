@@ -15,6 +15,7 @@ Config::Config() {
     this->configMap->insert("IsHideOnClose", QVariant(true));
     this->configMap->insert("TempPath", QDir::tempPath() + "/NuitkaStudio");
     this->configMap->insert("NpfPath", "");
+    this->configMap->insert("IsLightMode", QVariant(true));
 
     this->configMap->insert("DefaultPythonPath", "C:/");
     this->configMap->insert("DefaultMainFilePath", "C:/");
@@ -43,6 +44,7 @@ void Config::writeConfig() {
     this->settings->setValue("IsHideOnClose", this->getConfigToBool(SettingsEnum::IsHideOnClose));
     this->settings->setValue("TempPath", this->getConfig(SettingsEnum::TempPath));
     this->settings->setValue("NpfPath", this->getConfig(SettingsEnum::NpfPath));
+    this->settings->setValue("IsLightMode", this->getConfigToBool(SettingsEnum::IsLightMode));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -69,6 +71,7 @@ void Config::readConfig() {
     this->setConfig(SettingsEnum::IsHideOnClose, this->settings->value("IsHideOnClose").toBool());
     this->setConfig(SettingsEnum::TempPath, this->settings->value("TempPath").toString());
     this->setConfig(SettingsEnum::NpfPath, this->settings->value("NpfPath").toString());
+    this->setConfig(SettingsEnum::IsLightMode, this->settings->value("IsLightMode").toBool());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");

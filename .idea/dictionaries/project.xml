@@ -5,6 +5,7 @@
       <w>autorcc</w>
       <w>autouic</w>
       <w>buildsystems</w>
+      <w>darkstyle</w>
       <w>dcompiler</w>
       <w>dvcpkg</w>
       <w>gdin</w>
@@ -17,6 +18,7 @@
       <w>libspdlog</w>
       <w>libstdc</w>
       <w>libwinpthread</w>
+      <w>lightstyle</w>
       <w>mainfile</w>
       <w>mainwindow</w>
       <w>nuitkastudio</w>

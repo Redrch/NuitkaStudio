@@ -40,11 +40,36 @@ int main(int argc, char *argv[]) {
     initProjectConfig();
 
     QApplication a(argc, argv);
+
     // init logger
     Logger::Config cfg;
     cfg.file_path = "app.log";
     Logger logger(cfg);
     if (!isDebug) Logger::installQtMessageHandler();
+
+    // load qss
+    if (config.getConfigToBool(SettingsEnum::IsLightMode)) {
+        QFile qssFile(":/qdarkstyle/light/lightstyle.qss");
+        if (qssFile.open(QIODevice::ReadOnly)) {
+            QString styleSheet = qssFile.readAll();
+            a.setStyleSheet(styleSheet);
+            qssFile.close();
+            Logger::info("加载QLightStyle成功");
+        } else {
+            Logger::error("无法加载QLightStyle");
+        }
+    } else {
+        QFile qssFile(":/qdarkstyle/dark/darkstyle.qss");
+        if (qssFile.open(QIODevice::ReadOnly)) {
+            QString styleSheet = qssFile.readAll();
+            a.setStyleSheet(styleSheet);
+            qssFile.close();
+            Logger::info("加载QDarkStyle成功");
+        } else {
+            Logger::error("无法加载QDarkStyle");
+        }
+    }
+
     // init mainwindow
     MainWindow w;
     w.show();
@@ -55,15 +80,16 @@ int main(int argc, char *argv[]) {
     return ret;
 }
 
-
-/*
-Version 1.2.1.0 TO-DO
-*/
 /*
 Version 1.3.0.0 TO-DO
-TODO: 添加将打包/停止按钮吸附在其他窗口上的功能
 TODO: 美化ui
+TODO: 添加将打包/停止按钮吸附在其他窗口上的功能
 TODO: 添加可以将文件拖动以打开的功能
+TODO: 添加按Tab切换页面的功能
+TODO: 添加启动动画，可关闭
+TODO: 添加英语模式
+TODO: 添加对打包日志进行备注的功能
+TODO: 移除导入/导出页面
 暂时先写这么多
 */
 

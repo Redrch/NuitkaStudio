@@ -70,6 +70,8 @@ spdlog: https://github.com/gabime/spdlog
 
 fmt: https://github.com/fmtlib/fmt
 
+QDarkStyleSheet: https://github.com/ColinDuquesnoy/QDarkStyleSheet
+
 
 
 ------------------------

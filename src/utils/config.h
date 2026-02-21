@@ -40,6 +40,7 @@ namespace SettingsEnumNS {
         IsShowCloseWindow,
         IsHideOnClose,
         NpfPath,
+        IsLightMode,
         NONE
     };
     Q_ENUM_NS(SettingsEnum)
