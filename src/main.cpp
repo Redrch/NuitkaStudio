@@ -1,7 +1,10 @@
 #include <QApplication>
+#include <ElaApplication.h>
+#include <ElaWindow.h>
 #include "ui/mainwindow.h"
 #include "utils/logger.h"
 #include "types/simname.h"
+#include "types/color.h"
 
 bool isDebug = false;
 
@@ -40,7 +43,13 @@ int main(int argc, char *argv[]) {
     initProjectConfig();
 
     QApplication a(argc, argv);
+    // init config
+    if (!QFile::exists(config.getConfigPath())) {
+        config.writeConfig();
+    }
+    config.readConfig();
 
+    ElaApplication::getInstance()->init();
     // init logger
     Logger::Config cfg;
     cfg.file_path = "app.log";
@@ -48,27 +57,39 @@ int main(int argc, char *argv[]) {
     if (!isDebug) Logger::installQtMessageHandler();
 
     // load qss
-    if (config.getConfigToBool(SettingsEnum::IsLightMode)) {
-        QFile qssFile(":/qdarkstyle/light/lightstyle.qss");
-        if (qssFile.open(QIODevice::ReadOnly)) {
-            QString styleSheet = qssFile.readAll();
-            a.setStyleSheet(styleSheet);
-            qssFile.close();
-            Logger::info("加载QLightStyle成功");
-        } else {
-            Logger::error("无法加载QLightStyle");
+    QFile qssFile(":/assets/style.qss");
+    if (qssFile.open(QIODevice::ReadOnly)) {
+        QString styleSheet = qssFile.readAll();
+        for (auto it = color.begin(); it != color.end(); ++it) {
+            styleSheet.replace(it.key(), it.value());
         }
+        a.setStyleSheet(styleSheet);
+        Logger::info("加载QSS成功");
     } else {
-        QFile qssFile(":/qdarkstyle/dark/darkstyle.qss");
-        if (qssFile.open(QIODevice::ReadOnly)) {
-            QString styleSheet = qssFile.readAll();
-            a.setStyleSheet(styleSheet);
-            qssFile.close();
-            Logger::info("加载QDarkStyle成功");
-        } else {
-            Logger::error("无法加载QDarkStyle");
-        }
+        Logger::error("加载QSS失败");
     }
+
+    // if (config.getConfigToBool(SettingsEnum::IsLightMode)) {
+    //     QFile qssFile(":/qdarkstyle/light/lightstyle.qss");
+    //     if (qssFile.open(QIODevice::ReadOnly)) {
+    //         QString styleSheet = qssFile.readAll();
+    //         a.setStyleSheet(styleSheet);
+    //         qssFile.close();
+    //         Logger::info("加载QLightStyle成功");
+    //     } else {
+    //         Logger::error("无法加载QLightStyle");
+    //     }
+    // } else {
+    //     QFile qssFile(":/qdarkstyle/dark/darkstyle.qss");
+    //     if (qssFile.open(QIODevice::ReadOnly)) {
+    //         QString styleSheet = qssFile.readAll();
+    //         a.setStyleSheet(styleSheet);
+    //         qssFile.close();
+    //         Logger::info("加载QDarkStyle成功");
+    //     } else {
+    //         Logger::error("无法加载QDarkStyle");
+    //     }
+    // }
 
     // init mainwindow
     MainWindow w;

@@ -5,16 +5,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
     this->projectConfig = new ProjectConfig(this);
-
-    if (!QFile::exists(config.getConfigPath())) {
-        config.writeConfig();
-    }
-    config.readConfig();
 
     this->packTimer = new QTimer(this);
 
@@ -1155,6 +1149,10 @@ void MainWindow::initUI() {
     // init top text label
     this->topTextLabel = new QLabel("", this);
 
+    this->initPackUI();
+}
+
+void MainWindow::initPackUI() const {
     // lock pack ui
     if (!GDM.getBool(GDIN::IS_OPEN_NPF)) {
         this->noEnableInput();
@@ -1445,3 +1443,4 @@ void MainWindow::enabledInput() const {
     this->startPackAction->setEnabled(true);
     this->stopPackAction->setEnabled(true);
 }
+

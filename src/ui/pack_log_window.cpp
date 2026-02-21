@@ -1,9 +1,6 @@
 //
-// Created by david on 2026/2/18.
+// Created by redrch on 2026/2/18.
 //
-
-// You may need to build the project (run Qt uic code generator) to get "ui_pack_log_window.h" resolved
-
 #include "pack_log_window.h"
 #include "ui_pack_log_window.h"
 

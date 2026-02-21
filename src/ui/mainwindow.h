@@ -44,6 +44,7 @@
 #include "../utils/logger.h"
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
+#include "../types/color.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -108,6 +109,7 @@ private:
 
     // Init functions
     void initUI();
+    void initPackUI() const;
 
     // ui utils functions
     /**
@@ -124,6 +126,7 @@ private:
     void clearText(TextPos position = TextPos::TopLabel) const;
     void enabledInput() const;
     void noEnableInput() const;
+    void applyGlobalTheme();
 
 private slots:
     void onAddDataFileItemClicked();

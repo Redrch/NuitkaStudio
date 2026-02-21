@@ -42,6 +42,9 @@ string(REPLACE "\\" "/" _vcpkg_installed "${_vcpkg_installed}/${VCPKG_TARGET_TRI
 set(spdlog_DIR "${_vcpkg_installed}/lib/cmake/spdlog" "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
 message(STATUS "spdlog_DIR -> ${spdlog_DIR}")
 
+set(ELEGANT_INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/ElaWidgetTools")
+set(ELEGANT_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+
 list(APPEND CMAKE_PREFIX_PATH
         "${_vcpkg_installed}/lib/cmake"
         "${_vcpkg_installed}/share"
@@ -52,6 +55,12 @@ find_package(spdlog CONFIG REQUIRED HINTS
         "${_vcpkg_installed}/lib/cmake/spdlog"
         "${_vcpkg_installed}/share/spdlog"
         "${_vcpkg_installed}/cmake"
+)
+add_library(ElaWidgetTools SHARED IMPORTED)
+set_target_properties(ElaWidgetTools PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${ELEGANT_INC_DIR}"
+        IMPORTED_IMPLIB "${ELEGANT_LIB_DIR}/libElaWidgetTools.dll.a"
+        IMPORTED_LOCATION "${ELEGANT_LIB_DIR}/ElaWidgetTools.dll"
 )
 
 find_package(Qt5 COMPONENTS
@@ -68,9 +77,6 @@ find_package(BZip2 REQUIRED)
 set(LOCAL_QUAZIP_ROOT    "${CMAKE_CURRENT_SOURCE_DIR}")
 set(LOCAL_QUAZIP_INCLUDE "${LOCAL_QUAZIP_ROOT}/include") # 指向 quazip 文件夹的父目录
 set(LOCAL_QUAZIP_DLL     "${LOCAL_QUAZIP_ROOT}/lib/libquazip1-qt5.dll")
-# QMW: Qt-Material-Widgets
-set(LOCAL_QMW_INCLUDE    "${CMAKE_CURRENT_SOURCE_DIR}/include")
-set(LOCAL_QMW_LIB        "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 # 验证文件是否存在（防止配置阶段报错不清晰）
 if(NOT EXISTS "${LOCAL_QUAZIP_DLL}")
@@ -116,11 +122,10 @@ set(SOURCES
         src/types/constants.h
         src/ui/pack_log_window.cpp
         src/ui/pack_log_window.h
+        src/types/color.h
 )
 set(RESOURCES
         resource.qrc
-        assets/qdarkstyle/dark/darkstyle.qrc
-        assets/qdarkstyle/light/lightstyle.qrc
         logo.rc
         forms/export_datalist_window.ui
         forms/mainwindow.ui
@@ -151,20 +156,20 @@ target_link_libraries(NuitkaStudio
         spdlog::spdlog
         BZip2::BZip2
         QuaZip::Local
-        ${MATERIAL_LIB}
 )
+
+target_link_libraries(NuitkaStudio PRIVATE ElaWidgetTools)
 
 set_target_properties(QuaZip::Local PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${LOCAL_QUAZIP_INCLUDE}"
         IMPORTED_LOCATION             "${LOCAL_QUAZIP_DLL}"
-        IMPORTED_IMPLIB               "${LOCAL_QUAZIP_DLL}" # MinGW 支持直接把 DLL 当作导入库链接
+        IMPORTED_IMPLIB               "${LOCAL_QUAZIP_DLL}"
 )
 
 target_include_directories(NuitkaStudio PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}
-        ${LOCAL_QMW_INCLUDE}
 )
 
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)

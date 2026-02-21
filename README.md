@@ -72,6 +72,8 @@ fmt: https://github.com/fmtlib/fmt
 
 QDarkStyleSheet: https://github.com/ColinDuquesnoy/QDarkStyleSheet
 
+ElaWidgetTools: https://github.com/Liniyous/ElaWidgetTools
+
 
 
 ------------------------

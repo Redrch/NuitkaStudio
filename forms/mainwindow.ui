@@ -18,6 +18,9 @@
     <normalon>:/logo</normalon>
    </iconset>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_16">
     <item>
@@ -154,10 +157,13 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-253</y>
+                <y>0</y>
                 <width>876</width>
                 <height>884</height>
                </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_12">
                <property name="leftMargin">
@@ -196,6 +202,14 @@
                      </item>
                      <item>
                       <widget class="QPushButton" name="projectPathBrowseBtn">
+                       <property name="font">
+                        <font>
+                         <pointsize>9</pointsize>
+                        </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true"/>
+                       </property>
                        <property name="text">
                         <string>浏览</string>
                        </property>
@@ -834,8 +848,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>889</width>
-                <height>217</height>
+                <width>450</width>
+                <height>212</height>
                </rect>
               </property>
               <attribute name="label">
@@ -1074,7 +1088,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>865</width>
+                <width>280</width>
                 <height>247</height>
                </rect>
               </property>

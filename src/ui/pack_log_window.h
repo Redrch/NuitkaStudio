@@ -1,5 +1,5 @@
 //
-// Created by david on 2026/2/18.
+// Created by redrch on 2026/2/18.
 //
 
 #ifndef PACK_LOG_WINDOW_H
