@@ -68,6 +68,9 @@ find_package(BZip2 REQUIRED)
 set(LOCAL_QUAZIP_ROOT    "${CMAKE_CURRENT_SOURCE_DIR}")
 set(LOCAL_QUAZIP_INCLUDE "${LOCAL_QUAZIP_ROOT}/include") # 指向 quazip 文件夹的父目录
 set(LOCAL_QUAZIP_DLL     "${LOCAL_QUAZIP_ROOT}/lib/libquazip1-qt5.dll")
+# QMW: Qt-Material-Widgets
+set(LOCAL_QMW_INCLUDE    "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(LOCAL_QMW_LIB        "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 # 验证文件是否存在（防止配置阶段报错不清晰）
 if(NOT EXISTS "${LOCAL_QUAZIP_DLL}")
@@ -76,6 +79,11 @@ endif()
 
 # 创建导入目标 (MinGW 下直接链接 DLL 也是可以的)
 add_library(QuaZip::Local SHARED IMPORTED)
+find_library(MATERIAL_LIB
+    NAMES components
+    PATHS ${LOCAL_QMW_LIB}
+    NO_DEFAULT_PATH
+)
 
 set(SOURCES
         src/main.cpp
@@ -143,6 +151,7 @@ target_link_libraries(NuitkaStudio
         spdlog::spdlog
         BZip2::BZip2
         QuaZip::Local
+        ${MATERIAL_LIB}
 )
 
 set_target_properties(QuaZip::Local PROPERTIES
@@ -155,6 +164,7 @@ target_include_directories(NuitkaStudio PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}
+        ${LOCAL_QMW_INCLUDE}
 )
 
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
