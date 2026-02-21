@@ -53,7 +53,8 @@ namespace Ui {
 
 enum class TextPos {
     TopLabel,
-    Statusbar
+    Statusbar,
+    SystemMessage
 };
 
 QT_END_NAMESPACE
@@ -109,7 +110,17 @@ private:
     void initUI();
 
     // ui utils functions
-    void showText(const QString& text, int showTime = -1, const QColor &color = Qt::black, TextPos position = TextPos::TopLabel) const;
+    /**
+     * MainWindow::showText
+     * @param text Showed text.
+     * @param showTime Showed time, -1 indicates a permanent show. However, it does not apply in system notifications and defaults to 5000.
+     * @param color Showed text color, default is black.
+     * @param position Showed text position, default is on the top label.
+     * @param title This parameter is only used when position is TextPos::SystemMessage,
+     *              serving as the title for system notifications, and defaults to Nuitka Studio.
+     */
+    void showText(const QString &text, int showTime = -1, const QColor &color = Qt::black,
+                  TextPos position = TextPos::TopLabel, const QString &title = "Nuitka Studio") const;
     void clearText(TextPos position = TextPos::TopLabel) const;
     void enabledInput() const;
     void noEnableInput() const;
@@ -118,7 +129,6 @@ private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
     void onRemoveItemClicked();
-
     void onProjectTableCellDoubleClicked(int row, int column);
 
     void onFileMenuTriggered(QAction *action);

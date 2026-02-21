@@ -65,7 +65,9 @@ MainWindow::~MainWindow() {
 
 void MainWindow::startPack() {
     ui->startPackBtn->setEnabled(false);
+    this->startPackAction->setEnabled(false);
     ui->stopPackBtn->setEnabled(true);
+    this->stopPackAction->setEnabled(true);
     QElapsedTimer timer;
 
     QDateTime now = QDateTime::currentDateTime();
@@ -112,10 +114,14 @@ void MainWindow::startPack() {
                 QString endOutString = QString("----------- 打包结束 耗时: %1 ----------").arg(timeString);
                 ui->consoleOutputEdit->append(endOutString);
                 Logger::info(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString));
+                this->showText(QString("打包结束 耗时: %1").arg(timeString), 5000, Qt::black,
+                    TextPos::SystemMessage, "打包通知");
                 this->packProcess->deleteLater();
                 this->packTimer->stop();
                 ui->startPackBtn->setEnabled(true);
+                this->startPackAction->setEnabled(true);
                 ui->stopPackBtn->setEnabled(false);
+                this->stopPackAction->setEnabled(false);
 
                 if (logFile) {
                     logFile->flush();
@@ -178,25 +184,33 @@ void MainWindow::startPack() {
     if (PCM.getItemValueToString(PCE::PythonPath).isEmpty()) {
         ui->consoleOutputEdit->append("python解释器路径为必填项");
         ui->startPackBtn->setEnabled(true);
+        this->startPackAction->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
+        this->stopPackAction->setEnabled(false);
         return;
     }
     if (PCM.getItemValueToString(PCE::MainfilePath).isEmpty()) {
         ui->consoleOutputEdit->append("主文件路径为必填项");
         ui->startPackBtn->setEnabled(true);
+        this->startPackAction->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
+        this->stopPackAction->setEnabled(false);
         return;
     }
     if (PCM.getItemValueToString(PCE::OutputPath).isEmpty()) {
         ui->consoleOutputEdit->append("输出目录为必填项");
         ui->startPackBtn->setEnabled(true);
+        this->startPackAction->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
+        this->stopPackAction->setEnabled(false);
         return;
     }
     if (PCM.getItemValueToString(PCE::OutputFilename).isEmpty()) {
         ui->consoleOutputEdit->append("输出文件名为必填项");
         ui->startPackBtn->setEnabled(true);
-        ui->startPackBtn->setEnabled(false);
+        this->startPackAction->setEnabled(true);
+        ui->stopPackBtn->setEnabled(false);
+        this->stopPackAction->setEnabled(false);
         return;
     }
 
@@ -290,23 +304,28 @@ void MainWindow::stopPack() {
     }
     if (this->packProcess->state() == QProcess::NotRunning) {
         ui->consoleOutputEdit->append("打包任务已结束");
+        this->packProcess->deleteLater();
         this->packProcess = nullptr;
         return;
     }
 
-    ui->consoleOutputEdit->append("正在尝试停止打包任务");
+    ui->consoleOutputEdit->append("正在停止打包任务");
     this->packProcess->terminate();
 
     QTimer::singleShot(5000, this, [=]() {
         if (this->packProcess->state() != QProcess::NotRunning) {
             ui->consoleOutputEdit->append("进程未响应，强制终止中...");
             this->packProcess->kill();
+            this->packProcess->deleteLater();
         }
     });
+    this->showText("已停止打包任务", 5000, Qt::black, TextPos::SystemMessage, "打包通知");
 
     this->packTimer->stop();
     ui->startPackBtn->setEnabled(true);
+    this->startPackAction->setEnabled(true);
     ui->stopPackBtn->setEnabled(false);
+    this->stopPackAction->setEnabled(false);
 }
 
 void MainWindow::importProject() {
@@ -1051,6 +1070,14 @@ void MainWindow::connectTrayMenu() {
             this->activateWindow();
         }
     });
+    // start pack action
+    connect(this->startPackAction, &QAction::triggered, this, [=]() {
+        this->startPack();
+    });
+    // stop pack action
+    connect(this->stopPackAction, &QAction::triggered, this, [=]() {
+        this->stopPack();
+    });
     // show action
     connect(this->showAction, &QAction::triggered, this, [=]() {
         this->showNormal();
@@ -1102,11 +1129,11 @@ void MainWindow::initUI() {
 
     // tray menu
     this->trayMenu = new QMenu(this);
-    this->startPackAction = new QAction("开始打包项目" + PCM.getItemValueToString(PCE::ProjectName), this);
-
-    this->stopPackAction = new QAction("停止打包项目" + PCM.getItemValueToString(PCE::ProjectName), this);
+    this->startPackAction = new QAction("开始打包项目", this);
+    this->stopPackAction = new QAction("停止打包项目", this);
     this->showAction = new QAction("显示", this);
     this->quitAction = new QAction("退出", this);
+    this->stopPackAction->setEnabled(false);
 
     trayMenu->addAction(startPackAction);
     trayMenu->addAction(stopPackAction);
@@ -1287,7 +1314,8 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
 }
 
 // ui utils functions
-void MainWindow::showText(const QString &text, const int showTime, const QColor &color, const TextPos position) const {
+void MainWindow::showText(const QString &text, int showTime, const QColor &color, const TextPos position,
+                          const QString &title) const {
     switch (position) {
         case TextPos::TopLabel:
             this->topTextLabel->setText(text);
@@ -1308,6 +1336,13 @@ void MainWindow::showText(const QString &text, const int showTime, const QColor 
                 });
             }
             break;
+        case TextPos::SystemMessage:
+            QIcon logo(":/logo");
+            if (showTime < 0) {
+                showTime = 5000;
+            }
+            this->trayIcon->showMessage(title, text, logo, showTime);
+            break;
     }
 }
 
@@ -1318,6 +1353,8 @@ void MainWindow::clearText(TextPos position) const {
             break;
         case TextPos::Statusbar:
             this->messageLabel->clear();
+            break;
+        case TextPos::SystemMessage:
             break;
     }
 }
@@ -1356,6 +1393,9 @@ void MainWindow::noEnableInput() const {
     ui->legalCopyrightEdit->setEnabled(false);
     ui->legalTrademarksEdit->setEnabled(false);
     ui->fileDescriptitonEdit->setEnabled(false);
+
+    this->startPackAction->setEnabled(false);
+    this->stopPackAction->setEnabled(false);
 }
 
 void MainWindow::enabledInput() const {
@@ -1392,4 +1432,7 @@ void MainWindow::enabledInput() const {
     ui->legalCopyrightEdit->setEnabled(true);
     ui->legalTrademarksEdit->setEnabled(true);
     ui->fileDescriptitonEdit->setEnabled(true);
+
+    this->startPackAction->setEnabled(true);
+    this->stopPackAction->setEnabled(true);
 }
