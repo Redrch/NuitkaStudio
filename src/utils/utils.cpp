@@ -4,6 +4,8 @@
 
 #include "utils.h"
 
+#include "logger.h"
+
 
 QString Utils::boolToString(bool v) {
     return (v ? "true" : "false");
@@ -41,3 +43,20 @@ QString Utils::formatMilliseconds(qint64 totalMs) {
             .arg(s, 2, 10, QChar('0'))
             .arg(ms, 3, 10, QChar('0'));
 }
+
+QList<QString> Utils::listVariantToQStringList(const QList<QVariant> &list) {
+    QList<QString> result;
+    for (const QVariant& item : list) {
+        result.append(item.toString());
+    }
+    return result;
+}
+
+QList<QVariant> Utils::StringListToListVariant(const QList<QString> &list) {
+    QList<QVariant> result;
+    for (const QString& item : list) {
+        result.append(QVariant(item));
+    }
+    return result;
+}
+

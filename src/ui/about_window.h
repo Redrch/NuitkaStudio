@@ -26,9 +26,6 @@ public:
 
 private:
     Ui::AboutWindow *ui;
-
-private slots:
-    void onLicensesButtonClicked();
 };
 
 

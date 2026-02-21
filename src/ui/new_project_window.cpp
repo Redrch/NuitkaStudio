@@ -16,8 +16,6 @@ NewProjectWindow::NewProjectWindow(QWidget *parent) : QDialog(parent), ui(new Ui
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 
-    this->projectConfigData = new ProjectConfigData;
-
     this->connectPath();
     connect(ui->pyTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
         this->onPyTypeComboBoxCurrentIndexChanged(index);
@@ -33,53 +31,49 @@ void NewProjectWindow::connectPath() {
     // button
     connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->projectPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  项目路径",
-                                                              Config::instance().getDefaultMainFilePath());
+                                                              config.getConfigToString(SettingsEnum::DefaultMainFilePath));
         ui->projectPathEdit->setText(this->projectPath);
     });
     connect(ui->pyFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        Config::instance().getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getConfigToString(SettingsEnum::DefaultPythonPath), "exe(*.exe)");
         ui->pyFileEdit->setText(this->pythonPath);
     });
     connect(ui->venvPyFilePathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        Config::instance().getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getConfigToString(SettingsEnum::DefaultPythonPath), "exe(*.exe)");
         ui->venvPyFilePathEdit->setText(this->pythonPath);
     });
     connect(ui->uvPyFilePathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->pythonPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  Python路径",
-                                                        Config::instance().getDefaultPythonPath(), "exe(*.exe)");
+                                                        config.getConfigToString(SettingsEnum::DefaultPythonPath), "exe(*.exe)");
         ui->uvPyFilePathEdit->setText(this->pythonPath);
     });
     connect(ui->uvPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         this->uvPath = QFileDialog::getOpenFileName(this, "Nuitka Studio  UV路径",
-                                                    Config::instance().getDefaultMainFilePath(), "exe(*.exe)");
+                                                    config.getConfigToString(SettingsEnum::DefaultMainFilePath), "exe(*.exe)");
         ui->uvPathEdit->setText(this->uvPath);
     });
 
     // edit
-    connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->projectPath = text;
     });
-    connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->projectName = text;
     });
-    connect(ui->pyFileEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->pyFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->pythonPath = text;
     });
-    connect(ui->venvPyFilePathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->venvPyFilePathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->pythonPath = text;
     });
-    connect(ui->uvPyFilePathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->uvPyFilePathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->pythonPath = text;
     });
-    connect(ui->uvPathEdit, &QLineEdit::textChanged, this, [=](QString text) {
+    connect(ui->uvPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         this->uvPath = text;
     });
-}
-
-ProjectConfigData *NewProjectWindow::getProjectConfigData() {
-    return this->projectConfigData;
 }
 
 void NewProjectWindow::newProject() {
@@ -100,12 +94,7 @@ void NewProjectWindow::newProject() {
 
     switch (this->interpreterType) {
         case InterpreterType::Python: {
-            this->projectConfigData->pythonPath = this->pythonPath;
-            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
-            this->projectConfigData->outputPath = projectDirPath + "/build";
-            this->projectConfigData->outputFilename = projectName + ".exe";
-            ProjectConfig project_config(this->projectConfigData, this);
-            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
+            PCM.setItem(PCE::PythonPath, this->pythonPath);
             break;
         }
         case InterpreterType::Virtualenv: {
@@ -114,12 +103,8 @@ void NewProjectWindow::newProject() {
             p.start(this->pythonPath, QStringList() << "-m" << "venv" << ".venv");
             p.waitForFinished();
 
-            this->projectConfigData->pythonPath = projectDirPath + "/.venv" + "/Scripts" + "/python.exe";
-            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
-            this->projectConfigData->outputPath = projectDirPath + "/build";
-            this->projectConfigData->outputFilename = projectName + ".exe";
-            ProjectConfig project_config(this->projectConfigData, this);
-            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
+            PCM.setItem(PCE::PythonPath,
+                                                     projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
             break;
         }
         case InterpreterType::UV: {
@@ -127,17 +112,25 @@ void NewProjectWindow::newProject() {
             p.setWorkingDirectory(projectDirPath);
             p.start(this->uvPath, QStringList() << "init" << "-p" << this->pythonPath << "--no-readme");
             p.waitForFinished();
+            p.start(this->uvPath, QStringList() << "venv");
+            p.waitForFinished();
 
-            this->projectConfigData->pythonPath = this->pythonPath;
-            this->projectConfigData->mainFilePath = projectDirPath + "/main.py";
-            this->projectConfigData->outputPath = projectDirPath + "/build";
-            this->projectConfigData->outputFilename = projectName + ".exe";
-
-            ProjectConfig project_config(this->projectConfigData, this);
-            project_config.exportProject(projectDirPath + "/" + projectName + ".npf");
+            PCM.setItem(PCE::PythonPath,
+                                                     projectDirPath + "/.venv" + "/Scripts" + "/python.exe");
             break;
         }
     }
+
+    PCM.setItem(PCE::MainfilePath, projectDirPath + "/main.py");
+    PCM.setItem(PCE::OutputPath, projectDirPath + "/build");
+    PCM.setItem(PCE::OutputFilename, this->projectName + ".exe");
+    PCM.setItem(PCE::ProjectPath, projectDirPath);
+    PCM.setItem(PCE::ProjectName, this->projectName);
+    PCM.setItem(PCE::FileVersion, "1.0.0.0");
+    PCM.setItem(PCE::ProductVersion, "1.0.0.0");
+
+    ProjectConfig project_config(this);
+    project_config.saveProject(projectDirPath + "/" + projectName + ".npf");
     ui->newProjectBtn->setDisabled(true);
 
     this->accept();
@@ -159,4 +152,53 @@ void NewProjectWindow::onPyTypeComboBoxCurrentIndexChanged(int index) {
     }
 
     ui->projectPyPathStackedWidget->setCurrentIndex(index);
+}
+
+void NewProjectWindow::installNuitka(QProcess *process) {
+    QString projectDirPath = QFileInfo(this->projectPath, this->projectName).absoluteFilePath();
+    switch (this->interpreterType) {
+        case InterpreterType::Python: {
+            process->setWorkingDirectory(projectDirPath);
+            // find nuitka
+            process->start(PCM.getItemValueToString(PCE::PythonPath),
+                           QStringList() << "-m" << "pip" << "list");
+            process->waitForFinished();
+            QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
+
+            if (!out.contains("nuitka")) {
+                // install nuitka
+                process->start(PCM.getItemValueToString(PCE::PythonPath),
+                               QStringList() << "-m" << "pip" << "install" << "nuitka");
+            }
+            break;
+        }
+        case InterpreterType::Virtualenv: {
+            process->setWorkingDirectory(projectDirPath);
+            // find nuitka
+            process->start(PCM.getItemValueToString(PCE::PythonPath),
+                           QStringList() << "-m" << "pip" << "list");
+            process->waitForFinished();
+            QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
+
+            if (!out.contains("nuitka")) {
+                // install nuitka
+                process->start(PCM.getItemValueToString(PCE::PythonPath),
+                               QStringList() << "-m" << "pip" << "install" << "nuitka");
+            }
+            break;
+        }
+        case InterpreterType::UV: {
+            process->setWorkingDirectory(projectDirPath);
+            // find nuitka
+            process->start(this->uvPath, QStringList() << "pip" << "list");
+            process->waitForFinished();
+            QString out = QString::fromLocal8Bit(process->readAllStandardOutput());
+
+            if (!out.contains("nuitka")) {
+                // install nuitka
+                process->start(this->uvPath, QStringList() << "add" << "nuitka");
+            }
+            break;
+        }
+    }
 }

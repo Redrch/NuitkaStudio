@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>465</width>
-    <height>367</height>
+    <width>674</width>
+    <height>548</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -111,13 +111,6 @@
            </property>
           </spacer>
          </item>
-         <item>
-          <widget class="QPushButton" name="licensesButton">
-           <property name="text">
-            <string>软件许可</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
       </item>
@@ -128,7 +121,7 @@
  </widget>
  <resources>
   <include location="../resource.qrc"/>
-  <include location="C:/Users/rrh_2/.designer/resource.qrc"/>
+  <include location="../resource.qrc"/>
  </resources>
  <connections/>
 </ui>

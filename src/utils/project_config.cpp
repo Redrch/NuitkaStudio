@@ -4,112 +4,115 @@
 
 #include "project_config.h"
 
-ProjectConfig::ProjectConfig(ProjectConfigData *data, QWidget *parent) {
-    this->data = data;
+ProjectConfig::ProjectConfig(QWidget *parent) {
     this->parent = parent;
+    this->compress = new Compress;
 }
 
 ProjectConfig::~ProjectConfig() {
+    delete this->compress;
 }
 
-void ProjectConfig::importProject(const QString &path) {
+QString ProjectConfig::loadProject(const QString &path) const {
     QString filePath;
     if (path.isEmpty()) {
         filePath = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
-                                                Config::instance().getDefaultDataPath(),
+                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
                                                 "Nuitka Project File(*.npf);;All files(*)");
         if (filePath.isEmpty()) {
-            return;
+            return "";
         }
     } else {
         filePath = path;
     }
 
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Open failed: " << file.errorString();
-        QMessageBox::critical(this->parent, "Nuitka Studio Error", "Open failed: " + file.errorString());
-        return;
-    }
-    QTextStream in(&file);
-    in.setCodec("UTF-8");
+    this->compress->setZipPath(filePath);
+    QByteArray data = this->compress->readZip("data.json");
 
-    // Read the file
-    QStringList contentList = in.readAll().split("\n");
-    // Process data
-    this->data->pythonPath = contentList[0].split("=")[1];
-    this->data->mainFilePath = contentList[1].split("=")[1];
-    this->data->outputPath = contentList[2].split("=")[1];
-    this->data->outputFilename = contentList[3].split("=")[1];
-    this->data->iconPath = contentList[4].split("=")[1];
-    this->data->standalone = contentList[5].split("=")[1] == "true";
-    this->data->onefile = contentList[6].split("=")[1] == "true";
-    this->data->removeOutput = contentList[7].split("=")[1] == "true";
-    // LTO
-    QString ltoModeString = contentList[8].split("=")[1];
-    if (ltoModeString == "Yes") {
-        this->data->ltoMode = LTOMode::Yes;
-    } else if (ltoModeString == "No") {
-        this->data->ltoMode = LTOMode::No;
-    } else if (ltoModeString == "Auto") {
-        this->data->ltoMode = LTOMode::Auto;
-    } else {
-        QMessageBox::warning(this->parent, "Nuitka Studio Warning",
-                             "LTO模式值: " + ltoModeString + " 错误，只能为Yes/No/Auto");
-        return;
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isObject()) {
+        Logger::error(QString("ProjectConfig::importProject: npf文件%1已损坏，请尝试更换文件").arg(filePath));
+        QMessageBox::critical(this->parent, "Nuitka Studio Error", QString("npf文件%1已损坏，请尝试更换文件").arg(filePath));
+        return "";
     }
-    this->data->dataList = contentList[9].split("=")[1].split(";");
+    QJsonObject root = doc.object();
+    if (root.value("npf_version") != NPF_VERSION) {
+        Logger::error("ProjectConfig::importProject: 此npf文件的格式版本错误，请尝试更换文件");
+        QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件的格式版本错误，请尝试更换文件");
+        return "";
+    }
+    QJsonObject project = root.value("project").toObject();
+    for (auto item = project.begin(); item != project.end(); ++item) {
+        QString key = item.key();
+        QVariant value{item.value()};
 
-    Logger::info("导入NPF文件，参数: " + contentList.join(";"));
+        if (value.userType() >= QMetaType::User && value.canConvert<int>()) {
+            value = value.toInt();
+        }
+        const int index = PCM.getIndex(key);
+        if (index == -1) {
+            Logger::error("ProjectConfig::importProject: 此npf文件已损坏，请尝试更换文件");
+            QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件已损坏，请尝试更换文件");
+            return "";
+        }
+        PCM.setItem(index, value);
+    }
+    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
+    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
+    config.writeConfig();
+    Logger::info("导入NPF文件");
+    return filePath;
 }
 
-void ProjectConfig::exportProject(const QString &path) {
+QString ProjectConfig::saveProject(const QString &path) const {
     QString filePath = "";
     if (path == "") {
         filePath = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
-                                                Config::instance().getDefaultDataPath(),
+                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
                                                 "Nuitka Project File(*.npf);;All files(*)");
         if (filePath.isEmpty()) {
-            return;
+            return "";
         }
     } else {
         filePath = path;
     }
+    this->compress->setZipPath(filePath);
 
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        qWarning() << "Open failed: " << file.errorString();
-        QMessageBox::warning(this->parent, "Nuitka Studio  Warning", "Open failed: " + file.errorString());
-        return;
+    if (QFile::exists(filePath)) {
+        auto f = QMessageBox::question(this->parent, "Nuitka Studio",
+                                       "这一个NPF文件已存在，再次导出将会覆盖所有数据，是否确认覆盖");
+        if (f == QMessageBox::Yes) {
+            QFile::remove(filePath);
+        } else {
+            return "";
+        }
     }
-    QTextStream out(&file);
-    out.setCodec("UTF-8");
 
-    // Write data
-    // Path data
-    out << "python_path=" << this->data->pythonPath << "\n";
-    out << "mainfile_path=" << this->data->mainFilePath << "\n";
-    out << "output_path=" << this->data->outputPath << "\n";
-    out << "output_filename=" << this->data->outputFilename << "\n";
-    out << "icon_path=" << this->data->iconPath << "\n";
-    // Bool data
-    out << "standalone=" << Utils::boolToString(this->data->standalone) << "\n";
-    out << "onefile=" << Utils::boolToString(this->data->onefile) << "\n";
-    out << "remove_output=" << Utils::boolToString(this->data->removeOutput) << "\n";
-    // LTO data
-    QString LTOModeString;
-    if (this->data->ltoMode == LTOMode::Yes) {
-        LTOModeString = "Yes";
-    } else if (this->data->ltoMode == LTOMode::No) {
-        LTOModeString = "No";
-    } else if (this->data->ltoMode == LTOMode::Auto) {
-        LTOModeString = "Auto";
+    QString jsonPath = "data.json";
+
+    // json string
+    QJsonObject root;
+    root.insert("npf_version", NPF_VERSION);
+
+    QJsonObject project;
+    for (const ProjectConfigType *item: *PCM.getList()) {
+        QVariant itemValue = item->get_itemValue();
+        // another type
+        if (itemValue.userType() >= QMetaType::User && itemValue.canConvert<int>()) {
+            itemValue = itemValue.toInt();
+        }
+        project.insert(item->get_itemName(), QJsonValue::fromVariant(itemValue));
     }
-    out << "lto=" << LTOModeString << "\n";
-    // Data list
-    out << "data_list=" << this->data->dataList.join(";");
+    root.insert("project", project);
 
-    file.close();
+    QJsonDocument doc(root);
+    QString docString = doc.toJson();
 
+    // write
+    this->compress->writeZip(jsonPath, docString.toUtf8());
+    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
+    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
+    config.writeConfig();
     Logger::info("导出NPF文件");
+    return filePath;
 }

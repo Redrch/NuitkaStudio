@@ -8,34 +8,31 @@
 #include "ui_export_datalist_window.h"
 
 
-ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
-        QWidget(parent), ui(new Ui::ExportDataListWindow) {
+ExportDataListWindow::ExportDataListWindow(QWidget *parent) : QWidget(parent), ui(new Ui::ExportDataListWindow) {
     ui->setupUi(this);
 
     // Connect Signals and slots
     connect(ui->addFileBtn, &QPushButton::clicked, this, [=]() {
         QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
-                                                        Config::instance().getDefaultDataPath());
+                                                        config.getConfigToString(SettingsEnum::DefaultDataPath));
         if (filePath == "") {
             return;
         }
 
         ui->dataListWidget->addItem(filePath);
-        this->dataList.append(filePath);
-        emit this->dataListChanged(this->dataList);
+        PCM.appendItemToStringList(PCE::DataList, filePath);
     });
 
     connect(ui->addDirBtn, &QPushButton::clicked, this, [=]() {
         QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
-                                                            Config::instance().getDefaultDataPath(),
+                                                            config.getConfigToString(SettingsEnum::DefaultDataPath),
                                                             QFileDialog::ShowDirsOnly);
         if (dirPath == "") {
             return;
         }
 
         ui->dataListWidget->addItem(dirPath);
-        this->dataList.append(dirPath);
-        emit this->dataListChanged(this->dataList);
+        PCM.appendItemToStringList(PCE::DataList, dirPath);
     });
 
     connect(ui->removeItemBtn, &QPushButton::clicked, this, [=]() {
@@ -44,7 +41,6 @@ ExportDataListWindow::ExportDataListWindow(QWidget *parent) :
             return;
         }
         delete removeItem;
-        emit this->dataListChanged(this->dataList);
     });
 
     this->updateUI();
@@ -54,16 +50,12 @@ ExportDataListWindow::~ExportDataListWindow() {
     delete ui;
 }
 
-void ExportDataListWindow::setDataList(const QList<QString> &dataListArg) {
-    this->dataList = dataListArg;
-}
-
-const QList<QString> &ExportDataListWindow::getDataList() {
-    return this->dataList;
-}
-
 void ExportDataListWindow::updateUI() {
-    for (QString dataItem: this->dataList) {
+    ui->dataListWidget->clear();
+    for (const QString &dataItem: PCM.getItemValue(PCE::DataList).toStringList()) {
+        if (dataItem.isEmpty()) {
+            continue;
+        }
         ui->dataListWidget->addItem(dataItem);
     }
 }

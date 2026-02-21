@@ -7,3 +7,5 @@ is_debug = 0
 ninja_path = "C:/Program Files/JetBrains/CLion 2025.1.2/bin/ninja/win/x64/ninja.exe"
 # vcpkg cmake file's path  eg.c:/vcpkg/buildsystems/vcpkg.cmake
 vcpkg_path = "D:/Develop/Cpp/vcpkg/scripts/buildsystems/vcpkg.cmake"
+# mingw path  eg.c:/qt5.14.2/5.14.2/mingw73_64
+mingw_path = "D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64"

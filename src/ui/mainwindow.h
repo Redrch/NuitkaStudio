@@ -18,27 +18,44 @@
 #include <QProcess>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QFile>
+#include <QSystemTrayIcon>
+#include <QIcon>
+#include <QCloseEvent>
 
 #include <QDateTime>
 #include <QElapsedTimer>
 #include <QTimer>
+#include <QProcessEnvironment>
 
 #include <QDebug>
 
 #include "export_datalist_window.h"
 #include "about_window.h"
+#include "new_project_window.h"
+#include "pack_log_window.h"
+
+#include "../types/data_structs.h"
+#include "../types/project_config_manager.h"
+#include "../types/simname.h"
+
+#include "../utils/utils.h"
 #include "../utils/config.h"
 #include "../utils/logger.h"
-#include "new_project_window.h"
-#include "../utils/data_structs.h"
-#include "../utils/utils.h"
 #include "../utils/project_config.h"
+#include "../utils/compress.h"
 
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
     class MainWindow;
 }
+
+enum class TextPos {
+    TopLabel,
+    Statusbar,
+    SystemMessage
+};
 
 QT_END_NAMESPACE
 
@@ -53,36 +70,32 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    // QString pythonPath;
-    // QString mainFilePath;
-    // QString outputPath;
-    // QString outputFilename;
-    // QString iconPath;
-    //
-    // bool standalone = true;
-    // bool onefile = false;
-    // bool removeOutput = false;
-    // LTOMode ltoMode = LTOMode::Auto;
-    // QList<QString> dataList = QList<QString>();
-
     ProjectConfig *projectConfig;
 
     QDateTime startPackTime;
     QTimer *packTimer;
     QProcess *packProcess;
-    ProjectConfigData* data;
-
+    // controls
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;
     QCheckBox *removeOutputCheckbox;
     QComboBox *ltoModeCombobox;
-    QLabel *timerLabel;
+    QLabel *messageLabel;
+    QLabel *topTextLabel;
+    // tray menu
+    QSystemTrayIcon *trayIcon;
+    QMenu *trayMenu;
+    QAction *startPackAction;
+    QAction *stopPackAction;
+    QAction *showAction;
+    QAction *quitAction;
 
     // functions
     // Update UI functions
-    void updateExportTable();
-    void updatePackUI();
-    void updateUI();
+    void updateExportTable() const;
+    void updatePackUI() const;
+    void updateSettingsUI() const;
+    void updateUI() const;
 
     // Connect signals and slots functions
     void connectStackedWidget();
@@ -90,19 +103,36 @@ private:
     void connectPackPage();
     void connectSettingsPage();
     void connectExportPage();
+    void connectTrayMenu();
+    void connectOther();
 
     // Init functions
-    void initExportPage();
-    void initStatusBar();
+    void initUI();
+
+    // ui utils functions
+    /**
+     * MainWindow::showText
+     * @param text Showed text.
+     * @param showTime Showed time, -1 indicates a permanent show. However, it does not apply in system notifications and defaults to 5000.
+     * @param color Showed text color, default is black.
+     * @param position Showed text position, default is on the top label.
+     * @param title This parameter is only used when position is TextPos::SystemMessage,
+     *              serving as the title for system notifications, and defaults to Nuitka Studio.
+     */
+    void showText(const QString &text, int showTime = -1, const QColor &color = Qt::black,
+                  TextPos position = TextPos::TopLabel, const QString &title = "Nuitka Studio") const;
+    void clearText(TextPos position = TextPos::TopLabel) const;
+    void enabledInput() const;
+    void noEnableInput() const;
 
 private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
     void onRemoveItemClicked();
-
     void onProjectTableCellDoubleClicked(int row, int column);
 
     void onFileMenuTriggered(QAction *action);
+    void onToolMenuTriggered(QAction *action);
     void onHelpMenuTriggered(QAction *action);
 
     void startPack();
@@ -111,6 +141,19 @@ private slots:
     void importProject();
     void exportProject();
     void newProject();
+
+    // Gen path functions
+    void genData(bool isUpdateUI = true);
+    void genPythonPath();
+    void genMainfilePath();
+    void genOutputPath();
+    void genOutputName();
+    // Gen file info functions
+    void genFileInfo();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 

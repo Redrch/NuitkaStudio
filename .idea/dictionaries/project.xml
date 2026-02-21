@@ -1,17 +1,30 @@
 <component name="ProjectDictionaryState">
   <dictionary name="project">
     <words>
+      <w>automoc</w>
+      <w>autorcc</w>
+      <w>autouic</w>
       <w>buildsystems</w>
       <w>dcompiler</w>
+      <w>dvcpkg</w>
+      <w>gdin</w>
+      <w>iconengines</w>
+      <w>imageformats</w>
       <w>libfmt</w>
       <w>libgcc</w>
+      <w>libquazip</w>
       <w>libspdlog</w>
       <w>libstdc</w>
       <w>libwinpthread</w>
       <w>mainfile</w>
       <w>mainwindow</w>
       <w>nuitkastudio</w>
+      <w>projectconfig</w>
+      <w>projectconfigtype</w>
+      <w>projectconfigtypemanager</w>
+      <w>qwindows</w>
       <w>redrch</w>
+      <w>simname</w>
       <w>timedout</w>
     </words>
   </dictionary>

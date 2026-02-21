@@ -6,19 +6,23 @@
 
 Config::Config() {
     this->configPath = "config.ini";
+    this->configMap = new QMap<QString, QVariant>();
+    this->configMap->insert("ConsoleInputEncoding", QVariant::fromValue<EncodingEnum>(EncodingEnum::utf8));
+    this->configMap->insert("ConsoleOutputEncoding", QVariant::fromValue<EncodingEnum>(EncodingEnum::utf8));
+    this->configMap->insert("PackTimerTriggerInterval", 100);
+    this->configMap->insert("MaxPackLogCount", 20);
+    this->configMap->insert("IsShowCloseWindow", QVariant(true));
+    this->configMap->insert("IsHideOnClose", QVariant(true));
+    this->configMap->insert("TempPath", QDir::tempPath() + "/NuitkaStudio");
+    this->configMap->insert("NpfPath", "");
+
+    this->configMap->insert("DefaultPythonPath", "C:/");
+    this->configMap->insert("DefaultMainFilePath", "C:/");
+    this->configMap->insert("DefaultOutputPath", "C:/");
+    this->configMap->insert("DefaultIconPath", "C:/");
+    this->configMap->insert("DefaultDataPath", "C:/");
 
     this->settings = new QSettings(this->configPath, QSettings::IniFormat);
-
-    this->consoleInputEncoding = EncodingEnum::utf8;
-    this->consoleOutputEncoding = EncodingEnum::utf8;
-
-    this->configPath = QString(this->configPath);
-    this->defaultPythonPath = QString("C:/");
-    this->defaultMainFilePath = QString("C:/");
-    this->defaultIconPath = QString("C:/");
-    this->defaultDataPath = QString("C:/");
-
-    this->packTimerTriggerInterval = 100;
 }
 
 Config::~Config() {
@@ -27,38 +31,118 @@ Config::~Config() {
 
 void Config::writeConfig() {
     this->settings->beginGroup("General");
-    this->settings->setValue("consoleInputEncoding",
-                             QVariant(this->encodingEnumToString(this->getConsoleInputEncoding())));
-    this->settings->setValue("consoleOutputEncoding",
-                             QVariant(this->encodingEnumToString(this->getConsoleOutputEncoding())));
-    this->settings->setValue("packTimerTriggerInterval", QVariant(this->getPackTimerTriggerInterval()));
+    this->settings->setValue("ConsoleInputEncoding",
+                             encodingEnumToInt(
+                                 this->getConfigEncodingEnum(SettingsEnum::ConsoleInputEncoding)));
+    this->settings->setValue("ConsoleOutputEncoding",
+                             encodingEnumToInt(
+                                 this->getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
+    this->settings->setValue("PackTimerTriggerInterval", this->getConfig(SettingsEnum::PackTimerTriggerInterval));
+    this->settings->setValue("MaxPackLogCount", this->getConfig(SettingsEnum::MaxPackLogCount));
+    this->settings->setValue("IsShowCloseWindow", this->getConfigToBool(SettingsEnum::IsShowCloseWindow));
+    this->settings->setValue("IsHideOnClose", this->getConfigToBool(SettingsEnum::IsHideOnClose));
+    this->settings->setValue("TempPath", this->getConfig(SettingsEnum::TempPath));
+    this->settings->setValue("NpfPath", this->getConfig(SettingsEnum::NpfPath));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
-    this->settings->setValue("defaultPythonPath", QVariant(this->getDefaultPythonPath()));
-    this->settings->setValue("defaultMainFilePath", QVariant(this->getDefaultMainFilePath()));
-    this->settings->setValue("defaultOutputPath", QVariant(this->getDefaultOutputPath()));
-    this->settings->setValue("defaultIconPath", QVariant(this->getDefaultIconPath()));
-    this->settings->setValue("defaultDataPath", QVariant(this->getDefaultDataPath()));
+    this->settings->setValue("DefaultPythonPath", this->getConfig(SettingsEnum::DefaultPythonPath));
+    this->settings->setValue("DefaultMainFilePath", this->getConfig(SettingsEnum::DefaultMainFilePath));
+    this->settings->setValue("DefaultOutputPath", this->getConfig(SettingsEnum::DefaultOutputPath));
+    this->settings->setValue("DefaultIconPath", this->getConfig(SettingsEnum::DefaultIconPath));
+    this->settings->setValue("DefaultDataPath", this->getConfig(SettingsEnum::DefaultDataPath));
     this->settings->endGroup();
 }
 
 void Config::readConfig() {
     this->settings->beginGroup("General");
-    this->setConsoleInputEncoding(
-        this->encodingEnumFromString(this->settings->value("consoleInputEncoding").toString()));
-    this->setConsoleOutputEncoding(
-        this->encodingEnumFromString(this->settings->value("consoleOutputEncoding").toString()));
-    this->setPackTimerTriggerInterval(this->settings->value("packTimerTriggerInterval").toInt());
+    this->setConfigFromEncodingEnum(SettingsEnum::ConsoleInputEncoding,
+                                    this->encodingEnumFromString(
+                                        this->settings->value("ConsoleInputEncoding").toString()));
+    this->setConfigFromEncodingEnum(SettingsEnum::ConsoleOutputEncoding,
+                                    this->encodingEnumFromString(
+                                        this->settings->value("ConsoleOutputEncoding").toString())
+    );
+    this->setConfig(SettingsEnum::PackTimerTriggerInterval, this->settings->value("PackTimerTriggerInterval").toInt());
+    this->setConfig(SettingsEnum::MaxPackLogCount, this->settings->value("MaxPackLogCount").toInt());
+    this->setConfig(SettingsEnum::IsShowCloseWindow, this->settings->value("IsShowCloseWindow").toBool());
+    this->setConfig(SettingsEnum::IsHideOnClose, this->settings->value("IsHideOnClose").toBool());
+    this->setConfig(SettingsEnum::TempPath, this->settings->value("TempPath").toString());
+    this->setConfig(SettingsEnum::NpfPath, this->settings->value("NpfPath").toString());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
-    this->setDefaultPythonPath(this->settings->value("defaultPythonPath").toString());
-    this->setDefaultMainFilePath(this->settings->value("defaultMainFilePath").toString());
-    this->setDefaultOutputPath(this->settings->value("defaultOutputPath").toString());
-    this->setDefaultIconPath(this->settings->value("defaultIconPath").toString());
-    this->setDefaultDataPath(this->settings->value("defaultDataPath").toString());
+    this->setConfig(SettingsEnum::DefaultPythonPath, this->settings->value("DefaultPythonPath").toString());
+    this->setConfig(SettingsEnum::DefaultMainFilePath, this->settings->value("DefaultMainFilePath").toString());
+    this->setConfig(SettingsEnum::DefaultOutputPath, this->settings->value("DefaultOutputPath").toString());
+    this->setConfig(SettingsEnum::DefaultIconPath, this->settings->value("DefaultIconPath").toString());
+    this->setConfig(SettingsEnum::DefaultDataPath, this->settings->value("DefaultDataPath").toString());
     this->settings->endGroup();
+}
+
+QVariant Config::getConfig(const QString &configValue) const {
+    return this->configMap->value(configValue);
+}
+
+QVariant Config::getConfig(const SettingsEnum configValue) {
+    return this->getConfig(this->settingsEnumToString(configValue));
+}
+
+QString Config::getConfigToString(const SettingsEnum configValue) {
+    return this->getConfig(configValue).toString();
+}
+
+int Config::getConfigToInt(const SettingsEnum configValue) {
+    return this->getConfig(configValue).toInt();
+}
+
+EncodingEnum Config::getConfigEncodingEnum(const SettingsEnum configValue) {
+    return this->getConfig(configValue).value<EncodingEnum>();
+}
+
+bool Config::getConfigToBool(const SettingsEnum configValue) {
+    return this->getConfig(configValue).toBool();
+}
+
+void Config::setConfig(const QString &configValue, const QVariant &value) const {
+    this->configMap->insert(configValue, value);
+}
+
+void Config::setConfig(const SettingsEnum configValue, const QVariant &value) {
+    return this->setConfig(this->settingsEnumToString(configValue), value);
+}
+
+void Config::setConfigFromString(SettingsEnum configValue, const QString &string) {
+    this->setConfig(configValue, QVariant(string));
+}
+
+void Config::setConfigFromInt(SettingsEnum configValue, int value) {
+    this->setConfig(configValue, QVariant(value));
+}
+
+void Config::setConfigFromEncodingEnum(SettingsEnum configValue, EncodingEnum encodingValue) {
+    this->setConfig(configValue, QVariant::fromValue<EncodingEnum>(encodingValue));
+}
+
+void Config::setConfigFromBool(SettingsEnum configValue, bool value) {
+    this->setConfig(configValue, QVariant(value));
+}
+
+QString Config::settingsEnumToString(SettingsEnum enumValue) {
+    QMetaEnum metaEnum = QMetaEnum::fromType<SettingsEnum>();
+    QString string = QString::fromUtf8(metaEnum.valueToKey(static_cast<int>(enumValue)));
+    return string;
+}
+
+SettingsEnum Config::settingsEnumFromString(const QString &string) {
+    QMetaEnum metaEnum = QMetaEnum::fromType<SettingsEnum>();
+    int value = metaEnum.keyToValue(string.toUtf8().constData());
+    if (value == -1) {
+        Logger::warn(QString("值%1在枚举SettingsEnum中不存在").arg(string));
+        return SettingsEnum::NONE;
+    }
+
+    return static_cast<SettingsEnum>(value);
 }
 
 QString Config::encodingEnumToString(EncodingEnum enumValue) {
@@ -97,7 +181,6 @@ EncodingEnum Config::encodingEnumFromString(const QString &string) {
     } else if (string == "2") {
         return EncodingEnum::ascii;
     } else {
-        qDebug() << string;
         throw std::runtime_error("'Encoding Enum' value error.Please use >= 0 and <= 2 value");
     }
 }
@@ -110,7 +193,6 @@ EncodingEnum Config::encodingEnumFromInt(int value) {
     } else if (value == 2) {
         return EncodingEnum::ascii;
     } else {
-        qDebug() << value;
         throw std::runtime_error("'Encoding Enum' value error.Please use >= 0 and <= 2 value");
     }
 }

@@ -61,7 +61,7 @@ void Logger::uninstallQtMessageHandler() {
 }
 
 void Logger::qtMessageHandler(QtMsgType type, const QMessageLogContext &ctx, const QString &msg) {
-    auto logger = spdlog::get("NuitkaStudio");
+    auto logger = spdlog::get("nuitka-studio");
     if (!logger) return;
     std::string text = msg.toUtf8().toStdString();
     switch (type) {

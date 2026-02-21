@@ -55,7 +55,75 @@ python解释器路径：项目所使用的python解释器的路径，需含有nu
 ## 构建项目
 
 1. 从Github上克隆仓库到本地  `git clone https://github.com/Redrch/NuitkaStudio.git`
-2. 确保设备安装有 mingw64  cmake  vcpkg  python3.5+(推荐3.13)，并且cmake  vcpkg  python 配有环境变量，如果没有请安装
+2. 确保设备安装有 mingw64  cmake  vcpkg  python3.11+(推荐3.13)，并且cmake  vcpkg  python 配有环境变量，如果没有请安装
 3. 打开cmd，将工作目录移动到项目根目录
 4. 修改config.toml，将文件中的路径改为您设备上的路径
 5. 执行`python build.py`，执行完成后如果是debug模式构建结果在`cmake-build-debug`中，release模式在`releases/NuitkaStudio{版本号}·`目录下
+
+
+
+## 特别鸣谢
+
+Quazip: https://github.com/stachenov/quazip 
+
+spdlog: https://github.com/gabime/spdlog 
+
+fmt: https://github.com/fmtlib/fmt
+
+
+
+------------------------
+
+## 附件
+
+### NPF文件格式
+
+**此文件中的NPF文件仅代表NuitkaStudio所使用的Nuitka Project File(NPF)文件**
+
+**此处仅讨论NuitkaStudio1.2.0.0以上的版本中使用的NPF文件，不讨论NuitkaStudio1.2.0.0以下版本所使用的NPF文件**
+
+本质上，NPF文件是一个ZIP压缩包，格式如下所示
+
+```
+- /
+--- data.json            // 存储npf文件的基本信息，例如NPF格式版本号，以及使用nuitka打包时的参数
+--- pack_log/            // nuitka打包日志
+------  yyyy-mm-dd_hh-MM-ss.log           // 具体文件
+------  ...
+```
+
+data.json 中的格式如下所示
+
+```json
+{
+    "npf_version": 1,
+    "project": {
+        "company": "COMPANY",
+        "dataList": [
+            ""
+        ],
+        "fileDescription": "description",
+        "fileVersion": "version",
+        "iconPath": "logo path",
+        "legalCopyright": "legal copyright",
+        "legalTrademarks": "legal trademarks",
+        "ltoMode": 0/1/2,
+        "mainFilePath": "main path",
+        "onefile": true/false,
+        "outputFilename": "output name",
+        "outputPath": "output path",
+        "productName": "name",
+        "productVersion": "version",
+        "projectName": "name",
+        "projectPath": "path",
+        "pythonPath": "python path",
+        "removeOutput": true/false,
+        "standalone": true/false
+    }
+}
+
+```
+
+ltoMode值中，0代表Auto，1代表Yes，2代表No
+
+npf_version值目前为1

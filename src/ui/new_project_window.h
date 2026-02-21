@@ -13,7 +13,9 @@
 
 #include "../utils/logger.h"
 #include "../utils/project_config.h"
-#include "../utils/data_structs.h"
+#include "../types/data_structs.h"
+#include "../types/project_config_manager.h"
+#include "../types/simname.h"
 
 enum class InterpreterType {
     Python,
@@ -36,8 +38,7 @@ public:
     explicit NewProjectWindow(QWidget *parent = nullptr);
 
     ~NewProjectWindow() override;
-
-    ProjectConfigData *getProjectConfigData();
+    void installNuitka(QProcess* process);
 
 private:
     Ui::NewProjectWindow *ui;
@@ -49,8 +50,6 @@ private:
     QString pythonPath;
     QString virtualenvPath;
     QString uvPath;
-
-    ProjectConfigData *projectConfigData;
 
     void connectPath();
 

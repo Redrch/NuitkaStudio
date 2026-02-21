@@ -8,22 +8,30 @@
 #include <QString>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 
-#include "data_structs.h"
+#include "../types/data_structs.h"
+#include "../types/project_config_manager.h"
+#include "../types/simname.h"
+#include "compress.h"
 #include "config.h"
 #include "logger.h"
 #include "utils.h"
 
+
+
 class ProjectConfig {
 public:
-    ProjectConfig(ProjectConfigData* data, QWidget* parent);
+    explicit ProjectConfig(QWidget* parent);
     ~ProjectConfig();
 
-    void importProject(const QString& path = "");
-    void exportProject(const QString& path = "");
+    QString loadProject(const QString& path = "") const;
+    QString saveProject(const QString& path = "") const;
 private:
-    ProjectConfigData* data;
     QWidget *parent;
+    Compress* compress;
 };
 
 
