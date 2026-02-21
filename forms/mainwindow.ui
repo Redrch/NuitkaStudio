@@ -154,7 +154,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>0</y>
+                <y>-253</y>
                 <width>876</width>
                 <height>884</height>
                </rect>
@@ -1526,11 +1526,11 @@
      <string>文件(&amp;F)</string>
     </property>
     <addaction name="newAction"/>
-    <addaction name="action_NPF"/>
-    <addaction name="importAction"/>
-    <addaction name="exportAction"/>
-    <addaction name="action_S"/>
-    <addaction name="action_C"/>
+    <addaction name="newProject"/>
+    <addaction name="openAction"/>
+    <addaction name="saveAction"/>
+    <addaction name="saveAsAction"/>
+    <addaction name="closeFileAction"/>
    </widget>
    <widget class="QMenu" name="helpMenu">
     <property name="title">
@@ -1550,12 +1550,12 @@
    <addaction name="helpMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="importAction">
+  <action name="openAction">
    <property name="text">
     <string>打开(&amp;O)</string>
    </property>
   </action>
-  <action name="exportAction">
+  <action name="saveAction">
    <property name="text">
     <string>保存(&amp;S)</string>
    </property>
@@ -1585,17 +1585,17 @@
     <string>打包日志(&amp;P)</string>
    </property>
   </action>
-  <action name="action_NPF">
+  <action name="newProject">
    <property name="text">
     <string>新建项目</string>
    </property>
   </action>
-  <action name="action_S">
+  <action name="saveAsAction">
    <property name="text">
     <string>另存为(&amp;A)</string>
    </property>
   </action>
-  <action name="action_C">
+  <action name="closeFileAction">
    <property name="text">
     <string>关闭文件(&amp;C)</string>
    </property>
