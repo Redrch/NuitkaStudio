@@ -3,7 +3,7 @@
 #include "utils/logger.h"
 #include "types/simname.h"
 
-bool isDebug = true;
+bool isDebug = false;
 
 void initProjectConfig() {
     // path data
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 
 
 /*
-Version 1.2.0.0 TO-DO
+Version 1.3.0.0 TO-DO
 TODO: 添加将打包/停止按钮吸附在其他窗口上的功能
 TODO: 美化ui（优先级最低）
 暂时先写这么多
