@@ -1127,7 +1127,16 @@ void MainWindow::initUI() {
     this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
     this->trayIcon->setToolTip("Nuitka Studio");
 
-    // tray menu
+    // Menubar
+    // file menu
+    ui->newAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+    ui->openAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
+    ui->saveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    ui->saveAsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
+    // tool menu
+    ui->packLogAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
+
+    // Tray menu
     this->trayMenu = new QMenu(this);
     this->startPackAction = new QAction("开始打包项目", this);
     this->stopPackAction = new QAction("停止打包项目", this);
