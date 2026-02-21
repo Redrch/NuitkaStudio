@@ -7,7 +7,7 @@ file(TO_CMAKE_PATH "${CMAKE_BINARY_DIR}" CMAKE_BINARY_DIR)
 # 强制设置编译器的环境变量为正斜杠格式
 set(ENV{VCPKG_ROOT} "D:/Develop/Cpp/vcpkg")
 
-project(NuitkaStudio VERSION 1.2.0.0)
+project(NuitkaStudio VERSION 1.2.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
