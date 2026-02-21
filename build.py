@@ -33,6 +33,8 @@ if not is_debug:
     shutil.copyfile("cmake-build-release/libfmt.dll", f"{output_path}/libfmt.dll")
     shutil.copyfile("cmake-build-release/libspdlog.dll", f"{output_path}/libspdlog.dll")
     shutil.copyfile("lib/libquazip1-qt5.dll", f"{output_path}/libquazip1-qt5.dll")
+    shutil.copyfile("cmake-build-release/vcpkg_installed/x64-mingw-dynamic/bin/libbz2.dll", f"{output_path}/bz2.dll")
+    shutil.copyfile("lib/zlib1.dll", f"{output_path}/zlib1.dll")
     shutil.copytree("licenses", f"{output_path}/licenses")
 
     os.chdir(output_path)
@@ -46,7 +48,6 @@ if not is_debug:
 
     shutil.rmtree("iconengines")
     shutil.rmtree("imageformats")
-    shutil.rmtree("styles")
     shutil.rmtree("translations")
 
 
