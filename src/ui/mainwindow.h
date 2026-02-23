@@ -14,6 +14,7 @@
 
 #include <QString>
 #include <QList>
+#include <QStringListModel>
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -30,10 +31,14 @@
 
 #include <QDebug>
 
+#include <ElaWindow.h>
+#include <ElaTabBar.h>
+#include <ElaMenuBar.h>
+#include <ElaSpinBox.h>
+
 #include "export_datalist_window.h"
 #include "about_window.h"
 #include "new_project_window.h"
-#include "pack_log_window.h"
 
 #include "../types/data_structs.h"
 #include "../types/project_config_manager.h"
@@ -51,6 +56,9 @@ QT_BEGIN_NAMESPACE
 namespace Ui {
     class MainWindow;
 }
+namespace PackPageUi {
+    class PackPage;
+}
 
 enum class TextPos {
     TopLabel,
@@ -60,7 +68,7 @@ enum class TextPos {
 
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow {
+class MainWindow : public ElaWindow {
     Q_OBJECT
 
 public:
@@ -69,6 +77,7 @@ public:
     ~MainWindow() override;
 
 private:
+    // variants
     Ui::MainWindow *ui;
 
     ProjectConfig *projectConfig;
@@ -76,6 +85,9 @@ private:
     QDateTime startPackTime;
     QTimer *packTimer;
     QProcess *packProcess;
+    // bar
+    ElaTabBar *topTabBar;
+    ElaMenuBar *menuBar;
     // controls
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;
@@ -90,28 +102,33 @@ private:
     QAction *stopPackAction;
     QAction *showAction;
     QAction *quitAction;
+    // pack log
+    QList<PackLog> *packLog;
+    // models
+    QStringListModel *packLogModel;
+    QStringListModel *dataListModel;
 
     // functions
     // Update UI functions
-    void updateExportTable() const;
     void updatePackUI() const;
     void updateSettingsUI() const;
-    void updateUI() const;
+    void updatePackLogUI();
+    void updateUI();
 
     // Connect signals and slots functions
     void connectStackedWidget();
     void connectMenubar();
     void connectPackPage();
     void connectSettingsPage();
-    void connectExportPage();
     void connectTrayMenu();
     void connectOther();
+    void connectPackLog();
 
     // Init functions
     void initUI();
-    void initPackUI() const;
+    void initMenuBar();
 
-    // ui utils functions
+    // ui util functions
     /**
      * MainWindow::showText
      * @param text Showed text.
@@ -126,7 +143,9 @@ private:
     void clearText(TextPos position = TextPos::TopLabel) const;
     void enabledInput() const;
     void noEnableInput() const;
-    void applyGlobalTheme();
+
+    // util functions
+    void readPackLog();
 
 private slots:
     void onAddDataFileItemClicked();
@@ -135,7 +154,6 @@ private slots:
     void onProjectTableCellDoubleClicked(int row, int column);
 
     void onFileMenuTriggered(QAction *action);
-    void onToolMenuTriggered(QAction *action);
     void onHelpMenuTriggered(QAction *action);
 
     void startPack();

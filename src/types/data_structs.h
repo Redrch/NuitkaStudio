@@ -99,7 +99,26 @@ enum class ProjectConfigEnum {
     LegalCopyright,
     LegalTrademarks,
 };
+
 using PCE = ProjectConfigEnum;
+
+struct PackLog {
+    QString logFileName;
+    QString logContent;
+    QString logNote;
+
+    PackLog() = default;
+
+    PackLog(const QString &logFileName, const QString &logContent, const QString &logNote) {
+        this->logFileName = logFileName;
+        this->logContent = logContent;
+        this->logNote = logNote;
+    }
+    PackLog(const QString &logFileName, const QString &logContent) {
+        this->logFileName = logFileName;
+        this->logContent = logContent;
+    }
+};
 
 
 #endif //DATASTRUCTS_H

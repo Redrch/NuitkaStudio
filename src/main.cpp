@@ -56,41 +56,6 @@ int main(int argc, char *argv[]) {
     Logger logger(cfg);
     if (!isDebug) Logger::installQtMessageHandler();
 
-    // load qss
-    QFile qssFile(":/assets/style.qss");
-    if (qssFile.open(QIODevice::ReadOnly)) {
-        QString styleSheet = qssFile.readAll();
-        for (auto it = color.begin(); it != color.end(); ++it) {
-            styleSheet.replace(it.key(), it.value());
-        }
-        a.setStyleSheet(styleSheet);
-        Logger::info("加载QSS成功");
-    } else {
-        Logger::error("加载QSS失败");
-    }
-
-    // if (config.getConfigToBool(SettingsEnum::IsLightMode)) {
-    //     QFile qssFile(":/qdarkstyle/light/lightstyle.qss");
-    //     if (qssFile.open(QIODevice::ReadOnly)) {
-    //         QString styleSheet = qssFile.readAll();
-    //         a.setStyleSheet(styleSheet);
-    //         qssFile.close();
-    //         Logger::info("加载QLightStyle成功");
-    //     } else {
-    //         Logger::error("无法加载QLightStyle");
-    //     }
-    // } else {
-    //     QFile qssFile(":/qdarkstyle/dark/darkstyle.qss");
-    //     if (qssFile.open(QIODevice::ReadOnly)) {
-    //         QString styleSheet = qssFile.readAll();
-    //         a.setStyleSheet(styleSheet);
-    //         qssFile.close();
-    //         Logger::info("加载QDarkStyle成功");
-    //     } else {
-    //         Logger::error("无法加载QDarkStyle");
-    //     }
-    // }
-
     // init mainwindow
     MainWindow w;
     w.show();
@@ -119,7 +84,10 @@ Version 1.3.0.0
 重大修改：
 
 普通修改：
-
+1. 移除了导出页面，跟换为了打包日志页面
+2. 移除了"工具"菜单
+3. 将页面的选择栏移到了窗口上方
+4. 采用ElaWidgetTools库美化并重构了ui
 修复的问题：
 
 */

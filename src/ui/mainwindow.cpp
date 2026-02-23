@@ -5,12 +5,19 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    this->projectConfig = new ProjectConfig(this);
+    this->setWindowButtonFlag(ElaAppBarType::NavigationButtonHint, false);
+    this->setWindowButtonFlag(ElaAppBarType::RouteBackButtonHint, false);
+    this->setWindowButtonFlag(ElaAppBarType::RouteForwardButtonHint, false);
 
+    this->projectConfig = new ProjectConfig(this);
     this->packTimer = new QTimer(this);
+    this->packLog = new QList<PackLog>();
+
+    this->packLogModel = new QStringListModel(this);
+    this->dataListModel = new QStringListModel(this);
 
     // Create the temp path
     if (!QDir(config.getConfigToString(SettingsEnum::TempPath)).exists()) {
@@ -39,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->connectMenubar();
     this->connectPackPage();
     this->connectSettingsPage();
-    this->connectExportPage();
+    this->connectPackLog();
     this->connectTrayMenu();
     this->connectOther();
 
@@ -87,7 +94,7 @@ void MainWindow::startPack() {
     // output
     connect(this->packProcess, &QProcess::readyReadStandardOutput, this, [=]() {
         QString out = QString::fromLocal8Bit(this->packProcess->readAllStandardOutput());
-        ui->consoleOutputEdit->append(out);
+        ui->consoleOutputEdit->appendPlainText(out);
         logFile->write(out.toUtf8());
         Logger::info(out);
     });
@@ -106,10 +113,10 @@ void MainWindow::startPack() {
                 }
 
                 QString endOutString = QString("----------- 打包结束 耗时: %1 ----------").arg(timeString);
-                ui->consoleOutputEdit->append(endOutString);
+                ui->consoleOutputEdit->appendPlainText(endOutString);
                 Logger::info(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString));
                 this->showText(QString("打包结束 耗时: %1").arg(timeString), 5000, Qt::black,
-                    TextPos::SystemMessage, "打包通知");
+                               TextPos::SystemMessage, "打包通知");
                 this->packProcess->deleteLater();
                 this->packTimer->stop();
                 ui->startPackBtn->setEnabled(true);
@@ -133,12 +140,12 @@ void MainWindow::startPack() {
                 QStringList extractedFiles =
                         JlCompress::extractDir(GDM.getString(GDIN::NPF_FILE_PATH), tempExtractPath);
                 if (extractedFiles.isEmpty()) {
-                    ui->consoleOutputEdit->append("警告：原 NPF 文件内容解压失败或为空！归档已取消以保护原文件。");
+                    ui->consoleOutputEdit->appendPlainText("警告：原 NPF 文件内容解压失败或为空！归档已取消以保护原文件。");
                     return; // 防止覆盖原包
                 }
 
                 if (!QFile::exists(tempExtractPath + "/data.json")) {
-                    ui->consoleOutputEdit->append("致命错误：解压目录中未找到 data.json，停止打包。");
+                    ui->consoleOutputEdit->appendPlainText("致命错误：解压目录中未找到 data.json，停止打包。");
                     return;
                 }
 
@@ -157,26 +164,26 @@ void MainWindow::startPack() {
                 }
 
                 if (Compress::compressDir(tempExtractPath, GDM.getString(GDIN::NPF_FILE_PATH))) {
-                    ui->consoleOutputEdit->append("日志归档成功！");
+                    ui->consoleOutputEdit->appendPlainText("日志归档成功！");
                 } else {
-                    ui->consoleOutputEdit->append("归档失败：无法重写 NPF 文件。");
+                    ui->consoleOutputEdit->appendPlainText("归档失败：无法重写 NPF 文件。");
                 }
 
                 QDir(tempExtractPath).removeRecursively();
 
-                ui->consoleOutputEdit->append(QString("打包日志已存储至<npf_root>/pack_log/" + nowString + ".log"));
+                ui->consoleOutputEdit->appendPlainText(QString("打包日志已存储至<npf_root>/pack_log/" + nowString + ".log"));
                 Logger::info(QString("打包日志已存储至<npf_root>/pack_log/" + nowString + ".log"));
             });
     // error occurred
     connect(this->packProcess, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
         qWarning() << "command error: " << error;
-        ui->consoleOutputEdit->append("Error: " + Utils::processErrorToString(error));
+        ui->consoleOutputEdit->appendPlainText("Error: " + Utils::processErrorToString(error));
         logFile->write(QString("Error: " + Utils::processErrorToString(error)).toUtf8());
         Logger::error("Error: " + Utils::processErrorToString(error));
     });
 
     if (PCM.getItemValueToString(PCE::PythonPath).isEmpty()) {
-        ui->consoleOutputEdit->append("python解释器路径为必填项");
+        ui->consoleOutputEdit->appendPlainText("python解释器路径为必填项");
         ui->startPackBtn->setEnabled(true);
         this->startPackAction->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
@@ -184,7 +191,7 @@ void MainWindow::startPack() {
         return;
     }
     if (PCM.getItemValueToString(PCE::MainfilePath).isEmpty()) {
-        ui->consoleOutputEdit->append("主文件路径为必填项");
+        ui->consoleOutputEdit->appendPlainText("主文件路径为必填项");
         ui->startPackBtn->setEnabled(true);
         this->startPackAction->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
@@ -192,7 +199,7 @@ void MainWindow::startPack() {
         return;
     }
     if (PCM.getItemValueToString(PCE::OutputPath).isEmpty()) {
-        ui->consoleOutputEdit->append("输出目录为必填项");
+        ui->consoleOutputEdit->appendPlainText("输出目录为必填项");
         ui->startPackBtn->setEnabled(true);
         this->startPackAction->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
@@ -200,7 +207,7 @@ void MainWindow::startPack() {
         return;
     }
     if (PCM.getItemValueToString(PCE::OutputFilename).isEmpty()) {
-        ui->consoleOutputEdit->append("输出文件名为必填项");
+        ui->consoleOutputEdit->appendPlainText("输出文件名为必填项");
         ui->startPackBtn->setEnabled(true);
         this->startPackAction->setEnabled(true);
         ui->stopPackBtn->setEnabled(false);
@@ -277,12 +284,12 @@ void MainWindow::startPack() {
     // console output
     QString outputString = QString("-------------- 开始打包 %1 -------------").arg(
         QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz"));
-    ui->consoleOutputEdit->append(outputString);
+    ui->consoleOutputEdit->appendPlainText(outputString);
     // pack timer
     this->startPackTime = QDateTime::currentDateTime();
     this->packTimer->start(config.getConfigToInt(SettingsEnum::PackTimerTriggerInterval));
     // console output
-    ui->consoleOutputEdit->append(
+    ui->consoleOutputEdit->appendPlainText(
         PCM.getItemValueToString(PCE::PythonPath) + " " + args.
         join(" "));
     Logger::info(
@@ -293,22 +300,22 @@ void MainWindow::startPack() {
 
 void MainWindow::stopPack() {
     if (!this->packProcess) {
-        ui->consoleOutputEdit->append("没有正在执行的打包任务");
+        ui->consoleOutputEdit->appendPlainText("没有正在执行的打包任务");
         return;
     }
     if (this->packProcess->state() == QProcess::NotRunning) {
-        ui->consoleOutputEdit->append("打包任务已结束");
+        ui->consoleOutputEdit->appendPlainText("打包任务已结束");
         this->packProcess->deleteLater();
         this->packProcess = nullptr;
         return;
     }
 
-    ui->consoleOutputEdit->append("正在停止打包任务");
+    ui->consoleOutputEdit->appendPlainText("正在停止打包任务");
     this->packProcess->terminate();
 
     QTimer::singleShot(5000, this, [=]() {
         if (this->packProcess->state() != QProcess::NotRunning) {
-            ui->consoleOutputEdit->append("进程未响应，强制终止中...");
+            ui->consoleOutputEdit->appendPlainText("进程未响应，强制终止中...");
             this->packProcess->kill();
             this->packProcess->deleteLater();
         }
@@ -368,10 +375,12 @@ void MainWindow::newProject() {
 void MainWindow::onAddDataFileItemClicked() {
     QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
                                                     config.getConfigToString(SettingsEnum::DefaultDataPath));
-    if (filePath == "") {
+    if (filePath.isEmpty()) {
         return;
     }
-    ui->dataListWidget->addItem(filePath);
+    QStringList dataList = this->dataListModel->stringList();
+    dataList << filePath;
+    this->dataListModel->setStringList(dataList);
     PCM.appendItemToStringList(PCE::DataList, filePath);
 }
 
@@ -379,22 +388,24 @@ void MainWindow::onAddDataDirItemClicked() {
     QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
                                                         config.getConfigToString(SettingsEnum::DefaultDataPath),
                                                         QFileDialog::ShowDirsOnly);
-    if (dirPath == "") {
+    if (dirPath.isEmpty()) {
         return;
     }
 
-    ui->dataListWidget->addItem(dirPath);
+    QStringList dataList = this->dataListModel->stringList();
+    dataList << dirPath;
+    this->dataListModel->setStringList(dataList);
     PCM.appendItemToStringList(PCE::DataList, dirPath);
 }
 
 void MainWindow::onRemoveItemClicked() {
-    QListWidgetItem *removeItem = ui->dataListWidget->takeItem(ui->dataListWidget->currentRow());
-    if (removeItem == nullptr) {
-        return;
-    }
+    QModelIndex index = ui->dataListWidget->currentIndex();
+    if (index.isValid() && this->dataListModel) {
+        const QString& text = this->dataListModel->stringList().at(index.row());
 
-    PCM.removeItemFromStringList(PCE::DataList, removeItem->text());
-    delete removeItem;
+        this->dataListModel->removeRow(index.row());
+        PCM.removeItemFromStringList(PCE::DataList, text);
+    }
 }
 
 void MainWindow::onProjectTableCellDoubleClicked(int row, int column) {
@@ -443,43 +454,6 @@ void MainWindow::onFileMenuTriggered(QAction *action) {
     }
 }
 
-void MainWindow::onToolMenuTriggered(QAction *action) {
-    QString text = action->text();
-    Logger::info(QString("菜单：工具, 菜单项 %1 触发triggered事件").arg(text));
-
-    if (text == "打包日志(&P)") {
-        if (GDM.getString(GDIN::NPF_FILE_PATH).isEmpty()) {
-            QMessageBox::critical(this, "Nuitka Studio Error", "请先指定NPF文件再使用此功能");
-            return;
-        }
-
-        // read the pack log
-        QString nowString = QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss");
-        QString zipTempPath = config.getConfigToString(SettingsEnum::TempPath) + "/npf_repack_" + nowString;
-        QString packLogPath = zipTempPath + "/pack_log";
-        Compress::extractZip(GDM.getString(GDIN::NPF_FILE_PATH), zipTempPath);
-        QStringList logList = QDir(packLogPath).entryList(QDir::Files | QDir::NoDotAndDotDot);
-        QMap<QString, QString> logMap;
-        for (const QString &logFileName: logList) {
-            QFile file(packLogPath + "/" + logFileName);
-            if (!file.open(QIODevice::ReadOnly)) {
-                QMessageBox::warning(this, "Nuitka Studio Warning", "无法打开打包日志文件" + logFileName);
-                Logger::warn("无法打开打包日志文件" + logFileName);
-                continue;
-            }
-            QString log = QString::fromUtf8(file.readAll());
-            logMap.insert(logFileName, log);
-        }
-        // remove temp files
-        QDir(zipTempPath).removeRecursively();
-        // show the pack log window
-        PackLogWindow *logWindow = new PackLogWindow;
-        logWindow->setWindowFlags(logWindow->windowFlags() | Qt::Window);
-        logWindow->setLog(logMap);
-        logWindow->show();
-    }
-}
-
 void MainWindow::onHelpMenuTriggered(QAction *action) {
     QString text = action->text();
     Logger::info(QString("菜单：帮助, 菜单项 %1 触发triggered事件").arg(text));
@@ -496,89 +470,14 @@ void MainWindow::onHelpMenuTriggered(QAction *action) {
 }
 
 // Update UI functions
-void MainWindow::updateUI() const {
-    this->updateExportTable();
+void MainWindow::updateUI() {
     this->updatePackUI();
     this->updateSettingsUI();
+    if (!GDM.getString(GDIN::NPF_FILE_PATH).isEmpty()) {
+        this->updatePackLogUI();
+    }
 
     Logger::info("刷新UI");
-}
-
-void MainWindow::updateExportTable() const {
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::PythonPath)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::PythonPath)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::MainfilePath)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::MainfilePath)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::OutputPath)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::OutputPath)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::OutputFilename)), 1, new QTableWidgetItem(
-            PCM.getItemValueToString(PCE::OutputFilename)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::IconPath)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::IconPath)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::ProjectPath)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::ProjectPath)));
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::ProjectName)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::ProjectName)));
-
-    // file info
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::FileVersion)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::FileVersion)));
-
-    ui->projectTable->setItem(
-        configListAndUiListMap.value(static_cast<int>(PCE::Company)), 1,
-        new QTableWidgetItem(PCM.getItemValueToString(PCE::Company)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(PCE::ProductName)), 1,
-                              new QTableWidgetItem(
-                                  PCM.getItemValueToString(PCE::ProductName)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(PCE::ProductVersion)), 1,
-                              new QTableWidgetItem(
-                                  PCM.getItemValueToString(PCE::ProductVersion)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(PCE::FileDescription)), 1,
-                              new QTableWidgetItem(
-                                  PCM.getItemValueToString(PCE::FileDescription)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(PCE::LegalCopyright)), 1,
-                              new QTableWidgetItem(
-                                  PCM.getItemValueToString(PCE::LegalCopyright)));
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(PCE::LegalTrademarks)), 1,
-                              new QTableWidgetItem(
-                                  PCM.getItemValueToString(PCE::LegalTrademarks)));
-
-
-    if (this->standaloneCheckbox)
-        this->standaloneCheckbox->setCheckState(
-            PCM.getItemValueToBool(PCE::Standalone)
-                ? Qt::CheckState::Checked
-                : Qt::CheckState::Unchecked);
-    if (this->onefileCheckbox)
-        this->onefileCheckbox->setCheckState(
-            PCM.getItemValueToBool(PCE::Onefile)
-                ? Qt::CheckState::Checked
-                : Qt::CheckState::Unchecked);
-    if (this->removeOutputCheckbox)
-        this->removeOutputCheckbox->setCheckState(
-            PCM.getItemValueToBool(PCE::RemoveOutput)
-                ? Qt::CheckState::Checked
-                : Qt::CheckState::Unchecked);
-
-    QStringList list = PCM.getItemValue(PCE::DataList).toStringList();
-    for (int i = 0; i < list.size(); i++) {
-        if (list.at(i).isEmpty()) {
-            list.removeAt(i);
-        }
-    }
-    ui->projectTable->setItem(configListAndUiListMap.value(static_cast<int>(PCE::DataList)), 1,
-                              new QTableWidgetItem(list.join(";")));
-
-    this->ltoModeCombobox->setCurrentIndex(
-        static_cast<int>(PCM.getItemValue(PCE::LtoMode).value<LTOMode>()));
 }
 
 void MainWindow::updatePackUI() const {
@@ -614,13 +513,8 @@ void MainWindow::updatePackUI() const {
             break;
     }
     // Data list
-    ui->dataListWidget->clear();
     QStringList dataList = PCM.getItemValueToStringList(PCE::DataList);
-    for (const QString &item: dataList) {
-        if (item != "") {
-            ui->dataListWidget->addItem(item);
-        }
-    }
+    this->dataListModel->setStringList(dataList);
 
     // File info
     ui->fileVersionEdit->setText(PCM.getItemValueToString(PCE::FileVersion));
@@ -661,29 +555,35 @@ void MainWindow::updateSettingsUI() const {
     ui->tempPathEdit->setText(config.getConfigToString(SettingsEnum::TempPath));
 }
 
+void MainWindow::updatePackLogUI() {
+    this->readPackLog();
+    QStringList logStringList;
+    for (PackLog &log: *this->packLog) {
+        logStringList.append(log.logFileName);
+    }
+    this->packLogModel->setStringList(logStringList);
+    if (this->packLog->count() > 0) {
+        ui->packLogContent->setPlainText(this->packLog->at(0).logContent);
+    }
+}
+
 // Connect functions
 void MainWindow::connectStackedWidget() {
-    connect(ui->pack_btn, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(0);
-        config.writeConfig();
-        this->updateUI();
-    });
-    connect(ui->settings_btn, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(1);
-        config.writeConfig();
-        this->updateUI();
-    });
-    connect(ui->export_btn, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(2);
-        config.writeConfig();
-        this->updateUI();
+    connect(this->menuBar, &ElaMenuBar::triggered, this, [=](QAction *action) {
+        QString text = action->text();
+        if (text == "打包") {
+            ui->stackedWidget->setCurrentIndex(0);
+        } else if (text == "设置") {
+            ui->stackedWidget->setCurrentIndex(1);
+        } else if (text == "打包日志") {
+            ui->stackedWidget->setCurrentIndex(2);
+        }
     });
 }
 
 void MainWindow::connectMenubar() {
     connect(ui->fileMenu, &QMenu::triggered, this, &MainWindow::onFileMenuTriggered);
     connect(ui->helpMenu, &QMenu::triggered, this, &MainWindow::onHelpMenuTriggered);
-    connect(ui->toolMenu, &QMenu::triggered, this, &MainWindow::onToolMenuTriggered);
 }
 
 void MainWindow::connectPackPage() {
@@ -899,11 +799,11 @@ void MainWindow::connectSettingsPage() {
                 config.setConfigFromEncodingEnum(SettingsEnum::ConsoleOutputEncoding, encoding);
             });
     // Pack Timer Trigger Interval
-    connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int value) {
+    connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
         config.setConfig(SettingsEnum::PackTimerTriggerInterval, value);
     });
     // Max Pack Log Count
-    connect(ui->maxPackLogCountSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int value) {
+    connect(ui->maxPackLogCountSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
         config.setConfig(SettingsEnum::MaxPackLogCount, value);
     });
     // Is Show Close Window
@@ -1005,57 +905,6 @@ void MainWindow::connectSettingsPage() {
     });
 }
 
-void MainWindow::connectExportPage() {
-    // Export Button
-    connect(ui->exportBtn, &QPushButton::clicked, this, &MainWindow::exportProject);
-    // Cell Double-Clicked
-    connect(ui->projectTable, &QTableWidget::cellDoubleClicked, this, &MainWindow::onProjectTableCellDoubleClicked);
-    // Item Changed
-    connect(ui->projectTable, &QTableWidget::itemChanged, this, [=](QTableWidgetItem *item) {
-        int row = item->row();
-        if (row == configListAndUiListMap.value(static_cast<int>(PCE::DataList))) {
-            QStringList stringDataList = item->text().split(";");
-            PCM.setItem(configListAndUiListInverseMap.value(row), stringDataList);
-        } else if (row == configListAndUiListMap.value(static_cast<int>(PCE::LtoMode))) {
-            int value = item->text().toInt();
-            PCM.setItem(PCE::LtoMode,
-                        QVariant::fromValue<LTOMode>(static_cast<LTOMode>(value)));
-        } else {
-            PCM.setItem(configListAndUiListInverseMap.value(row), item->text());
-        }
-    });
-    // Checkboxes
-    connect(this->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        PCM.setItem(PCE::Standalone, state == Qt::CheckState::Checked);
-    });
-    connect(this->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        PCM.setItem(PCE::Onefile, state == Qt::CheckState::Checked);
-    });
-    connect(this->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        PCM.setItem(PCE::RemoveOutput, state == Qt::CheckState::Checked);
-    });
-    // LTO Mode Combobox
-    connect(this->ltoModeCombobox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        switch (index) {
-            case 0:
-                PCM.setItem(PCE::LtoMode,
-                            QVariant::fromValue<LTOMode>(LTOMode::Auto));
-                break;
-            case 1:
-                PCM.setItem(PCE::LtoMode,
-                            QVariant::fromValue<LTOMode>(LTOMode::Yes));
-                break;
-            case 2:
-                PCM.setItem(PCE::LtoMode,
-                            QVariant::fromValue<LTOMode>(LTOMode::No));
-                break;
-            default:
-                QMessageBox::warning(this, "Nuitka Studio Warning", "LTO模式值错误");
-                break;
-        }
-    });
-}
-
 void MainWindow::connectTrayMenu() {
     // tray icon
     connect(this->trayIcon, &QSystemTrayIcon::activated, this, [=](QSystemTrayIcon::ActivationReason reason) {
@@ -1095,23 +944,16 @@ void MainWindow::connectOther() {
     });
 }
 
+void MainWindow::connectPackLog() {
+    connect(ui->packLogFileList, &ElaListView::clicked, this, [=](const QModelIndex &index) {
+        int row = index.row();
+        const QString& content = this->packLog->at(row).logContent;
+        ui->packLogContent->setPlainText(content);
+    });
+}
+
 // Init functions
 void MainWindow::initUI() {
-    // Export
-    // 自适应行宽/行高
-    ui->projectTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->projectTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    // 表格组件
-    this->standaloneCheckbox = new QCheckBox;
-    this->onefileCheckbox = new QCheckBox;
-    this->removeOutputCheckbox = new QCheckBox;
-    this->ltoModeCombobox = new QComboBox;
-    this->ltoModeCombobox->addItems(QStringList() << tr("自动") << tr("启用") << tr("禁用"));
-    ui->projectTable->setCellWidget(5, 1, this->standaloneCheckbox);
-    ui->projectTable->setCellWidget(6, 1, this->onefileCheckbox);
-    ui->projectTable->setCellWidget(7, 1, this->removeOutputCheckbox);
-    ui->projectTable->setCellWidget(9, 1, this->ltoModeCombobox);
-
     // Status bar
     this->messageLabel = new QLabel;
     this->messageLabel->setAlignment(Qt::AlignCenter);
@@ -1146,17 +988,48 @@ void MainWindow::initUI() {
 
     trayIcon->show();
 
+    // Pack page
+    ui->projectPathLabel->setTextPixelSize(13);
+    ui->projectNameLabel->setTextPixelSize(13);
+    ui->mainPathLabel->setTextPixelSize(13);
+    ui->pythonFileLabel->setTextPixelSize(13);
+    ui->outputPathLabel->setTextPixelSize(13);
+    ui->outputNameLabel->setTextPixelSize(13);
+
+    // Settings Page
+    ui->packTimerTriggerIntervalSpin->setButtonMode(ElaSpinBoxType::Compact);
+    ui->maxPackLogCountSpin->setButtonMode(ElaSpinBoxType::Compact);
+
     // init top text label
     this->topTextLabel = new QLabel("", this);
 
-    this->initPackUI();
-}
+    // set models
+    ui->dataListWidget->setModel(this->dataListModel);
+    ui->packLogFileList->setModel(packLogModel);
 
-void MainWindow::initPackUI() const {
     // lock pack ui
     if (!GDM.getBool(GDIN::IS_OPEN_NPF)) {
         this->noEnableInput();
     }
+
+    this->initMenuBar();
+}
+
+void MainWindow::initMenuBar() {
+    this->menuBar = new ElaMenuBar(this);
+    menuBar->setFixedHeight(30);
+    QWidget *customWidget = new QWidget(this);
+    customWidget->setFixedWidth(300);
+    QVBoxLayout *customLayout = new QVBoxLayout(customWidget);
+    customLayout->setContentsMargins(0, 0, 0, 0);
+    // customLayout->addStretch();
+    customLayout->addWidget(this->menuBar);
+    customLayout->addStretch();
+    this->setCustomWidget(ElaAppBarType::MiddleArea, customWidget);
+
+    this->menuBar->addElaIconAction(ElaIconType::BoxesPacking, "打包");
+    this->menuBar->addElaIconAction(ElaIconType::Gear, "设置");
+    this->menuBar->addElaIconAction(ElaIconType::File, "打包日志");
 }
 
 // gen path functions
@@ -1444,3 +1317,29 @@ void MainWindow::enabledInput() const {
     this->stopPackAction->setEnabled(true);
 }
 
+// util functions
+void MainWindow::readPackLog() {
+    this->packLog->clear();
+    if (GDM.getString(GDIN::NPF_FILE_PATH).isEmpty()) {
+        Logger::warn("NPF文件路径为空，无法调用MainWindow::readPackLog函数");
+        return;
+    }
+    QString nowString = QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss");
+    QString zipTempPath = config.getConfigToString(SettingsEnum::TempPath) + "/npf_repack_" + nowString;
+    QString packLogPath = zipTempPath + "/pack_log";
+
+    Compress::extractZip(GDM.getString(GDIN::NPF_FILE_PATH), zipTempPath);
+    QStringList logList = QDir(packLogPath).entryList(QDir::Files | QDir::NoDotAndDotDot);
+    for (const QString &logFileName: logList) {
+        QFile file(packLogPath + "/" + logFileName);
+        if (!file.open(QIODevice::ReadOnly)) {
+            QMessageBox::warning(this, "Nuitka Studio Warning", "无法打开打包日志文件" + logFileName);
+            Logger::warn("无法打开打包日志文件" + logFileName);
+            continue;
+        }
+        QString log = QString::fromUtf8(file.readAll());
+        this->packLog->append(PackLog(logFileName, log));
+    }
+    // remove temp files
+    QDir(zipTempPath).removeRecursively();
+}

@@ -24,173 +24,237 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_16">
     <item>
-     <widget class="QWidget" name="funcitonsWidget" native="true">
-      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QWidget" name="btns_widget" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pack_btn">
-            <property name="text">
-             <string>打包</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="settings_btn">
-            <property name="text">
-             <string>设置</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="export_btn">
-            <property name="text">
-             <string>导出</string>
-            </property>
-            <property name="shortcut">
-             <string>Ctrl+S</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QStackedWidget" name="stackedWidget">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QWidget" name="packPage">
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <property name="leftMargin">
-            <number>0</number>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="styleSheet">
+       <string notr="true">QWidget {background: transparent;}</string>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="packPage">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="ElaScrollArea" name="packPagescrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="packPageContent">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>969</width>
+             <height>936</height>
+            </rect>
            </property>
-           <property name="topMargin">
-            <number>0</number>
+           <property name="styleSheet">
+            <string notr="true"/>
            </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QScrollArea" name="packPagescrollArea">
-             <property name="frameShape">
-              <enum>QFrame::NoFrame</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Sunken</enum>
-             </property>
-             <property name="widgetResizable">
-              <bool>true</bool>
-             </property>
-             <widget class="QWidget" name="packPageContent">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>876</width>
-                <height>884</height>
-               </rect>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_12">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
+           <layout class="QVBoxLayout" name="verticalLayout_12">
+            <item>
+             <widget class="QWidget" name="baseWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout">
                <item>
-                <widget class="QGroupBox" name="BasicGroup">
-                 <property name="title">
+                <widget class="ElaText" name="baseSettingsTitle">
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
                   <string>基础设置</string>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_3">
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="projectPathWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_28">
                   <item>
-                   <widget class="QWidget" name="projectPathWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_28">
+                   <widget class="ElaText" name="projectPathLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="text">
+                     <string>项目路径</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="ElaLineEdit" name="projectPathEdit"/>
+                  </item>
+                  <item>
+                   <widget class="ElaPushButton" name="projectPathBrowseBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="text">
+                     <string>浏览</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="ElaText" name="projectNameLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>项目名称</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="ElaLineEdit" name="projectNameEdit"/>
+                  </item>
+                  <item>
+                   <widget class="ElaPushButton" name="genPathsButton">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>生成信息</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="mainPathWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_6">
+                  <item>
+                   <widget class="ElaText" name="mainPathLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>主文件路径</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="ElaLineEdit" name="mainPathEdit"/>
+                  </item>
+                  <item>
+                   <widget class="ElaPushButton" name="mainPathBrowseBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>浏览</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="pythonPathWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_3">
+                  <item>
+                   <widget class="ElaText" name="pythonFileLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>python解释器路径</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="pythonFileInputWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                      <item>
-                      <widget class="QLabel" name="projectPathLabel">
+                      <widget class="ElaLineEdit" name="pythonFileEdit"/>
+                     </item>
+                     <item>
+                      <widget class="ElaPushButton" name="pythonFileBrowseBtn">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
                        <property name="text">
-                        <string>项目路径</string>
+                        <string>浏览</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="outputSettingsWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_12">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>9</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QWidget" name="outputPathWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_10">
+                     <item>
+                      <widget class="ElaText" name="outputPathLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>输出路径</string>
                        </property>
                        <property name="alignment">
                         <set>Qt::AlignCenter</set>
@@ -198,133 +262,109 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLineEdit" name="projectPathEdit"/>
+                      <widget class="ElaLineEdit" name="outputPathEdit"/>
                      </item>
                      <item>
-                      <widget class="QPushButton" name="projectPathBrowseBtn">
+                      <widget class="ElaPushButton" name="outputPathBrowseBtn">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>浏览</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="outputNameWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_11">
+                     <item>
+                      <widget class="ElaText" name="outputNameLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>输出文件名</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="ElaLineEdit" name="outputFileEdit"/>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="buildAndDataGroups" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QWidget" name="buildSettings" native="true">
+                    <layout class="QVBoxLayout" name="verticalLayout_4">
+                     <item>
+                      <widget class="ElaText" name="buildSettingsTitle">
+                       <property name="font">
+                        <font>
+                         <pointsize>11</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>打包设置</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="standaloneAndOnefileWidget" native="true">
                        <property name="font">
                         <font>
                          <pointsize>9</pointsize>
                         </font>
                        </property>
-                       <property name="styleSheet">
-                        <string notr="true"/>
-                       </property>
-                       <property name="text">
-                        <string>浏览</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="label_16">
-                       <property name="text">
-                        <string>项目名称</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="projectNameEdit"/>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="genPathsButton">
-                       <property name="text">
-                        <string>生成信息</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="mainPathWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_6">
-                     <item>
-                      <widget class="QLabel" name="mainPathLabel">
-                       <property name="text">
-                        <string>主文件路径</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="mainPathEdit"/>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="mainPathBrowseBtn">
-                       <property name="text">
-                        <string>浏览</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="pythonPathWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_3">
-                     <item>
-                      <widget class="QLabel" name="pythonFileLabel">
-                       <property name="text">
-                        <string>python解释器路径</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QWidget" name="pythonFileInputWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_2">
+                       <layout class="QHBoxLayout" name="horizontalLayout_7">
                         <item>
-                         <widget class="QLineEdit" name="pythonFileEdit"/>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pythonFileBrowseBtn">
-                          <property name="text">
-                           <string>浏览</string>
+                         <widget class="ElaCheckBox" name="standaloneCheckbox">
+                          <property name="maximumSize">
+                           <size>
+                            <width>16777215</width>
+                            <height>25</height>
+                           </size>
                           </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="outputSettingsWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_12">
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>9</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QWidget" name="outputPathWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_10">
-                        <item>
-                         <widget class="QLabel" name="outputPathLabel">
-                          <property name="text">
-                           <string>输出路径</string>
+                          <property name="font">
+                           <font>
+                            <pointsize>10</pointsize>
+                           </font>
                           </property>
-                          <property name="alignment">
-                           <set>Qt::AlignCenter</set>
+                          <property name="text">
+                           <string>独立文件（无需安装Python即可运行）</string>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
                           </property>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLineEdit" name="outputPathEdit"/>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="outputPathBrowseBtn">
+                         <widget class="ElaCheckBox" name="onefileCheckbox">
+                          <property name="font">
+                           <font>
+                            <pointsize>10</pointsize>
+                           </font>
+                          </property>
                           <property name="text">
-                           <string>浏览</string>
+                           <string>单文件输出</string>
                           </property>
                          </widget>
                         </item>
@@ -332,128 +372,93 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QWidget" name="outputNameWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_11">
+                      <widget class="QWidget" name="removeOutputAndLtoWidget" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_9">
                         <item>
-                         <widget class="QLabel" name="outputNameLabel">
+                         <widget class="ElaCheckBox" name="removeOutputCheckbox">
+                          <property name="font">
+                           <font>
+                            <pointsize>10</pointsize>
+                           </font>
+                          </property>
                           <property name="text">
-                           <string>输出文件名</string>
+                           <string>删除编译临时文件</string>
                           </property>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLineEdit" name="outputFileEdit"/>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="buildAndDataGroups" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_5">
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QGroupBox" name="BuildGroup">
-                       <property name="title">
-                        <string>构建设置</string>
-                       </property>
-                       <layout class="QVBoxLayout" name="verticalLayout_4">
-                        <item>
-                         <widget class="QWidget" name="widget_3" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_7">
+                         <widget class="QWidget" name="LtoWidget" native="true">
+                          <layout class="QHBoxLayout" name="horizontalLayout_8">
                            <item>
-                            <widget class="QCheckBox" name="standaloneCheckbox">
-                             <property name="text">
-                              <string>独立文件（无需安装Python即可运行）</string>
+                            <widget class="ElaText" name="ltoLabel">
+                             <property name="font">
+                              <font>
+                               <pointsize>10</pointsize>
+                              </font>
                              </property>
-                             <property name="checked">
-                              <bool>true</bool>
+                             <property name="text">
+                              <string>链接时优化(LTO)</string>
                              </property>
                             </widget>
                            </item>
                            <item>
-                            <widget class="QCheckBox" name="onefileCheckbox">
-                             <property name="text">
-                              <string>单文件输出</string>
-                             </property>
-                            </widget>
-                           </item>
-                          </layout>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QWidget" name="widget_4" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_9">
-                           <item>
-                            <widget class="QCheckBox" name="removeOutputCheckbox">
-                             <property name="text">
-                              <string>删除编译临时文件</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item>
-                            <widget class="QWidget" name="widget_5" native="true">
-                             <layout class="QHBoxLayout" name="horizontalLayout_8">
+                            <widget class="QWidget" name="widget_6" native="true">
+                             <layout class="QVBoxLayout" name="verticalLayout_5">
                               <item>
-                               <widget class="QLabel" name="label">
+                               <widget class="ElaCheckBox" name="ltoNo">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                 </font>
+                                </property>
                                 <property name="text">
-                                 <string>链接时优化(LTO)</string>
+                                 <string>禁用 LTO</string>
+                                </property>
+                                <property name="autoExclusive">
+                                 <bool>true</bool>
                                 </property>
                                </widget>
                               </item>
                               <item>
-                               <widget class="QWidget" name="widget_6" native="true">
-                                <layout class="QVBoxLayout" name="verticalLayout_5">
-                                 <item>
-                                  <widget class="QCheckBox" name="ltoNo">
-                                   <property name="text">
-                                    <string>禁用 LTO</string>
-                                   </property>
-                                   <property name="autoExclusive">
-                                    <bool>true</bool>
-                                   </property>
-                                  </widget>
-                                 </item>
-                                 <item>
-                                  <widget class="QCheckBox" name="ltoYes">
-                                   <property name="text">
-                                    <string>启用 LTO</string>
-                                   </property>
-                                   <property name="checked">
-                                    <bool>false</bool>
-                                   </property>
-                                   <property name="autoExclusive">
-                                    <bool>true</bool>
-                                   </property>
-                                   <property name="tristate">
-                                    <bool>false</bool>
-                                   </property>
-                                  </widget>
-                                 </item>
-                                 <item>
-                                  <widget class="QCheckBox" name="ltoAuto">
-                                   <property name="text">
-                                    <string>自动 LTO</string>
-                                   </property>
-                                   <property name="checkable">
-                                    <bool>true</bool>
-                                   </property>
-                                   <property name="checked">
-                                    <bool>true</bool>
-                                   </property>
-                                   <property name="autoExclusive">
-                                    <bool>true</bool>
-                                   </property>
-                                  </widget>
-                                 </item>
-                                </layout>
+                               <widget class="ElaCheckBox" name="ltoYes">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                 </font>
+                                </property>
+                                <property name="text">
+                                 <string>启用 LTO</string>
+                                </property>
+                                <property name="checked">
+                                 <bool>false</bool>
+                                </property>
+                                <property name="autoExclusive">
+                                 <bool>true</bool>
+                                </property>
+                                <property name="tristate">
+                                 <bool>false</bool>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="ElaCheckBox" name="ltoAuto">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                 </font>
+                                </property>
+                                <property name="text">
+                                 <string>自动 LTO</string>
+                                </property>
+                                <property name="checkable">
+                                 <bool>true</bool>
+                                </property>
+                                <property name="checked">
+                                 <bool>true</bool>
+                                </property>
+                                <property name="autoExclusive">
+                                 <bool>true</bool>
+                                </property>
                                </widget>
                               </item>
                              </layout>
@@ -466,36 +471,79 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QGroupBox" name="DataGroup">
-                       <property name="title">
-                        <string>数据文件</string>
+                      <spacer name="verticalSpacer">
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
                        </property>
-                       <layout class="QHBoxLayout" name="horizontalLayout_14">
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>20</width>
+                         <height>40</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="dataSettings" native="true">
+                    <layout class="QVBoxLayout" name="verticalLayout_15">
+                     <item>
+                      <widget class="ElaText" name="dataSettingsTitle">
+                       <property name="font">
+                        <font>
+                         <pointsize>11</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>数据设置</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_3" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout">
                         <item>
                          <widget class="QWidget" name="dataWidget" native="true">
                           <layout class="QHBoxLayout" name="horizontalLayout_13">
                            <item>
-                            <widget class="QListWidget" name="dataListWidget"/>
+                            <widget class="ElaListView" name="dataListWidget"/>
                            </item>
                            <item>
-                            <widget class="QWidget" name="widget_2" native="true">
+                            <widget class="QWidget" name="dataListBtn" native="true">
                              <layout class="QVBoxLayout" name="verticalLayout_6">
                               <item>
-                               <widget class="QPushButton" name="addFileBtn">
+                               <widget class="ElaPushButton" name="addFileBtn">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                 </font>
+                                </property>
                                 <property name="text">
                                  <string>添加文件</string>
                                 </property>
                                </widget>
                               </item>
                               <item>
-                               <widget class="QPushButton" name="addDirBtn">
+                               <widget class="ElaPushButton" name="addDirBtn">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                 </font>
+                                </property>
                                 <property name="text">
                                  <string>添加目录</string>
                                 </property>
                                </widget>
                               </item>
                               <item>
-                               <widget class="QPushButton" name="removeItemBtn">
+                               <widget class="ElaPushButton" name="removeItemBtn">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                 </font>
+                                </property>
                                 <property name="text">
                                  <string>删除项</string>
                                 </property>
@@ -508,10 +556,15 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QWidget" name="widget_7" native="true">
+                         <widget class="QWidget" name="iconSettings" native="true">
                           <layout class="QVBoxLayout" name="verticalLayout_7">
                            <item>
-                            <widget class="QLabel" name="label_2">
+                            <widget class="ElaText" name="iconSettingsLabel">
+                             <property name="font">
+                              <font>
+                               <pointsize>10</pointsize>
+                              </font>
+                             </property>
                              <property name="text">
                               <string>图标设置</string>
                              </property>
@@ -531,17 +584,22 @@
                             </spacer>
                            </item>
                            <item>
-                            <widget class="QLabel" name="label_3">
+                            <widget class="ElaText" name="iconPathLabel">
+                             <property name="font">
+                              <font>
+                               <pointsize>10</pointsize>
+                              </font>
+                             </property>
                              <property name="text">
                               <string>图标文件路径</string>
                              </property>
                             </widget>
                            </item>
                            <item>
-                            <widget class="QLineEdit" name="iconFileEdit"/>
+                            <widget class="ElaLineEdit" name="iconFileEdit"/>
                            </item>
                            <item>
-                            <widget class="QWidget" name="widget_8" native="true">
+                            <widget class="QWidget" name="iconBrowseWidget" native="true">
                              <layout class="QHBoxLayout" name="horizontalLayout_15">
                               <item>
                                <spacer name="horizontalSpacer_2">
@@ -557,7 +615,7 @@
                                </spacer>
                               </item>
                               <item>
-                               <widget class="QPushButton" name="iconFileBrowseBtn">
+                               <widget class="ElaPushButton" name="iconFileBrowseBtn">
                                 <property name="text">
                                  <string>浏览</string>
                                 </property>
@@ -591,144 +649,65 @@
                  </layout>
                 </widget>
                </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="infoDataWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_3">
                <item>
-                <widget class="QGroupBox" name="infoDataGroup">
-                 <property name="title">
+                <widget class="ElaText" name="infoDataTitle">
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
                   <string>文件信息设置</string>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_15">
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="theFirstLineWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_34">
                   <item>
-                   <widget class="QWidget" name="theFirstLineWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_34">
+                   <widget class="QWidget" name="fileVersionWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_37">
                      <item>
-                      <widget class="QWidget" name="fileVersionWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_37">
-                        <item>
-                         <widget class="QLabel" name="fileVersionLabel">
-                          <property name="text">
-                           <string>文件版本号</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="fileVersionEdit"/>
-                        </item>
-                       </layout>
+                      <widget class="ElaText" name="fileVersionLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>文件版本号</string>
+                       </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QWidget" name="companyWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_30">
-                        <item>
-                         <widget class="QLabel" name="companyLabel">
-                          <property name="text">
-                           <string>企业信息</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="companyEdit"/>
-                        </item>
-                       </layout>
-                      </widget>
+                      <widget class="ElaLineEdit" name="fileVersionEdit"/>
                      </item>
                     </layout>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QWidget" name="theSecondLineWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_33">
+                   <widget class="QWidget" name="companyWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_30">
                      <item>
-                      <widget class="QWidget" name="productNameWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_31">
-                        <item>
-                         <widget class="QLabel" name="productNameLabel">
-                          <property name="text">
-                           <string>产品名称</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="productNameEdit"/>
-                        </item>
-                       </layout>
+                      <widget class="ElaText" name="companyLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>企业信息</string>
+                       </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QWidget" name="productVersionWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_32">
-                        <item>
-                         <widget class="QLabel" name="productVersionLabel">
-                          <property name="text">
-                           <string>产品版本号</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="productVersionEdit"/>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="theThirdLineWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_45">
-                     <item>
-                      <widget class="QWidget" name="legalCopyrightWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_46">
-                        <item>
-                         <widget class="QLabel" name="legalCopyrightLabel">
-                          <property name="text">
-                           <string>版权信息</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="legalCopyrightEdit"/>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QWidget" name="legalTrademarksWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_47">
-                        <item>
-                         <widget class="QLabel" name="legalTrademarksLabel">
-                          <property name="text">
-                           <string>商标信息</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="legalTrademarksEdit"/>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="theFourthLineWidget" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_38">
-                     <item>
-                      <widget class="QWidget" name="fileDescriptitonWidget" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_39">
-                        <item>
-                         <widget class="QLabel" name="fileDescriptitonLabel">
-                          <property name="text">
-                           <string>文件说明</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="fileDescriptitonEdit"/>
-                        </item>
-                       </layout>
-                      </widget>
+                      <widget class="ElaLineEdit" name="companyEdit"/>
                      </item>
                     </layout>
                    </widget>
@@ -737,82 +716,123 @@
                 </widget>
                </item>
                <item>
-                <widget class="QWidget" name="outputWidget" native="true">
-                 <layout class="QVBoxLayout" name="verticalLayout_8">
+                <widget class="QWidget" name="theSecondLineWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_33">
                   <item>
-                   <widget class="QLabel" name="label_4">
-                    <property name="text">
-                     <string>控制台输出</string>
-                    </property>
+                   <widget class="QWidget" name="productNameWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_31">
+                     <item>
+                      <widget class="ElaText" name="productNameLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>产品名称</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="ElaLineEdit" name="productNameEdit"/>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QTextEdit" name="consoleOutputEdit">
-                    <property name="documentTitle">
-                     <string/>
-                    </property>
-                    <property name="readOnly">
-                     <bool>true</bool>
-                    </property>
+                   <widget class="QWidget" name="productVersionWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_32">
+                     <item>
+                      <widget class="ElaText" name="productVersionLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>产品版本号</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="ElaLineEdit" name="productVersionEdit"/>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                  </layout>
                 </widget>
                </item>
                <item>
-                <widget class="QWidget" name="packWidget" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <widget class="QWidget" name="theThirdLineWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_45">
                   <item>
-                   <widget class="QPushButton" name="clearConsoleBtn">
-                    <property name="text">
-                     <string>清空控制台</string>
-                    </property>
+                   <widget class="QWidget" name="legalCopyrightWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_46">
+                     <item>
+                      <widget class="ElaText" name="legalCopyrightLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>版权信息</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="ElaLineEdit" name="legalCopyrightEdit"/>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="importBtn">
-                    <property name="text">
-                     <string>导入</string>
-                    </property>
+                   <widget class="QWidget" name="legalTrademarksWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_47">
+                     <item>
+                      <widget class="ElaText" name="legalTrademarksLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>商标信息</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="ElaLineEdit" name="legalTrademarksEdit"/>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="theFourthLineWidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_38">
                   <item>
-                   <spacer name="horizontalSpacer">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="startPackBtn">
-                    <property name="text">
-                     <string>打包</string>
-                    </property>
-                    <property name="checkable">
-                     <bool>false</bool>
-                    </property>
-                    <property name="checked">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="stopPackBtn">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
-                    <property name="text">
-                     <string>停止打包</string>
-                    </property>
-                    <property name="checkable">
-                     <bool>false</bool>
-                    </property>
+                   <widget class="QWidget" name="fileDescriptitonWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_39">
+                     <item>
+                      <widget class="ElaText" name="fileDescriptitonLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>文件说明</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="ElaLineEdit" name="fileDescriptitonEdit"/>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                  </layout>
@@ -820,54 +840,187 @@
                </item>
               </layout>
              </widget>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="settingsPage">
-          <layout class="QVBoxLayout" name="verticalLayout_9">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QToolBox" name="settingsBox">
-             <property name="currentIndex">
-              <number>0</number>
-             </property>
-             <widget class="QWidget" name="generalSettingsPage">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>450</width>
-                <height>212</height>
-               </rect>
-              </property>
-              <attribute name="label">
-               <string>通用设置</string>
-              </attribute>
+            </item>
+            <item>
+             <widget class="QWidget" name="outputWidget" native="true">
               <layout class="QVBoxLayout" name="verticalLayout_11">
+               <item>
+                <widget class="ElaText" name="consoleOutputLabel">
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>控制台输出</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="ElaPlainTextEdit" name="consoleOutputEdit">
+                 <property name="documentTitle">
+                  <string/>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="packWidget" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <item>
+                <widget class="ElaPushButton" name="clearConsoleBtn">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>清空控制台</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="ElaPushButton" name="importBtn">
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>导入</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="ElaPushButton" name="startPackBtn">
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>打包</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>false</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="ElaPushButton" name="stopPackBtn">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>停止打包</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="settingsPage">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_9">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="ElaScrollArea" name="scrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>982</width>
+             <height>590</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_8">
+            <item>
+             <widget class="QWidget" name="generalSettingsWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_13">
+               <item>
+                <widget class="ElaText" name="generalSettingsTitleLabel">
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>通用设置</string>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QWidget" name="consoleInputEncodingWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_21">
                   <item>
-                   <widget class="QLabel" name="label_11">
+                   <widget class="ElaText" name="consoleInputEncodingLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>控制台输入编码</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="consoleInputEncodingCombo">
+                   <widget class="ElaComboBox" name="consoleInputEncodingCombo">
                     <property name="currentText">
                      <string>utf-8</string>
                     </property>
@@ -895,14 +1048,19 @@
                    <widget class="QWidget" name="consoleOutputEncodingWidget" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_20">
                      <item>
-                      <widget class="QLabel" name="label_10">
+                      <widget class="ElaText" name="consoleOutputEncodingLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
                        <property name="text">
                         <string>控制台输出编码</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QComboBox" name="consoleOutputEncodingCombo">
+                      <widget class="ElaComboBox" name="consoleOutputEncodingCombo">
                        <item>
                         <property name="text">
                          <string>utf-8</string>
@@ -940,10 +1098,10 @@
                 </widget>
                </item>
                <item>
-                <widget class="QWidget" name="widget_13" native="true">
+                <widget class="QWidget" name="spinSettingsWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_35">
                   <item>
-                   <widget class="QWidget" name="widget_14" native="true">
+                   <widget class="QWidget" name="packTimerTriggerIntervalWidget" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_26">
                      <property name="leftMargin">
                       <number>0</number>
@@ -955,14 +1113,30 @@
                       <number>9</number>
                      </property>
                      <item>
-                      <widget class="QLabel" name="label_14">
+                      <widget class="ElaText" name="packTimerTriggerIntervalLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
                        <property name="text">
                         <string>打包计时器触发间隔</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QSpinBox" name="packTimerTriggerIntervalSpin">
+                      <widget class="ElaSpinBox" name="packTimerTriggerIntervalSpin">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                       </property>
                        <property name="maximum">
                         <number>9999</number>
                        </property>
@@ -972,17 +1146,35 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLabel" name="label_15">
+                      <widget class="ElaText" name="packTimerTriggerIntervalUnitLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
                        <property name="text">
                         <string>ms</string>
                        </property>
                       </widget>
                      </item>
+                     <item>
+                      <spacer name="horizontalSpacer_6">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
                     </layout>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QWidget" name="widget_15" native="true">
+                   <widget class="QWidget" name="maxPackLogCountWidget" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_27">
                      <property name="leftMargin">
                       <number>0</number>
@@ -994,14 +1186,27 @@
                       <number>9</number>
                      </property>
                      <item>
-                      <widget class="QLabel" name="label_18">
+                      <widget class="ElaText" name="maxPackLogCountLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
                        <property name="text">
                         <string>单个NPF文件最大日志数量</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QSpinBox" name="maxPackLogCountSpin">
+                      <widget class="ElaSpinBox" name="maxPackLogCountSpin">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
                        <property name="minimum">
                         <number>1</number>
                        </property>
@@ -1013,11 +1218,24 @@
                        </property>
                       </widget>
                      </item>
+                     <item>
+                      <spacer name="horizontalSpacer_8">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
                     </layout>
                    </widget>
                   </item>
                   <item>
-                   <spacer name="horizontalSpacer_6">
+                   <spacer name="horizontalSpacer_9">
                     <property name="orientation">
                      <enum>Qt::Horizontal</enum>
                     </property>
@@ -1033,10 +1251,15 @@
                 </widget>
                </item>
                <item>
-                <widget class="QWidget" name="widget" native="true">
+                <widget class="QWidget" name="checkboxSettingsWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_36">
                   <item>
                    <widget class="QCheckBox" name="showCloseWindowCheckbox">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>显示退出操作页面</string>
                     </property>
@@ -1044,6 +1267,11 @@
                   </item>
                   <item>
                    <widget class="QCheckBox" name="hideOnCloseCheckbox">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>在退出时最小化到托盘</string>
                     </property>
@@ -1069,48 +1297,66 @@
                 <widget class="QWidget" name="tempPath" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_29">
                   <item>
-                   <widget class="QLabel" name="label_17">
+                   <widget class="ElaText" name="tempPathLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>缓存路径</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="tempPathEdit"/>
+                   <widget class="ElaLineEdit" name="tempPathEdit"/>
                   </item>
                  </layout>
                 </widget>
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="defaultPathSettingsPage">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>280</width>
-                <height>247</height>
-               </rect>
-              </property>
-              <attribute name="label">
-               <string>默认路径设置</string>
-              </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_13">
+            </item>
+            <item>
+             <widget class="QWidget" name="defaultPathSettingsWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_17">
+               <item>
+                <widget class="ElaText" name="defaultPathSettingsLabel">
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>默认路径设置</string>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QWidget" name="defaultPyPathWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_16">
                   <item>
-                   <widget class="QLabel" name="label_6">
+                   <widget class="ElaText" name="defaultPyPathLabal">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>默认Python解释器路径</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="defaultPyPathEdit"/>
+                   <widget class="ElaLineEdit" name="defaultPyPathEdit"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="defaultPyPathBrowseBtn">
+                   <widget class="ElaPushButton" name="defaultPyPathBrowseBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>浏览</string>
                     </property>
@@ -1123,17 +1369,27 @@
                 <widget class="QWidget" name="defaultMainPathWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_17">
                   <item>
-                   <widget class="QLabel" name="label_7">
+                   <widget class="ElaText" name="defaultMainPathLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>默认主文件路径</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="defaultMainPathEdit"/>
+                   <widget class="ElaLineEdit" name="defaultMainPathEdit"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="defaultMainPathBrowseBtn">
+                   <widget class="ElaPushButton" name="defaultMainPathBrowseBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>浏览</string>
                     </property>
@@ -1146,17 +1402,27 @@
                 <widget class="QWidget" name="defaultOutputPathWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_18">
                   <item>
-                   <widget class="QLabel" name="label_8">
+                   <widget class="ElaText" name="defaultOutputPathLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>默认输出路径</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="defaultOutputPathEdit"/>
+                   <widget class="ElaLineEdit" name="defaultOutputPathEdit"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="defaultOutputPathBrowseBtn">
+                   <widget class="ElaPushButton" name="defaultOutputPathBrowseBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>浏览</string>
                     </property>
@@ -1169,17 +1435,27 @@
                 <widget class="QWidget" name="defaultIconPathWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_19">
                   <item>
-                   <widget class="QLabel" name="label_9">
+                   <widget class="ElaText" name="defaultIconPathLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>默认图标路径</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="defaultIconPathEdit"/>
+                   <widget class="ElaLineEdit" name="defaultIconPathEdit"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="defaultIconPathBrowseBtn">
+                   <widget class="ElaPushButton" name="defaultIconPathBrowseBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>浏览</string>
                     </property>
@@ -1192,17 +1468,27 @@
                 <widget class="QWidget" name="defaultDataPathWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_25">
                   <item>
-                   <widget class="QLabel" name="label_13">
+                   <widget class="ElaText" name="defaultDataPathLabel">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>默认数据路径</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="defaultDataPathEdit"/>
+                   <widget class="ElaLineEdit" name="defaultDataPathEdit"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="defaultDataPathBrowseBtn">
+                   <widget class="ElaPushButton" name="defaultDataPathBrowseBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>浏览</string>
                     </property>
@@ -1213,317 +1499,81 @@
                </item>
               </layout>
              </widget>
-            </widget>
-           </item>
-           <item>
-            <widget class="QWidget" name="widget_9" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_22">
-              <item>
-               <widget class="QPushButton" name="saveSettingsBtn">
-                <property name="text">
-                 <string>保存</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_4">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_7">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
+            </item>
+            <item>
+             <widget class="QWidget" name="saveSettingsWidget" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_22">
+               <item>
+                <widget class="ElaPushButton" name="saveSettingsBtn">
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>保存</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
-         <widget class="QWidget" name="exportPage">
-          <layout class="QVBoxLayout" name="verticalLayout_14">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="packLogPage">
+       <layout class="QVBoxLayout" name="verticalLayout_10">
+        <item>
+         <widget class="ElaText" name="packLogPageTitleLabel">
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>打包日志</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="packLogWidget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="1,5">
            <item>
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>导出项目配置</string>
+            <widget class="ElaListView" name="packLogFileList"/>
+           </item>
+           <item>
+            <widget class="ElaPlainTextEdit" name="packLogContent">
+             <property name="readOnly">
+              <bool>true</bool>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QWidget" name="widget_12" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_24">
-              <item>
-               <widget class="QWidget" name="widget_10" native="true">
-                <layout class="QVBoxLayout" name="verticalLayout_10">
-                 <item>
-                  <widget class="QLabel" name="label_5">
-                   <property name="text">
-                    <string>项目设置</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QTableWidget" name="projectTable">
-                   <property name="rowCount">
-                    <number>19</number>
-                   </property>
-                   <property name="columnCount">
-                    <number>2</number>
-                   </property>
-                   <attribute name="horizontalHeaderVisible">
-                    <bool>false</bool>
-                   </attribute>
-                   <attribute name="horizontalHeaderCascadingSectionResizes">
-                    <bool>true</bool>
-                   </attribute>
-                   <attribute name="verticalHeaderVisible">
-                    <bool>false</bool>
-                   </attribute>
-                   <attribute name="verticalHeaderCascadingSectionResizes">
-                    <bool>false</bool>
-                   </attribute>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <row/>
-                   <column/>
-                   <column/>
-                   <item row="0" column="0">
-                    <property name="text">
-                     <string>python解释器路径</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="1" column="0">
-                    <property name="text">
-                     <string>主文件路径</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="2" column="0">
-                    <property name="text">
-                     <string>输出目录</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="3" column="0">
-                    <property name="text">
-                     <string>输出文件名</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="4" column="0">
-                    <property name="text">
-                     <string>图标路径</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="5" column="0">
-                    <property name="text">
-                     <string>独立模式</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="6" column="0">
-                    <property name="text">
-                     <string>单文件输出</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="7" column="0">
-                    <property name="text">
-                     <string>删除打包临时文件</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="8" column="0">
-                    <property name="text">
-                     <string>数据文件</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="9" column="0">
-                    <property name="text">
-                     <string>LTO模式</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="10" column="0">
-                    <property name="text">
-                     <string>项目路径</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="11" column="0">
-                    <property name="text">
-                     <string>项目名称</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="12" column="0">
-                    <property name="text">
-                     <string>文件版本号</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="13" column="0">
-                    <property name="text">
-                     <string>企业信息</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="14" column="0">
-                    <property name="text">
-                     <string>产品名称</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="15" column="0">
-                    <property name="text">
-                     <string>产品版本号</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="16" column="0">
-                    <property name="text">
-                     <string>文件说明</string>
-                    </property>
-                   </item>
-                   <item row="17" column="0">
-                    <property name="text">
-                     <string>版权信息</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                   <item row="18" column="0">
-                    <property name="text">
-                     <string>商标信息</string>
-                    </property>
-                    <property name="flags">
-                     <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QWidget" name="widget_11" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_23">
-              <item>
-               <widget class="QPushButton" name="exportBtn">
-                <property name="text">
-                 <string>导出</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_5">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>763</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
             </widget>
            </item>
           </layout>
          </widget>
-        </widget>
-       </item>
-      </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
+  <widget class="ElaMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -1532,7 +1582,7 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="fileMenu">
+   <widget class="ElaMenu" name="fileMenu">
     <property name="tearOffEnabled">
      <bool>false</bool>
     </property>
@@ -1546,21 +1596,14 @@
     <addaction name="saveAsAction"/>
     <addaction name="closeFileAction"/>
    </widget>
-   <widget class="QMenu" name="helpMenu">
+   <widget class="ElaMenu" name="helpMenu">
     <property name="title">
      <string>帮助(&amp;H)</string>
     </property>
     <addaction name="helpAction"/>
     <addaction name="aboutAction"/>
    </widget>
-   <widget class="QMenu" name="toolMenu">
-    <property name="title">
-     <string>工具(&amp;T)</string>
-    </property>
-    <addaction name="packLogAction"/>
-   </widget>
    <addaction name="fileMenu"/>
-   <addaction name="toolMenu"/>
    <addaction name="helpMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -1615,6 +1658,64 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ElaMenuBar</class>
+   <extends>QMenuBar</extends>
+   <header>ElaMenuBar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaMenu</class>
+   <extends>QMenu</extends>
+   <header>ElaMenu.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ElaLineEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaText</class>
+   <extends>QLabel</extends>
+   <header>ElaText.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaPushButton</class>
+   <extends>QPushButton</extends>
+   <header>ElaPushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaScrollArea</class>
+   <extends>QScrollArea</extends>
+   <header>ElaScrollArea.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ElaCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>ElaCheckBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaPlainTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>ElaPlainTextEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ElaComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>ElaSpinBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaListView</class>
+   <extends>QListWidget</extends>
+   <header>elalistview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resource.qrc"/>
  </resources>

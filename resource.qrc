@@ -2,6 +2,5 @@
   <qresource prefix="/">
     <file alias="logo.ico">assets/logo.ico</file>
     <file alias="logo">assets/NuitkaStudioLogo.png</file>
-    <file>assets/style.qss</file>
   </qresource>
 </RCC>
