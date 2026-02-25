@@ -401,7 +401,7 @@ void MainWindow::onAddDataDirItemClicked() {
 void MainWindow::onRemoveItemClicked() {
     QModelIndex index = ui->dataListWidget->currentIndex();
     if (index.isValid() && this->dataListModel) {
-        const QString& text = this->dataListModel->stringList().at(index.row());
+        const QString &text = this->dataListModel->stringList().at(index.row());
 
         this->dataListModel->removeRow(index.row());
         PCM.removeItemFromStringList(PCE::DataList, text);
@@ -942,12 +942,29 @@ void MainWindow::connectOther() {
             }
         }
     });
+    // 由于ElaWidgetTools库中提供的ElaCheckBox无法自动变色，因此只好手动变色
+    connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=](ElaThemeType::ThemeMode mode) {
+        const QColor &textColor = ElaThemeColor(mode, ThemeColor::BasicText);
+        QString textColorHex = textColor.name();
+        QString textStyleSheet = QString("color: %1;").arg(textColorHex);
+
+        ui->standaloneCheckbox->setStyleSheet(ui->standaloneCheckbox->styleSheet() += textStyleSheet);
+        ui->onefileCheckbox->setStyleSheet(ui->onefileCheckbox->styleSheet() += textStyleSheet);
+        ui->removeOutputCheckbox->setStyleSheet(ui->removeOutputCheckbox->styleSheet() += textStyleSheet);
+
+        ui->ltoNo->setStyleSheet(ui->ltoNo->styleSheet() += textStyleSheet);
+        ui->ltoYes->setStyleSheet(ui->ltoYes->styleSheet() += textStyleSheet);
+        ui->ltoAuto->setStyleSheet(ui->ltoAuto->styleSheet() += textStyleSheet);
+
+        ui->showCloseWindowCheckbox->setStyleSheet(ui->showCloseWindowCheckbox->styleSheet() += textStyleSheet);
+        ui->hideOnCloseCheckbox->setStyleSheet(ui->hideOnCloseCheckbox->styleSheet() += textStyleSheet);
+    });
 }
 
 void MainWindow::connectPackLog() {
     connect(ui->packLogFileList, &ElaListView::clicked, this, [=](const QModelIndex &index) {
         int row = index.row();
-        const QString& content = this->packLog->at(row).logContent;
+        const QString &content = this->packLog->at(row).logContent;
         ui->packLogContent->setPlainText(content);
     });
 }

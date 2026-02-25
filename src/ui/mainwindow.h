@@ -35,6 +35,7 @@
 #include <ElaTabBar.h>
 #include <ElaMenuBar.h>
 #include <ElaSpinBox.h>
+#include <ElaTheme.h>
 
 #include "export_datalist_window.h"
 #include "about_window.h"
