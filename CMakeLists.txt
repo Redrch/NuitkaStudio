@@ -97,15 +97,11 @@ set(SOURCES
         src/ui/mainwindow.h
         src/utils/config.cpp
         src/utils/config.h
-        src/ui/export_datalist_window.cpp
-        src/ui/export_datalist_window.h
         src/utils/logger.cpp
         src/utils/logger.h
         src/ui/about_window.cpp
         src/ui/about_window.h
         src/app_config.h.in
-        src/ui/new_project_window.cpp
-        src/ui/new_project_window.h
         src/utils/project_config.cpp
         src/utils/project_config.h
         src/types/data_structs.h
@@ -120,18 +116,13 @@ set(SOURCES
         src/types/global_data.cpp
         src/types/global_data.h
         src/types/constants.h
-        src/ui/pack_log_window.cpp
-        src/ui/pack_log_window.h
         src/types/color.h
 )
 set(RESOURCES
         resource.qrc
         logo.rc
-        forms/export_datalist_window.ui
         forms/mainwindow.ui
         forms/about_window.ui
-        forms/new_project_window.ui
-        forms/pack_log_window.ui
 )
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})

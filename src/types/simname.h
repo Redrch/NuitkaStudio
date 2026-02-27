@@ -27,7 +27,6 @@
 #include "global_data.h"
 #include "../utils/config.h"
 #include "project_config_manager.h"
-#include "data_structs.h"
 
 inline ProjectConfigManager &PCM = ProjectConfigManager::instance();
 inline GlobalData &GDM = GlobalData::instance();

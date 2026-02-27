@@ -4,8 +4,7 @@
 
 #include "project_config.h"
 
-ProjectConfig::ProjectConfig(QWidget *parent) {
-    this->parent = parent;
+ProjectConfig::ProjectConfig() {
     this->compress = new Compress;
 }
 
@@ -13,33 +12,22 @@ ProjectConfig::~ProjectConfig() {
     delete this->compress;
 }
 
-QString ProjectConfig::loadProject(const QString &path) const {
-    QString filePath;
-    if (path.isEmpty()) {
-        filePath = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
-                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
-                                                "Nuitka Project File(*.npf);;All files(*)");
-        if (filePath.isEmpty()) {
-            return "";
-        }
-    } else {
-        filePath = path;
+NPFStatusType ProjectConfig::loadProject(const QString &path) const {
+    if (!QFile::exists(path)) {
+        return NPFStatusType::NPFNotFound;
     }
-
-    this->compress->setZipPath(filePath);
+    this->compress->setZipPath(path);
     QByteArray data = this->compress->readZip("data.json");
 
     QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isObject()) {
-        Logger::error(QString("ProjectConfig::importProject: npf文件%1已损坏，请尝试更换文件").arg(filePath));
-        QMessageBox::critical(this->parent, "Nuitka Studio Error", QString("npf文件%1已损坏，请尝试更换文件").arg(filePath));
-        return "";
+        Logger::error(QString("ProjectConfig::loadProject: npf文件%1已损坏，请尝试更换文件").arg(path));
+        return NPFStatusType::NPFDamage;
     }
     QJsonObject root = doc.object();
     if (root.value("npf_version") != NPF_VERSION) {
-        Logger::error("ProjectConfig::importProject: 此npf文件的格式版本错误，请尝试更换文件");
-        QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件的格式版本错误，请尝试更换文件");
-        return "";
+        Logger::error("ProjectConfig::loadProject: 此npf文件的格式版本错误，请尝试更换文件");
+        return NPFStatusType::NPFVersionError;
     }
     QJsonObject project = root.value("project").toObject();
     for (auto item = project.begin(); item != project.end(); ++item) {
@@ -51,41 +39,23 @@ QString ProjectConfig::loadProject(const QString &path) const {
         }
         const int index = PCM.getIndex(key);
         if (index == -1) {
-            Logger::error("ProjectConfig::importProject: 此npf文件已损坏，请尝试更换文件");
-            QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件已损坏，请尝试更换文件");
-            return "";
+            Logger::error("ProjectConfig::loadProject: 此npf文件已损坏，请尝试更换文件");
+            return NPFStatusType::NPFDamage;
         }
         PCM.setItem(index, value);
     }
-    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
-    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
+    GDM.setString(GDIN::NPF_FILE_PATH, path);
+    config.setConfigFromString(SettingsEnum::NpfPath, path);
     config.writeConfig();
     Logger::info("导入NPF文件");
-    return filePath;
+    return NPFStatusType::NPFRight;
 }
 
-QString ProjectConfig::saveProject(const QString &path) const {
-    QString filePath = "";
-    if (path == "") {
-        filePath = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
-                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
-                                                "Nuitka Project File(*.npf);;All files(*)");
-        if (filePath.isEmpty()) {
-            return "";
-        }
-    } else {
-        filePath = path;
-    }
-    this->compress->setZipPath(filePath);
+NPFStatusType ProjectConfig::saveProject(const QString &path) const {
+    this->compress->setZipPath(path);
 
-    if (QFile::exists(filePath)) {
-        auto f = QMessageBox::question(this->parent, "Nuitka Studio",
-                                       "这一个NPF文件已存在，再次导出将会覆盖所有数据，是否确认覆盖");
-        if (f == QMessageBox::Yes) {
-            QFile::remove(filePath);
-        } else {
-            return "";
-        }
+    if (QFile::exists(path)) {
+        QFile::remove(path);
     }
 
     QString jsonPath = "data.json";
@@ -110,9 +80,9 @@ QString ProjectConfig::saveProject(const QString &path) const {
 
     // write
     this->compress->writeZip(jsonPath, docString.toUtf8());
-    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
-    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
+    GDM.setString(GDIN::NPF_FILE_PATH, path);
+    config.setConfigFromString(SettingsEnum::NpfPath, path);
     config.writeConfig();
     Logger::info("导出NPF文件");
-    return filePath;
+    return NPFStatusType::NPFRight;
 }

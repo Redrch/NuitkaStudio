@@ -6,7 +6,7 @@
 #include "types/simname.h"
 #include "types/color.h"
 
-bool isDebug = false;
+bool isDebug = true;
 
 void initProjectConfig() {
     // path data
@@ -43,14 +43,17 @@ int main(int argc, char *argv[]) {
     initProjectConfig();
 
     QApplication a(argc, argv);
-    // init config
+    // Init config
     if (!QFile::exists(config.getConfigPath())) {
         config.writeConfig();
     }
     config.readConfig();
 
     ElaApplication::getInstance()->init();
-    // init logger
+    // Init GDM
+    GDM.setString(GDIN::NPF_FILE_PATH, "");
+    GDM.setBool(GDIN::IS_OPEN_NPF, false);
+    // Init logger
     Logger::Config cfg;
     cfg.file_path = "app.log";
     Logger logger(cfg);
@@ -68,15 +71,15 @@ int main(int argc, char *argv[]) {
 
 /*
 Version 1.3.0.0 TO-DO
-TODO: 美化ui
 TODO: 添加将打包/停止按钮吸附在其他窗口上的功能
 TODO: 添加可以将文件拖动以打开的功能
 TODO: 添加按Tab切换页面的功能
 TODO: 添加启动动画，可关闭
 TODO: 添加英语模式
 TODO: 添加对打包日志进行备注的功能
-TODO: 移除导入/导出页面
-暂时先写这么多
+TODO: 隐藏控制台选项
+TODO: 自定义指令
+TODO: 每次打包递增版本号，提供增加版本号的按钮
 */
 
 /*
@@ -89,8 +92,12 @@ Version 1.3.0.0
 3. 将页面的选择栏移到了窗口上方
 4. 采用ElaWidgetTools库美化并重构了ui
 5. 添加了深色模式
+6. 移除导入/导出页面
+7. 移除了新建项目窗口
+8. 添加了新建NPF时如果可以，自动填写项目信息的功能
 修复的问题：
-
+1. 修复了新建NPF文件时关闭窗口后会弹出导出文件选择窗口的问题
+2. 修复了新建NPF文件时文件没有后缀的问题
 */
 
 /*
@@ -98,4 +105,5 @@ Version 1.3.0.0
 重大修改：
 1. 添加了ElaWidgetTools库
 普通修改：
+1. 分离了ProjectConfig类中关于ui的部分
 */

@@ -94,9 +94,6 @@
                       <pointsize>10</pointsize>
                      </font>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true"/>
-                    </property>
                     <property name="text">
                      <string>项目路径</string>
                     </property>
@@ -984,8 +981,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>982</width>
-             <height>590</height>
+             <width>500</width>
+             <height>572</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1590,7 +1587,6 @@
      <string>文件(&amp;F)</string>
     </property>
     <addaction name="newAction"/>
-    <addaction name="newProject"/>
     <addaction name="openAction"/>
     <addaction name="saveAction"/>
     <addaction name="saveAsAction"/>

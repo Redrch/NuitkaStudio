@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
     this->setWindowButtonFlag(ElaAppBarType::RouteBackButtonHint, false);
     this->setWindowButtonFlag(ElaAppBarType::RouteForwardButtonHint, false);
 
-    this->projectConfig = new ProjectConfig(this);
+    this->projectConfig = new ProjectConfig;
     this->packTimer = new QTimer(this);
     this->packLog = new QList<PackLog>();
 
@@ -26,16 +26,15 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
         }
     }
 
-    // Init GDM
-    GDM.setString(GDIN::NPF_FILE_PATH, "");
-    GDM.setBool(GDIN::IS_OPEN_NPF, false);
-
     if (!config.getConfigToString(SettingsEnum::NpfPath).isEmpty()) {
-        QString filePath = this->projectConfig->loadProject(config.getConfigToString(SettingsEnum::NpfPath));
-        if (!GDM.getString(GDIN::NPF_FILE_PATH).isEmpty()) {
-            this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
+        QString path = config.getConfigToString(SettingsEnum::NpfPath);
+        NPFStatusType status = this->projectConfig->loadProject(path);
+        if (!this->npfStatusTypeHandler(status, path, false)) {
+            if (!GDM.getString(GDIN::NPF_FILE_PATH).isEmpty()) {
+                this->setWindowTitle(path.split("/").last() + " - Nuitka Studio");
+            }
+            GDM.setBool(GDIN::IS_OPEN_NPF, true);
         }
-        GDM.setBool(GDIN::IS_OPEN_NPF, true);
     }
 
     // Init UI
@@ -330,45 +329,41 @@ void MainWindow::stopPack() {
 }
 
 void MainWindow::importProject() {
-    QString filePath = this->projectConfig->loadProject();
+    QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio  导入项目文件",
+                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
+                                                "Nuitka Project File(*.npf);;All files(*)");
+    if (path.isEmpty()) {
+        return;
+    }
+    NPFStatusType status = this->projectConfig->loadProject(path);
+    if (this->npfStatusTypeHandler(status, path)) {
+        return;
+    }
     // Update UI
     this->updateUI();
-    if (!filePath.isEmpty()) {
-        this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
+    if (!path.isEmpty()) {
+        this->setWindowTitle(path.split("/").last() + " - Nuitka Studio");
     }
     GDM.setBool(GDIN::IS_OPEN_NPF, true);
     this->clearText();
 }
 
 void MainWindow::exportProject() {
-    QString filePath = this->projectConfig->saveProject();
+    QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio  导出项目文件",
+                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
+                                                "Nuitka Project File(*.npf);;All files(*)");
+    if (path.isEmpty()) {
+        return;
+    }
+    NPFStatusType status = this->projectConfig->saveProject(path);
+    if (this->npfStatusTypeHandler(status, path)) {
+        return;
+    }
     this->updateUI();
-    if (!filePath.isEmpty()) {
-        this->setWindowTitle(filePath.split("/").last() + " - Nuitka Studio");
+    if (!path.isEmpty()) {
+        this->setWindowTitle(path.split("/").last() + " - Nuitka Studio");
     }
     GDM.setBool(GDIN::IS_OPEN_NPF, true);
-}
-
-void MainWindow::newProject() {
-    auto *newProjectWindow = new NewProjectWindow(this);
-    auto *process = new QProcess(this);
-    newProjectWindow->setWindowFlags(newProjectWindow->windowFlags() | Qt::Window);
-    newProjectWindow->exec();
-    this->messageLabel->setText(
-        QString("正在为项目%1安装nuitka...").arg(
-            PCM.getItemValueToString(PCE::ProjectName)));
-    newProjectWindow->installNuitka(process);
-    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [=](int exitCode, QProcess::ExitStatus exitStatus) {
-                this->messageLabel->setText(QString("项目%1的nuitka安装完毕").arg(
-                    PCM.getItemValueToString(PCE::ProjectName)));
-                QTimer::singleShot(3000, this, [=]() {
-                    this->messageLabel->clear();
-                });
-                newProjectWindow->deleteLater();
-            });
-    this->updateUI();
-    this->genFileInfo();
 }
 
 // Slots
@@ -408,37 +403,41 @@ void MainWindow::onRemoveItemClicked() {
     }
 }
 
-void MainWindow::onProjectTableCellDoubleClicked(int row, int column) {
-    // Data List
-    if (row == 8 and column == 1) {
-        auto *dataListWindow = new ExportDataListWindow(this);
-        dataListWindow->setWindowFlags(dataListWindow->windowFlags() | Qt::Window);
-        dataListWindow->setAttribute(Qt::WA_DeleteOnClose);
-
-        dataListWindow->updateUI();
-        dataListWindow->show();
-    }
-}
-
 void MainWindow::onFileMenuTriggered(QAction *action) {
     QString text = action->text();
     Logger::info(QString("菜单：文件, 菜单项 %1 触发triggered事件").arg(text));
 
     if (text == "新建(&N)") {
         QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio 新建NPF文件",
-                                                    config.getConfigToString(SettingsEnum::DefaultDataPath));
+                                                    config.getConfigToString(SettingsEnum::DefaultDataPath),
+                                                    "Nuitka Project File(*.npf);;All files(*)");
+        if (path.isEmpty()) {
+            return;
+        }
         PCM.setDefaultValue();
-        this->projectConfig->saveProject(path);
+        if (this->npfStatusTypeHandler(this->projectConfig->saveProject(path), path)) {
+            return;
+        }
         GDM.setString(GDIN::NPF_FILE_PATH, path);
         GDM.setBool(GDIN::IS_OPEN_NPF, true);
+        QString dirPath = QFileInfo(path).absolutePath();
+        QStringList entryList = QDir(dirPath).entryList();
+        if (entryList.contains("src") || entryList.contains("main.py")) {
+            int choose = QMessageBox::question(this, "Nuitka Studio",
+                                               "检测到此目录是一个项目目录，是否自动填写参数（此判断有时会误判）");
+            if (choose == QMessageBox::Yes) {
+                PCM.setItem(PCE::ProjectPath, dirPath);
+                this->genData();
+            }
+        }
+
         this->clearText();
-    } else if (text == "新建项目") {
-        this->newProject();
     } else if (text == "打开(&O)") {
         this->importProject();
         this->clearText();
     } else if (text == "保存(&S)") {
-        this->projectConfig->saveProject(GDM.getString(GDIN::NPF_FILE_PATH));
+        this->npfStatusTypeHandler(this->projectConfig->saveProject(GDM.getString(GDIN::NPF_FILE_PATH)),
+                                   GDM.getString(GDIN::NPF_FILE_PATH));
     } else if (text == "另存为(&A)") {
         this->exportProject();
     } else if (text == "关闭文件(&C)") {
@@ -942,7 +941,7 @@ void MainWindow::connectOther() {
             }
         }
     });
-    // 由于ElaWidgetTools库中提供的ElaCheckBox无法自动变色，因此只好手动变色
+    // 手动变色
     connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=](ElaThemeType::ThemeMode mode) {
         const QColor &textColor = ElaThemeColor(mode, ThemeColor::BasicText);
         QString textColorHex = textColor.name();
@@ -972,10 +971,10 @@ void MainWindow::connectPackLog() {
 // Init functions
 void MainWindow::initUI() {
     // Status bar
-    this->messageLabel = new QLabel;
+    this->messageLabel = new ElaText("", 9, this);
     this->messageLabel->setAlignment(Qt::AlignCenter);
     ui->statusbar->addWidget(this->messageLabel);
-    ui->statusbar->addPermanentWidget(this->messageLabel, 0);
+    ui->statusbar->addPermanentWidget(this->messageLabel, 1);
 
     this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
     this->trayIcon->setToolTip("Nuitka Studio");
@@ -1004,14 +1003,6 @@ void MainWindow::initUI() {
     trayIcon->setContextMenu(trayMenu);
 
     trayIcon->show();
-
-    // Pack page
-    ui->projectPathLabel->setTextPixelSize(13);
-    ui->projectNameLabel->setTextPixelSize(13);
-    ui->mainPathLabel->setTextPixelSize(13);
-    ui->pythonFileLabel->setTextPixelSize(13);
-    ui->outputPathLabel->setTextPixelSize(13);
-    ui->outputNameLabel->setTextPixelSize(13);
 
     // Settings Page
     ui->packTimerTriggerIntervalSpin->setButtonMode(ElaSpinBoxType::Compact);
@@ -1359,4 +1350,22 @@ void MainWindow::readPackLog() {
     }
     // remove temp files
     QDir(zipTempPath).removeRecursively();
+}
+
+bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path, bool isTip) {
+    switch (status) {
+        case NPFStatusType::NPFDamage:
+            if (isTip) QMessageBox::critical(this, "Nuitka Studio Error", QString("npf文件%1已损坏，请尝试更换文件").arg(path));
+            return true;
+        case NPFStatusType::NPFVersionError:
+            if (isTip) QMessageBox::critical(this, "Nuitka Studio Error", QString("npf文件%1的格式版本错误，请尝试更换文件").arg(path));
+            return true;
+        case NPFStatusType::NPFNotFound:
+            if (isTip) QMessageBox::critical(this, "Nuitka Studio Error", QString("找不到npf文件%1").arg(path));
+            return true;
+        case NPFStatusType::NPFRight:
+            return false;
+
+    }
+    return true;
 }

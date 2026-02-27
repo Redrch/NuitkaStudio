@@ -15,6 +15,7 @@
 #include <QString>
 #include <QList>
 #include <QStringListModel>
+#include <QPointer>
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -34,12 +35,10 @@
 #include <ElaWindow.h>
 #include <ElaTabBar.h>
 #include <ElaMenuBar.h>
-#include <ElaSpinBox.h>
 #include <ElaTheme.h>
+#include <ElaContentDialog.h>
 
-#include "export_datalist_window.h"
 #include "about_window.h"
-#include "new_project_window.h"
 
 #include "../types/data_structs.h"
 #include "../types/project_config_manager.h"
@@ -147,12 +146,12 @@ private:
 
     // util functions
     void readPackLog();
+    bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);
 
 private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
     void onRemoveItemClicked();
-    void onProjectTableCellDoubleClicked(int row, int column);
 
     void onFileMenuTriggered(QAction *action);
     void onHelpMenuTriggered(QAction *action);
@@ -162,7 +161,6 @@ private slots:
 
     void importProject();
     void exportProject();
-    void newProject();
 
     // Gen path functions
     void genData(bool isUpdateUI = true);
