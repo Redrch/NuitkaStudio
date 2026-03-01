@@ -7,6 +7,7 @@
 
 MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+    this->setAcceptDrops(true);
 
     this->setWindowButtonFlag(ElaAppBarType::NavigationButtonHint, false);
     this->setWindowButtonFlag(ElaAppBarType::RouteBackButtonHint, false);
@@ -1228,6 +1229,49 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     this->topTextLabel->raise();
 }
 
+void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    } else {
+        event->ignore();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent *event) {
+    const QMimeData *mimeData = event->mimeData();
+
+    if (mimeData->hasUrls()) {
+        QList<QUrl> urlList = mimeData->urls();
+
+        for (const QUrl &url: urlList) {
+            QString filePath = url.toLocalFile();
+            QFileInfo pathInfo(filePath);
+            if (!filePath.isEmpty()) {
+                Logger::info("拖拽文件至窗口，文件路径：" + filePath);
+                QString suffix = pathInfo.suffix().toLower();
+                if (suffix == "npf") {
+                    if (!this->npfStatusTypeHandler(this->projectConfig->loadProject(filePath), filePath)) {
+                        this->genData();
+                        this->clearText(TextPos::TopLabel);
+                        this->enabledInput();
+                        this->setWindowTitle(pathInfo.fileName() + " - Nuitka Studio");
+                    }
+
+                } else if (suffix == "py") {
+                    if (filePath.split("/").contains("src") || filePath.split("/").contains("source") ||
+                        pathInfo.fileName() == "main.py") {
+                        QString projectPath = pathInfo.absolutePath();
+                        PCM.setItem(PCE::ProjectPath, projectPath);
+                        this->genData();
+                        this->clearText(TextPos::TopLabel);
+                        this->enabledInput();
+                    }
+                }
+            }
+        }
+    }
+}
+
 // ui utils functions
 void MainWindow::showText(const QString &text, int showTime, const QColor &color, const TextPos position,
                           const QString &title) const {
@@ -1392,7 +1436,6 @@ bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path,
             return true;
         case NPFStatusType::NPFRight:
             return false;
-
     }
     return true;
 }

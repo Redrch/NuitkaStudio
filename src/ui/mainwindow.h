@@ -30,6 +30,8 @@
 #include <QElapsedTimer>
 #include <QTimer>
 #include <QProcessEnvironment>
+#include <QDragEnterEvent>
+#include <QMimeData>
 
 #include <QDebug>
 
@@ -178,6 +180,8 @@ private slots:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 };
 
 
