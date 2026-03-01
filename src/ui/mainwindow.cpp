@@ -8,6 +8,9 @@
 MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     this->setAcceptDrops(true);
+    this->setFocusPolicy(Qt::StrongFocus);
+    qApp->installEventFilter(this);
+    this->currentPageIndex = 0;
 
     this->setWindowButtonFlag(ElaAppBarType::NavigationButtonHint, false);
     this->setWindowButtonFlag(ElaAppBarType::RouteBackButtonHint, false);
@@ -575,10 +578,13 @@ void MainWindow::connectStackedWidget() {
         QString text = action->text();
         if (text == "打包") {
             ui->stackedWidget->setCurrentIndex(0);
+            this->currentPageIndex = 0;
         } else if (text == "设置") {
             ui->stackedWidget->setCurrentIndex(1);
+            this->currentPageIndex = 1;
         } else if (text == "打包日志") {
             ui->stackedWidget->setCurrentIndex(2);
+            this->currentPageIndex = 2;
         } else if (text == "") {
             this->hide();
             this->floatButton->show();
@@ -1256,7 +1262,6 @@ void MainWindow::dropEvent(QDropEvent *event) {
                         this->enabledInput();
                         this->setWindowTitle(pathInfo.fileName() + " - Nuitka Studio");
                     }
-
                 } else if (suffix == "py") {
                     if (filePath.split("/").contains("src") || filePath.split("/").contains("source") ||
                         pathInfo.fileName() == "main.py") {
@@ -1271,6 +1276,36 @@ void MainWindow::dropEvent(QDropEvent *event) {
         }
     }
 }
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+
+        if (keyEvent->key() == Qt::Key_Tab) {
+            // 按Tab键切换页面
+            switch (this->currentPageIndex) {
+                case 0:
+                    ui->stackedWidget->setCurrentIndex(1);
+                    this->currentPageIndex = 1;
+                    break;
+                case 1:
+                    ui->stackedWidget->setCurrentIndex(2);
+                    this->currentPageIndex = 2;
+                    break;
+                case 2:
+                    ui->stackedWidget->setCurrentIndex(0);
+                    this->currentPageIndex = 0;
+                    break;
+                default:
+                    break;
+            }
+
+            return true;
+        }
+    }
+    return QMainWindow::eventFilter(watched, event);
+}
+
 
 // ui utils functions
 void MainWindow::showText(const QString &text, int showTime, const QColor &color, const TextPos position,

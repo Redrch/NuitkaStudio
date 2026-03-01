@@ -114,6 +114,8 @@ private:
     QStringListModel *packLogModel;
     QStringListModel *dataListModel;
 
+    int currentPageIndex;
+
     // functions
     // Update UI functions
     void updatePackUI() const;
@@ -182,6 +184,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 };
 
 
