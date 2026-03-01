@@ -117,6 +117,8 @@ set(SOURCES
         src/types/global_data.h
         src/types/constants.h
         src/types/color.h
+        src/ui/float_button.cpp
+        src/ui/float_button.h
 )
 set(RESOURCES
         resource.qrc

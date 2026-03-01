@@ -16,6 +16,10 @@ Config::Config() {
     this->configMap->insert("TempPath", QDir::tempPath() + "/NuitkaStudio");
     this->configMap->insert("NpfPath", "");
     this->configMap->insert("IsLightMode", QVariant(true));
+    this->configMap->insert("FloatButtonSize", QVariant(QSize(25, 25)));
+    this->configMap->insert("FloatButtonOriginalSize", QSize(25, 25));
+    this->configMap->insert("FloatButtonPos", QVariant(QPoint(0, 0)));
+    this->configMap->insert("IsFloatButtonLight", QVariant(true));
 
     this->configMap->insert("DefaultPythonPath", "C:/");
     this->configMap->insert("DefaultMainFilePath", "C:/");
@@ -40,11 +44,15 @@ void Config::writeConfig() {
                                  this->getConfigEncodingEnum(SettingsEnum::ConsoleOutputEncoding)));
     this->settings->setValue("PackTimerTriggerInterval", this->getConfig(SettingsEnum::PackTimerTriggerInterval));
     this->settings->setValue("MaxPackLogCount", this->getConfig(SettingsEnum::MaxPackLogCount));
-    this->settings->setValue("IsShowCloseWindow", this->getConfigToBool(SettingsEnum::IsShowCloseWindow));
-    this->settings->setValue("IsHideOnClose", this->getConfigToBool(SettingsEnum::IsHideOnClose));
+    this->settings->setValue("IsShowCloseWindow", this->getConfig(SettingsEnum::IsShowCloseWindow));
+    this->settings->setValue("IsHideOnClose", this->getConfig(SettingsEnum::IsHideOnClose));
     this->settings->setValue("TempPath", this->getConfig(SettingsEnum::TempPath));
     this->settings->setValue("NpfPath", this->getConfig(SettingsEnum::NpfPath));
-    this->settings->setValue("IsLightMode", this->getConfigToBool(SettingsEnum::IsLightMode));
+    this->settings->setValue("IsLightMode", this->getConfig(SettingsEnum::IsLightMode));
+    this->settings->setValue("FloatButtonSize", this->getConfig(SettingsEnum::FloatButtonSize));
+    this->settings->setValue("FloatButtonOriginalSize", this->getConfig(SettingsEnum::FloatButtonOriginalSize));
+    this->settings->setValue("FloatButtonPos", this->getConfig(SettingsEnum::FloatButtonPos));
+    this->settings->setValue("IsFloatButtonLight", this->getConfig(SettingsEnum::IsFloatButtonLight));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -72,6 +80,10 @@ void Config::readConfig() {
     this->setConfig(SettingsEnum::TempPath, this->settings->value("TempPath").toString());
     this->setConfig(SettingsEnum::NpfPath, this->settings->value("NpfPath").toString());
     this->setConfig(SettingsEnum::IsLightMode, this->settings->value("IsLightMode").toBool());
+    this->setConfig(SettingsEnum::FloatButtonSize, this->settings->value("FloatButtonSize").toSize());
+    this->setConfig(SettingsEnum::FloatButtonOriginalSize, this->settings->value("FloatButtonOriginalSize").toSize());
+    this->setConfig(SettingsEnum::FloatButtonPos, this->settings->value("FloatButtonPos").toPoint());
+    this->setConfig(SettingsEnum::IsFloatButtonLight, this->settings->value("IsFloatButtonLight").toBool());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -107,6 +119,14 @@ bool Config::getConfigToBool(const SettingsEnum configValue) {
     return this->getConfig(configValue).toBool();
 }
 
+QSize Config::getConfigToSize(SettingsEnum configValue) {
+    return this->getConfig(configValue).toSize();
+}
+
+QPoint Config::getConfigToPoint(SettingsEnum configValue) {
+    return this->getConfig(configValue).toPoint();
+}
+
 void Config::setConfig(const QString &configValue, const QVariant &value) const {
     this->configMap->insert(configValue, value);
 }
@@ -135,6 +155,14 @@ QString Config::settingsEnumToString(SettingsEnum enumValue) {
     QMetaEnum metaEnum = QMetaEnum::fromType<SettingsEnum>();
     QString string = QString::fromUtf8(metaEnum.valueToKey(static_cast<int>(enumValue)));
     return string;
+}
+
+void Config::setConfigFromSize(SettingsEnum configValue, const QSize &size) {
+    this->setConfig(configValue, QVariant(size));
+}
+
+void Config::setConfigFromPoint(SettingsEnum configValue, const QPoint &point) {
+    this->setConfig(configValue, QVariant(point));
 }
 
 SettingsEnum Config::settingsEnumFromString(const QString &string) {

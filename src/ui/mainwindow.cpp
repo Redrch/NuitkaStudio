@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
     this->projectConfig = new ProjectConfig;
     this->packTimer = new QTimer(this);
     this->packLog = new QList<PackLog>();
+    this->mainTimer = new QTimer(this);
+    this->mainTimer->start(1);
 
     this->packLogModel = new QStringListModel(this);
     this->dataListModel = new QStringListModel(this);
@@ -59,7 +61,9 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
 }
 
 MainWindow::~MainWindow() {
+    config.writeConfig();
     delete this->projectConfig;
+    delete this->floatButton;
     delete ui;
 }
 
@@ -116,6 +120,7 @@ void MainWindow::startPack() {
                 Logger::info(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString));
                 this->showText(QString("打包结束 耗时: %1").arg(timeString), 5000, Qt::black,
                                TextPos::SystemMessage, "打包通知");
+                this->floatButton->packFinished();
                 this->packProcess->deleteLater();
                 this->packTimer->stop();
                 ui->startPackBtn->setEnabled(true);
@@ -576,6 +581,9 @@ void MainWindow::connectStackedWidget() {
             ui->stackedWidget->setCurrentIndex(1);
         } else if (text == "打包日志") {
             ui->stackedWidget->setCurrentIndex(2);
+        } else if (text == "") {
+            this->hide();
+            this->floatButton->show();
         }
     });
 }
@@ -924,6 +932,7 @@ void MainWindow::connectTrayMenu() {
     connect(this->showAction, &QAction::triggered, this, [=]() {
         this->showNormal();
         this->activateWindow();
+        this->floatButton->hide();
     });
     // quit action
     connect(this->quitAction, &QAction::triggered, this, [=]() {
@@ -957,6 +966,14 @@ void MainWindow::connectOther() {
 
         ui->showCloseWindowCheckbox->setStyleSheet(ui->showCloseWindowCheckbox->styleSheet() += textStyleSheet);
         ui->hideOnCloseCheckbox->setStyleSheet(ui->hideOnCloseCheckbox->styleSheet() += textStyleSheet);
+    });
+
+    connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
+    connect(this->floatButton, &FloatButton::stopPack, this, &MainWindow::stopPack);
+    connect(this->floatButton, &FloatButton::showMainWindow, this, [=]() {
+        this->floatButton->hide();
+        this->showNormal();
+        this->activateWindow();
     });
 }
 
@@ -1020,6 +1037,18 @@ void MainWindow::initUI() {
         this->noEnableInput();
     }
 
+    // controls
+    PixmapGroup pg;
+    pg.startLight = QPixmap(":/assets/start-light.png");
+    pg.startDark = QPixmap(":/assets/start-dark.png");
+    pg.stopLight = QPixmap(":/assets/stop-light.png");
+    pg.stopDark = QPixmap(":/assets/stop-dark.png");
+    this->floatButton = new FloatButton(pg, nullptr);
+    this->floatButton->setObjectName("floatButton");
+    this->floatButton->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+    this->floatButton->setAttribute(Qt::WA_TranslucentBackground);
+    this->floatButton->hide();
+
     this->initMenuBar();
 }
 
@@ -1038,6 +1067,7 @@ void MainWindow::initMenuBar() {
     this->menuBar->addElaIconAction(ElaIconType::BoxesPacking, "打包");
     this->menuBar->addElaIconAction(ElaIconType::Gear, "设置");
     this->menuBar->addElaIconAction(ElaIconType::File, "打包日志");
+    this->menuBar->addElaIconAction(ElaIconType::SquareXmark, "");
 }
 
 // gen path functions

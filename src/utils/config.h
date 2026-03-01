@@ -9,6 +9,8 @@
 #include <QVariant>
 #include <QMap>
 #include <QMetaEnum>
+#include <QSize>
+#include <QPoint>
 
 #include <QDebug>
 
@@ -41,6 +43,10 @@ namespace SettingsEnumNS {
         IsHideOnClose,
         NpfPath,
         IsLightMode,
+        FloatButtonSize,
+        FloatButtonOriginalSize,
+        FloatButtonPos,
+        IsFloatButtonLight,
         NONE
     };
     Q_ENUM_NS(SettingsEnum)
@@ -82,6 +88,8 @@ public:
     int getConfigToInt(SettingsEnum configValue);
     bool getConfigToBool(SettingsEnum configValue);
     EncodingEnum getConfigEncodingEnum(SettingsEnum configValue);
+    QSize getConfigToSize(SettingsEnum configValue);
+    QPoint getConfigToPoint(SettingsEnum configValue);
 
     void setConfig(SettingsEnum configValue, const QVariant& value);
     void setConfig(const QString &configValue, const QVariant& value) const;
@@ -89,6 +97,8 @@ public:
     void setConfigFromInt(SettingsEnum configValue, int value);
     void setConfigFromBool(SettingsEnum configValue, bool value);
     void setConfigFromEncodingEnum(SettingsEnum configValue, EncodingEnum encodingValue);
+    void setConfigFromSize(SettingsEnum configValue, const QSize& size);
+    void setConfigFromPoint(SettingsEnum configValue, const QPoint& point);
 
     [[nodiscard]] const QString& getConfigPath() const {
         return this->configPath;

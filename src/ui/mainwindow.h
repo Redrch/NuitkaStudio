@@ -24,6 +24,7 @@
 #include <QSystemTrayIcon>
 #include <QIcon>
 #include <QCloseEvent>
+#include <QCursor>
 
 #include <QDateTime>
 #include <QElapsedTimer>
@@ -36,9 +37,10 @@
 #include <ElaTabBar.h>
 #include <ElaMenuBar.h>
 #include <ElaTheme.h>
-#include <ElaContentDialog.h>
+#include <ElaIconButton.h>
 
 #include "about_window.h"
+#include "float_button.h"
 
 #include "../types/data_structs.h"
 #include "../types/project_config_manager.h"
@@ -84,6 +86,7 @@ private:
 
     QDateTime startPackTime;
     QTimer *packTimer;
+    QTimer *mainTimer;
     QProcess *packProcess;
     // bar
     ElaTabBar *topTabBar;
@@ -95,6 +98,7 @@ private:
     QComboBox *ltoModeCombobox;
     QLabel *messageLabel;
     QLabel *topTextLabel;
+    FloatButton* floatButton;
     // tray menu
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;
