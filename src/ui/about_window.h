@@ -5,18 +5,15 @@
 #ifndef NUITKASTUDIO_ABOUT_WINDOW_H
 #define NUITKASTUDIO_ABOUT_WINDOW_H
 
-#include <QWidget>
-#include <QFile>
-#include <QTextEdit>
+#include <QVBoxLayout>
+#include <ElaDialog.h>
+#include <ElaImageCard.h>
+#include <ElaText.h>
+#include <ElaTheme.h>
 
 #include "app_config.h"
 
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class AboutWindow; }
-QT_END_NAMESPACE
-
-class AboutWindow : public QWidget {
+class AboutWindow : public ElaDialog {
 Q_OBJECT
 
 public:
@@ -25,7 +22,7 @@ public:
     ~AboutWindow() override;
 
 private:
-    Ui::AboutWindow *ui;
+
 };
 
 

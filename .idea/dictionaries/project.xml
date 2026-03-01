@@ -19,8 +19,10 @@
       <w>libstdc</w>
       <w>libwinpthread</w>
       <w>lightstyle</w>
+      <w>liniyous</w>
       <w>mainfile</w>
       <w>mainwindow</w>
+      <w>melman</w>
       <w>nuitkastudio</w>
       <w>pixmaps</w>
       <w>projectconfig</w>
@@ -29,7 +31,9 @@
       <w>qwindows</w>
       <w>redrch</w>
       <w>simname</w>
+      <w>tachenov</w>
       <w>timedout</w>
+      <w>zverovich</w>
     </words>
   </dictionary>
 </component>

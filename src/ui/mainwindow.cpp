@@ -466,10 +466,7 @@ void MainWindow::onHelpMenuTriggered(QAction *action) {
         QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
     } else if (text == "关于(&A)") {
         auto *aboutWindow = new AboutWindow(this);
-        aboutWindow->setWindowFlags(aboutWindow->windowFlags() | Qt::Window);
-        aboutWindow->setAttribute(Qt::WA_DeleteOnClose);
-        aboutWindow->move(100, 100);
-        aboutWindow->show();
+        aboutWindow->exec();
     }
 }
 

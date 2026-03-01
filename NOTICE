@@ -1,0 +1,15 @@
+Apache NuitkaStudio
+Copyright 2025-2026 Redrch
+
+This product includes software developed by Redrch (https://lxcd.top)
+and available at https://github.com/Redrch/NuitkaStudio
+
+---------------------------------------------------------------------------
+This product bundles the following DLLs:
+
+- ElaWidgetTools.dll: Copyright 2024 Liniyous, licensed under the MIT License.
+- libquazip1-qt5.dll: Copyright 2005-2020 Sergey A. Tachenov and contributors, licensed under the LGPL License 2.1.
+- libspdlog.dll: Copyright Copyright (c) 2016 - present, Gabi Melman and spdlog contributors., licensed under the MIT License
+- libfmt.dll: Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors, licensed under the MIT License
+
+For more information, see the licenses/ folder.

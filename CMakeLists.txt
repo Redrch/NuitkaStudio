@@ -22,7 +22,6 @@ if (NOT WIN32)
 endif ()
 
 # set app info
-set(AUTHOR "Redrch")
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/app_config.h.in
@@ -124,7 +123,6 @@ set(RESOURCES
         resource.qrc
         logo.rc
         forms/mainwindow.ui
-        forms/about_window.ui
 )
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
