@@ -47,6 +47,7 @@ namespace SettingsEnumNS {
         FloatButtonOriginalSize,
         FloatButtonPos,
         IsFloatButtonLight,
+        IsSplashScreen,
         NONE
     };
     Q_ENUM_NS(SettingsEnum)

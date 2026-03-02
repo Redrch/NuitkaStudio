@@ -556,6 +556,7 @@ void MainWindow::updateSettingsUI() const {
     } else {
         ui->hideOnCloseCheckbox->setEnabled(true);
     }
+    ui->splashScreenCheckbox->setChecked(config.getConfigToBool(SettingsEnum::IsSplashScreen));
 
     ui->tempPathEdit->setText(config.getConfigToString(SettingsEnum::TempPath));
 }
@@ -839,6 +840,10 @@ void MainWindow::connectSettingsPage() {
             config.setConfigFromBool(SettingsEnum::IsHideOnClose, false);
         }
     });
+    // Is Splash Screen
+    connect(ui->splashScreenCheckbox, QCheckBox::toggled, this, [=](bool checked) {
+        config.setConfigFromBool(SettingsEnum::IsSplashScreen, checked);
+    });
     // Temp Path
     connect(ui->tempPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         config.setConfig(SettingsEnum::TempPath, text);
@@ -1042,6 +1047,7 @@ void MainWindow::initUI() {
     }
 
     // controls
+    // float button
     PixmapGroup pg;
     pg.startLight = QPixmap(":/assets/start-light.png");
     pg.startDark = QPixmap(":/assets/start-dark.png");
@@ -1306,10 +1312,8 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     return QMainWindow::eventFilter(watched, event);
 }
 
-
 // ui utils functions
-void MainWindow::showText(const QString &text, int showTime, const QColor &color, const TextPos position,
-                          const QString &title) const {
+void MainWindow::showText(const QString &text, int showTime, const QColor &color, const TextPos position, const QString &title) const {
     switch (position) {
         case TextPos::TopLabel:
             this->topTextLabel->setText(text);

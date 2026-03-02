@@ -1,4 +1,7 @@
 #include <QApplication>
+#include <QSplashScreen>
+#include <QThread>
+
 #include <ElaApplication.h>
 #include <ElaWindow.h>
 #include "ui/mainwindow.h"
@@ -37,10 +40,12 @@ void initProjectConfig() {
 
 int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 启动高DPI缩放
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     qRegisterMetaType<LTOMode>("LTOMode");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
     qRegisterMetaType<EncodingEnum>("EncodingEnum");
     initProjectConfig();
+
 
     QApplication a(argc, argv);
     // Init config
@@ -48,6 +53,14 @@ int main(int argc, char *argv[]) {
         config.writeConfig();
     }
     config.readConfig();
+
+    // 开屏动画
+    QPixmap pixmap(":/logo");
+    QSplashScreen splash(pixmap);
+    if (config.getConfigToBool(SettingsEnum::IsSplashScreen)) {
+        splash.show();
+        a.processEvents();
+    }
 
     ElaApplication::getInstance()->init();
     // Init GDM
@@ -61,7 +74,9 @@ int main(int argc, char *argv[]) {
 
     // init mainwindow
     MainWindow w;
+    QThread::msleep(500);
     w.show();
+    splash.finish(&w);
     // clean
     int ret = QApplication::exec();
     if (!isDebug) Logger::uninstallQtMessageHandler();
@@ -71,7 +86,6 @@ int main(int argc, char *argv[]) {
 
 /*
 Version 1.3.0.0 TO-DO
-TODO: 添加启动动画，可关闭
 TODO: 添加英语模式
 TODO: 添加对打包日志进行备注的功能
 TODO: 添加隐藏控制台选项的功能
@@ -96,6 +110,7 @@ Version 1.3.0.0
 10. 重构了关于(About)页面
 11. 添加可以将文件拖动以打开的功能
 12. 添加按Tab切换页面的功能
+13. 添加启动动画，可关闭
 
 修复的问题：
 1. 修复了新建NPF文件时关闭窗口后会弹出导出文件选择窗口的问题

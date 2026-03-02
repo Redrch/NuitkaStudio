@@ -14,9 +14,9 @@
    <string>Nuitka Studio</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normalon>:/logo</normalon>
-   </iconset>
+   <iconset resource="../resource.qrc">
+    <normaloff>:/logo</normaloff>
+    <activeoff>:/logo</activeoff>:/logo</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -1251,7 +1251,7 @@
                 <widget class="QWidget" name="checkboxSettingsWidget" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_36">
                   <item>
-                   <widget class="QCheckBox" name="showCloseWindowCheckbox">
+                   <widget class="ElaCheckBox" name="showCloseWindowCheckbox">
                     <property name="font">
                      <font>
                       <pointsize>10</pointsize>
@@ -1263,7 +1263,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QCheckBox" name="hideOnCloseCheckbox">
+                   <widget class="ElaCheckBox" name="hideOnCloseCheckbox">
                     <property name="font">
                      <font>
                       <pointsize>10</pointsize>
@@ -1271,6 +1271,18 @@
                     </property>
                     <property name="text">
                      <string>在退出时最小化到托盘</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="ElaCheckBox" name="splashScreenCheckbox">
+                    <property name="font">
+                     <font>
+                      <pointsize>10</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>开屏动画</string>
                     </property>
                    </widget>
                   </item>

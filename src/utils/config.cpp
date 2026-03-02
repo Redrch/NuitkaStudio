@@ -20,6 +20,7 @@ Config::Config() {
     this->configMap->insert("FloatButtonOriginalSize", QSize(25, 25));
     this->configMap->insert("FloatButtonPos", QVariant(QPoint(0, 0)));
     this->configMap->insert("IsFloatButtonLight", QVariant(true));
+    this->configMap->insert("IsSplashScreen", QVariant(true));
 
     this->configMap->insert("DefaultPythonPath", "C:/");
     this->configMap->insert("DefaultMainFilePath", "C:/");
@@ -53,6 +54,7 @@ void Config::writeConfig() {
     this->settings->setValue("FloatButtonOriginalSize", this->getConfig(SettingsEnum::FloatButtonOriginalSize));
     this->settings->setValue("FloatButtonPos", this->getConfig(SettingsEnum::FloatButtonPos));
     this->settings->setValue("IsFloatButtonLight", this->getConfig(SettingsEnum::IsFloatButtonLight));
+    this->settings->setValue("IsSplashScreen", this->getConfig(SettingsEnum::IsSplashScreen));
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
@@ -84,6 +86,7 @@ void Config::readConfig() {
     this->setConfig(SettingsEnum::FloatButtonOriginalSize, this->settings->value("FloatButtonOriginalSize").toSize());
     this->setConfig(SettingsEnum::FloatButtonPos, this->settings->value("FloatButtonPos").toPoint());
     this->setConfig(SettingsEnum::IsFloatButtonLight, this->settings->value("IsFloatButtonLight").toBool());
+    this->setConfig(SettingsEnum::IsSplashScreen, this->settings->value("IsSplashScreen").toBool());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");
