@@ -9,32 +9,32 @@
         <translation>Nuitka Studio About</translation>
     </message>
     <message>
-        <location filename="../src/ui/about_window.cpp" line="28"/>
+        <location filename="../src/ui/about_window.cpp" line="34"/>
         <source>Nuitka Studio</source>
         <translation>NuitkaStudio</translation>
     </message>
     <message>
-        <location filename="../src/ui/about_window.cpp" line="36"/>
+        <location filename="../src/ui/about_window.cpp" line="42"/>
         <source>构建时间: </source>
         <translation>Build time: </translation>
     </message>
     <message>
-        <location filename="../src/ui/about_window.cpp" line="38"/>
+        <location filename="../src/ui/about_window.cpp" line="44"/>
         <source>授权协议: Apache 2.0</source>
         <translation>Authorization Agreement: Apache 2.0</translation>
     </message>
     <message>
-        <location filename="../src/ui/about_window.cpp" line="40"/>
+        <location filename="../src/ui/about_window.cpp" line="46"/>
         <source>作者邮箱: redrch327@gmail.com</source>
         <translation>Author Email: redrch327@gmail.com</translation>
     </message>
     <message>
-        <location filename="../src/ui/about_window.cpp" line="44"/>
+        <location filename="../src/ui/about_window.cpp" line="50"/>
         <source>Github仓库</source>
         <translation>Github repository</translation>
     </message>
     <message>
-        <location filename="../src/ui/about_window.cpp" line="51"/>
+        <location filename="../src/ui/about_window.cpp" line="57"/>
         <source>版权所有 © 2026 Redrch</source>
         <translation>All rights reserved</translation>
     </message>
@@ -62,11 +62,11 @@
         <location filename="../forms/mainwindow.ui" line="221"/>
         <location filename="../forms/mainwindow.ui" line="272"/>
         <location filename="../forms/mainwindow.ui" line="617"/>
-        <location filename="../forms/mainwindow.ui" line="1370"/>
-        <location filename="../forms/mainwindow.ui" line="1403"/>
-        <location filename="../forms/mainwindow.ui" line="1436"/>
-        <location filename="../forms/mainwindow.ui" line="1469"/>
-        <location filename="../forms/mainwindow.ui" line="1502"/>
+        <location filename="../forms/mainwindow.ui" line="1402"/>
+        <location filename="../forms/mainwindow.ui" line="1435"/>
+        <location filename="../forms/mainwindow.ui" line="1468"/>
+        <location filename="../forms/mainwindow.ui" line="1501"/>
+        <location filename="../forms/mainwindow.ui" line="1534"/>
         <source>浏览</source>
         <translation>Browse</translation>
     </message>
@@ -226,10 +226,14 @@
         <translation>Import</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="917"/>
-        <location filename="../src/ui/mainwindow.cpp" line="580"/>
-        <location filename="../src/ui/mainwindow.cpp" line="1077"/>
+        <location filename="../src/ui/mainwindow.cpp" line="490"/>
+        <location filename="../src/ui/mainwindow.h" line="86"/>
         <source>打包</source>
+        <translation>Pack</translation>
+    </message>
+    <message>
+        <location filename="../forms/mainwindow.ui" line="917"/>
+        <source>开始打包</source>
         <translation>Start packing</translation>
     </message>
     <message>
@@ -272,168 +276,194 @@
         <translation>Console output encoding</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1120"/>
+        <location filename="../forms/mainwindow.ui" line="1092"/>
+        <source>语言</source>
+        <translation>Language</translation>
+    </message>
+    <message>
+        <location filename="../forms/mainwindow.ui" line="1100"/>
+        <source>简体中文</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../forms/mainwindow.ui" line="1105"/>
+        <source>English</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../forms/mainwindow.ui" line="1152"/>
         <source>打包计时器触发间隔</source>
         <translation>Package timer trigger interval</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1153"/>
+        <location filename="../forms/mainwindow.ui" line="1185"/>
         <source>ms</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1193"/>
+        <location filename="../forms/mainwindow.ui" line="1225"/>
         <source>单个NPF文件最大日志数量</source>
         <translation>Maximum number of logs per NPF file</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1261"/>
+        <location filename="../forms/mainwindow.ui" line="1293"/>
         <source>显示退出操作页面</source>
         <translation>Show exit operation page</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1273"/>
+        <location filename="../forms/mainwindow.ui" line="1305"/>
         <source>在退出时最小化到托盘</source>
         <translation>Minimize to the tray on exit</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1285"/>
+        <location filename="../forms/mainwindow.ui" line="1317"/>
         <source>开屏动画</source>
         <translation>Splash screen animation</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1316"/>
+        <location filename="../forms/mainwindow.ui" line="1348"/>
         <source>缓存路径</source>
         <translation>Cache Path</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1340"/>
+        <location filename="../forms/mainwindow.ui" line="1372"/>
         <source>默认路径设置</source>
         <translation>Default path settings</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1355"/>
+        <location filename="../forms/mainwindow.ui" line="1387"/>
         <source>默认Python解释器路径</source>
         <translation>Default Python Path</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1388"/>
+        <location filename="../forms/mainwindow.ui" line="1420"/>
         <source>默认主文件路径</source>
         <translation>Default main file path</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1421"/>
+        <location filename="../forms/mainwindow.ui" line="1453"/>
         <source>默认输出路径</source>
         <translation>Default output path</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1454"/>
+        <location filename="../forms/mainwindow.ui" line="1486"/>
         <source>默认图标路径</source>
         <translation>Default icon path</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1487"/>
+        <location filename="../forms/mainwindow.ui" line="1519"/>
         <source>默认数据路径</source>
         <translation>Default data path</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1523"/>
+        <location filename="../forms/mainwindow.ui" line="1555"/>
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1559"/>
-        <location filename="../src/ui/mainwindow.cpp" line="586"/>
-        <location filename="../src/ui/mainwindow.cpp" line="1079"/>
+        <location filename="../forms/mainwindow.ui" line="1591"/>
+        <location filename="../src/ui/mainwindow.cpp" line="492"/>
+        <location filename="../src/ui/mainwindow.h" line="88"/>
         <source>打包日志</source>
         <translation>Packaging log</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1599"/>
+        <location filename="../forms/mainwindow.ui" line="1631"/>
         <source>文件(&amp;F)</source>
         <translation>File(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1609"/>
-        <location filename="../forms/mainwindow.ui" line="1630"/>
-        <location filename="../src/ui/mainwindow.cpp" line="469"/>
+        <location filename="../forms/mainwindow.ui" line="1641"/>
+        <location filename="../forms/mainwindow.ui" line="1662"/>
+        <location filename="../src/ui/mainwindow.cpp" line="487"/>
+        <location filename="../src/ui/mainwindow.h" line="83"/>
         <source>帮助(&amp;H)</source>
         <translation>Help(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1620"/>
-        <location filename="../src/ui/mainwindow.cpp" line="444"/>
+        <location filename="../forms/mainwindow.ui" line="1652"/>
+        <location filename="../src/ui/mainwindow.cpp" line="483"/>
+        <location filename="../src/ui/mainwindow.h" line="79"/>
         <source>打开(&amp;O)</source>
         <translation>Open(&amp;O)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1625"/>
-        <location filename="../src/ui/mainwindow.cpp" line="447"/>
+        <location filename="../forms/mainwindow.ui" line="1657"/>
+        <location filename="../src/ui/mainwindow.cpp" line="484"/>
+        <location filename="../src/ui/mainwindow.h" line="80"/>
         <source>保存(&amp;S)</source>
         <translation>Save(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1635"/>
-        <location filename="../src/ui/mainwindow.cpp" line="471"/>
+        <location filename="../forms/mainwindow.ui" line="1667"/>
+        <location filename="../src/ui/mainwindow.cpp" line="488"/>
+        <location filename="../src/ui/mainwindow.h" line="84"/>
         <source>关于(&amp;A)</source>
         <translation>About(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1640"/>
+        <location filename="../forms/mainwindow.ui" line="1672"/>
         <source>许可证(&amp;L)</source>
         <translation>License(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1645"/>
-        <location filename="../src/ui/mainwindow.cpp" line="419"/>
+        <location filename="../forms/mainwindow.ui" line="1677"/>
+        <location filename="../src/ui/mainwindow.cpp" line="482"/>
+        <location filename="../src/ui/mainwindow.h" line="78"/>
         <source>新建(&amp;N)</source>
         <translation>New(&amp;N)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1650"/>
+        <location filename="../forms/mainwindow.ui" line="1682"/>
         <source>打包日志(&amp;P)</source>
         <translation>Packaging log(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1655"/>
+        <location filename="../forms/mainwindow.ui" line="1687"/>
         <source>新建项目</source>
         <translation>New Project</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1660"/>
-        <location filename="../src/ui/mainwindow.cpp" line="450"/>
+        <location filename="../forms/mainwindow.ui" line="1692"/>
+        <location filename="../src/ui/mainwindow.cpp" line="485"/>
+        <location filename="../src/ui/mainwindow.h" line="81"/>
         <source>另存为(&amp;A)</source>
         <translation>Save as(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../forms/mainwindow.ui" line="1665"/>
-        <location filename="../src/ui/mainwindow.cpp" line="452"/>
+        <location filename="../forms/mainwindow.ui" line="1697"/>
+        <location filename="../src/ui/mainwindow.cpp" line="486"/>
+        <location filename="../src/ui/mainwindow.h" line="82"/>
         <source>关闭文件(&amp;C)</source>
         <translation>Close the file(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwindow.cpp" line="583"/>
-        <location filename="../src/ui/mainwindow.cpp" line="1078"/>
+        <location filename="../src/ui/mainwindow.cpp" line="491"/>
+        <location filename="../src/ui/mainwindow.h" line="87"/>
         <source>设置</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwindow.cpp" line="1177"/>
+        <location filename="../src/ui/mainwindow.cpp" line="494"/>
+        <location filename="../src/ui/mainwindow.h" line="90"/>
         <source>您想要将软件关闭还是最小化至系统托盘</source>
         <translation>Do you want to close the software or minimize it to the system tray</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwindow.cpp" line="1181"/>
+        <location filename="../src/ui/mainwindow.cpp" line="495"/>
+        <location filename="../src/ui/mainwindow.h" line="91"/>
         <source>最小化至系统托盘</source>
         <translation>Minimize to system tray</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwindow.cpp" line="1183"/>
+        <location filename="../src/ui/mainwindow.cpp" line="496"/>
+        <location filename="../src/ui/mainwindow.h" line="92"/>
         <source>退出软件</source>
         <translation>Exit software</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwindow.cpp" line="1186"/>
+        <location filename="../src/ui/mainwindow.cpp" line="497"/>
+        <location filename="../src/ui/mainwindow.h" line="93"/>
         <source>不再显示该窗口（隐藏后行为可以在设置中看到）</source>
         <translation>Do not show this window again (the behavior after hiding can be seen in the settings)</translation>
     </message>
