@@ -25,6 +25,7 @@
 #include <QIcon>
 #include <QCloseEvent>
 #include <QCursor>
+#include <QTranslator>
 
 #include <QDateTime>
 #include <QElapsedTimer>
@@ -32,6 +33,7 @@
 #include <QProcessEnvironment>
 #include <QDragEnterEvent>
 #include <QMimeData>
+#include <QDialog>
 
 #include <QDebug>
 
@@ -60,9 +62,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui {
     class MainWindow;
 }
-namespace PackPageUi {
-    class PackPage;
-}
+
+QT_END_NAMESPACE
 
 enum class TextPos {
     TopLabel,
@@ -70,10 +71,27 @@ enum class TextPos {
     SystemMessage
 };
 
-QT_END_NAMESPACE
-
 class MainWindow : public ElaWindow {
     Q_OBJECT
+
+    struct ControlText {
+        QString menu_new = tr("新建(&N)");
+        QString menu_open = tr("打开(&O)");
+        QString menu_save = tr("保存(&S)");
+        QString menu_saveAs = tr("另存为(&A)");
+        QString menu_closeFile = tr("关闭文件(&C)");
+        QString menu_help = tr("帮助(&H)");
+        QString menu_about = tr("关于(&A)");
+
+        QString topbar_pack = tr("打包");
+        QString topbar_settings = tr("设置");
+        QString topbar_packLog = tr("打包日志");
+
+        QString exit_label = tr("您想要将软件关闭还是最小化至系统托盘");
+        QString exit_trayButton = tr("最小化至系统托盘");
+        QString exit_exitButton = tr("退出软件");
+        QString exit_hideButton = tr("不再显示该窗口（隐藏后行为可以在设置中看到）");
+    };
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -93,6 +111,7 @@ private:
     // bar
     ElaTabBar *topTabBar;
     ElaMenuBar *menuBar;
+
     // controls
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;
@@ -101,6 +120,14 @@ private:
     QLabel *messageLabel;
     QLabel *topTextLabel;
     FloatButton* floatButton;
+    ControlText* controlText;
+
+    // actions
+    QAction *packAction;
+    QAction *settingsAction;
+    QAction *packLogAction;
+    QAction *floatButtonAction;
+
     // tray menu
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;
@@ -108,8 +135,10 @@ private:
     QAction *stopPackAction;
     QAction *showAction;
     QAction *quitAction;
+
     // pack log
     QList<PackLog> *packLog;
+
     // models
     QStringListModel *packLogModel;
     QStringListModel *dataListModel;
@@ -159,7 +188,7 @@ private:
 private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
-    void onRemoveItemClicked();
+    void onRemoveItemClicked() const;
 
     void onFileMenuTriggered(QAction *action);
     void onHelpMenuTriggered(QAction *action);
@@ -179,6 +208,7 @@ private slots:
     // Gen file info functions
     void genFileInfo();
 
+    void retranslateCustomUi() const;
 protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;

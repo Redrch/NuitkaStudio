@@ -44,8 +44,8 @@ NPFStatusType ProjectConfig::loadProject(const QString &path) const {
         }
         PCM.setItem(index, value);
     }
-    GDM.setString(GDIN::NPF_FILE_PATH, path);
-    config.setConfigFromString(SettingsEnum::NpfPath, path);
+    GDM.setString(GDIN::npfFilePath, path);
+    config.setConfigFromString(ConfigItem::NpfPath, path);
     config.writeConfig();
     Logger::info("导入NPF文件");
     return NPFStatusType::NPFRight;
@@ -80,8 +80,8 @@ NPFStatusType ProjectConfig::saveProject(const QString &path) const {
 
     // write
     this->compress->writeZip(jsonPath, docString.toUtf8());
-    GDM.setString(GDIN::NPF_FILE_PATH, path);
-    config.setConfigFromString(SettingsEnum::NpfPath, path);
+    GDM.setString(GDIN::npfFilePath, path);
+    config.setConfigFromString(ConfigItem::NpfPath, path);
     config.writeConfig();
     Logger::info("导出NPF文件");
     return NPFStatusType::NPFRight;

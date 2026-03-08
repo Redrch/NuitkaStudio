@@ -8,6 +8,7 @@
 #include <QMap>
 #include <QVariant>
 #include <QMutex>
+#include <QTranslator>
 
 // Singleton class
 class GlobalData : public QObject {
@@ -45,8 +46,9 @@ signals:
 };
 
 namespace GlobalDataItemName {
-    inline const QString &NPF_FILE_PATH = "npf_file_path";
-    inline const QString &IS_OPEN_NPF = "is_open_npf";
+    inline const QString &npfFilePath = "npf_file_path";
+    inline const QString &isOpenNPF = "is_open_npf";
+    inline const QString &translator = "translator";
 }
 
 #endif //GLOBAL_DATA_H

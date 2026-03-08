@@ -6,13 +6,13 @@
 
 FloatButton::FloatButton(const PixmapGroup& pixmapGroup, QWidget *parent): ElaIconButton(pixmapGroup.startLight, parent) {
     this->pixmapGroup = pixmapGroup;
-    if (config.getConfigToBool(SettingsEnum::IsFloatButtonLight)) {
+    if (config.getConfigToBool(ConfigItem::IsFloatButtonLight)) {
         this->setPixmap(pixmapGroup.startLight);
     } else {
         this->setPixmap(pixmapGroup.startDark);
     }
-    this->move(config.getConfigToPoint(SettingsEnum::FloatButtonPos));
-    this->setFixedSize(config.getConfigToSize(SettingsEnum::FloatButtonSize));
+    this->move(config.getConfigToPoint(ConfigItem::FloatButtonPos));
+    this->setFixedSize(config.getConfigToSize(ConfigItem::FloatButtonSize));
 
     this->longPressedTimer = new QTimer(this);
     this->pressedTimer = new QTimer(this);
@@ -46,7 +46,7 @@ void FloatButton::setTriggerInterval(const int interval) {
 
 void FloatButton::packFinished() {
     this->isPack = false;
-    if (config.getConfigToBool(SettingsEnum::IsFloatButtonLight)) {
+    if (config.getConfigToBool(ConfigItem::IsFloatButtonLight)) {
         this->setPixmap(this->pixmapGroup.startLight);
     } else {
         this->setPixmap(this->pixmapGroup.startDark);
@@ -59,24 +59,24 @@ void FloatButton::mousePressEvent(QMouseEvent *event) {
         if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
             this->dragPos = event->globalPos() - this->frameGeometry().topLeft();
             if (QApplication::keyboardModifiers() & Qt::AltModifier) {
-                this->setFixedSize(config.getConfigToSize(SettingsEnum::FloatButtonOriginalSize));
+                this->setFixedSize(config.getConfigToSize(ConfigItem::FloatButtonOriginalSize));
             }
         }
         else if (QApplication::keyboardModifiers() & Qt::AltModifier) {
-            if (config.getConfigToBool(SettingsEnum::IsFloatButtonLight)) {
+            if (config.getConfigToBool(ConfigItem::IsFloatButtonLight)) {
                 if (this->isPack) {
                     this->setPixmap(this->pixmapGroup.stopDark);
                 } else {
                     this->setPixmap(this->pixmapGroup.startDark);
                 }
-                config.setConfigFromBool(SettingsEnum::IsFloatButtonLight, false);
+                config.setConfigFromBool(ConfigItem::IsFloatButtonLight, false);
             } else {
                 if (this->isPack) {
                     this->setPixmap(this->pixmapGroup.stopLight);
                 } else {
                     this->setPixmap(this->pixmapGroup.startLight);
                 }
-                config.setConfigFromBool(SettingsEnum::IsFloatButtonLight, true);
+                config.setConfigFromBool(ConfigItem::IsFloatButtonLight, true);
             }
         }
         else if (QApplication::keyboardModifiers() & Qt::ShiftModifier) {
@@ -85,7 +85,7 @@ void FloatButton::mousePressEvent(QMouseEvent *event) {
         else {
             if (!this->isPack) {
                 this->isPack = true;
-                if (config.getConfigToBool(SettingsEnum::IsFloatButtonLight)) {
+                if (config.getConfigToBool(ConfigItem::IsFloatButtonLight)) {
                     this->setPixmap(this->pixmapGroup.stopLight);
                 } else {
                     this->setPixmap(this->pixmapGroup.stopDark);
@@ -93,7 +93,7 @@ void FloatButton::mousePressEvent(QMouseEvent *event) {
                 emit this->startPack();
             }  else {
                 this->isPack = false;
-                if (config.getConfigToBool(SettingsEnum::IsFloatButtonLight)) {
+                if (config.getConfigToBool(ConfigItem::IsFloatButtonLight)) {
                     this->setPixmap(this->pixmapGroup.startLight);
                 } else {
                     this->setPixmap(this->pixmapGroup.startDark);
@@ -129,7 +129,7 @@ void FloatButton::mouseMoveEvent(QMouseEvent *event) {
     if (event->buttons() & Qt::LeftButton) {
         if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
             this->move(event->globalPos() - this->dragPos);
-            config.setConfigFromPoint(SettingsEnum::FloatButtonPos, event->globalPos() - this->dragPos);
+            config.setConfigFromPoint(ConfigItem::FloatButtonPos, event->globalPos() - this->dragPos);
 
             if (this->longPressedTimer->isActive()) {
                 this->longPressedTimer->stop();
@@ -151,12 +151,12 @@ void FloatButton::wheelEvent(QWheelEvent *event) {
             if (scrollY > 0) {
                 QSize size = this->size();
                 size *= 1.1;
-                config.setConfigFromSize(SettingsEnum::FloatButtonSize, size);
+                config.setConfigFromSize(ConfigItem::FloatButtonSize, size);
                 this->setFixedSize(size);
             } else if (scrollY < 0) {
                 QSize size = this->size();
                 size *= 0.9;
-                config.setConfigFromSize(SettingsEnum::FloatButtonSize, size);
+                config.setConfigFromSize(ConfigItem::FloatButtonSize, size);
                 this->setFixedSize(size);
             }
         }

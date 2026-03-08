@@ -18,23 +18,20 @@
 #include <QDir>
 
 #include "logger.h"
+#include "utils.h"
 
-enum class EncodingEnum {
-    utf8 = 0,
-    gbk = 1,
-    ascii = 2
-};
-
-namespace SettingsEnumNS {
+namespace ConfigEnumNS {
     Q_NAMESPACE
 
-    enum class SettingsEnum {
-        DefaultPythonPath,
-        DefaultMainFilePath,
-        DefaultOutputPath,
-        DefaultIconPath,
-        DefaultDataPath,
-        TempPath,
+    enum class EncodingEnum {
+        utf8 = 0,
+        gbk = 1,
+        ascii = 2,
+        NONE = -1
+    };
+
+    enum class ConfigItem {
+        Language,
         ConsoleInputEncoding,
         ConsoleOutputEncoding,
         PackTimerTriggerInterval,
@@ -48,70 +45,94 @@ namespace SettingsEnumNS {
         FloatButtonPos,
         IsFloatButtonLight,
         IsSplashScreen,
-        NONE
+        DefaultPythonPath,
+        DefaultMainFilePath,
+        DefaultOutputPath,
+        DefaultIconPath,
+        DefaultDataPath,
+        TempPath,
+        NONE = -1
     };
-    Q_ENUM_NS(SettingsEnum)
+
+    enum class ConfigGroup {
+        General,
+        DefaultPath
+    };
+
+    enum class Language {
+        zh_CN,
+        en_US,
+        NONE = -1
+    };
+
+    Q_ENUM_NS(ConfigItem)
+    Q_ENUM_NS(Language)
+    Q_ENUM_NS(EncodingEnum)
+    Q_ENUM_NS(ConfigGroup)
 }
 
-using namespace SettingsEnumNS;
+using namespace ConfigEnumNS;
+
+using ConfigGroupMap = QMap<QString, QVariant>;
+using ConfigMap = QMap<QString, ConfigGroupMap>;
 
 Q_DECLARE_METATYPE(EncodingEnum)
 
 // Singleton class
 class Config {
     Q_GADGET
+
 public:
-    static Config& instance() {
+    static Config &instance() {
         static Config inst;
         return inst;
     }
-    Config(const Config&) = delete;
-    Config& operator=(const Config&) = delete;
+
+    Config(const Config &) = delete;
+    Config &operator=(const Config &) = delete;
 
     Config();
     ~Config();
 
-    void writeConfig();
-    void readConfig();
+    void addConfig(const QString &key, const QVariant &defaultValue, const ConfigGroup &group) const;
+    bool containsConfig(const QString &key) const;
 
-    QString encodingEnumToString(EncodingEnum enumValue);
-    int encodingEnumToInt(EncodingEnum enumValue);
-    EncodingEnum encodingEnumFromString(const QString& string);
-    EncodingEnum encodingEnumFromInt(int value);
-
-    QString settingsEnumToString(SettingsEnum enumValue);
-    SettingsEnum settingsEnumFromString(const QString& string);
+    void writeConfig() const;
+    void readConfig() const;
 
     // Getter and setter
     QVariant getConfig(const QString &configValue) const;
-    QVariant getConfig(SettingsEnum configValue);
-    QString getConfigToString(SettingsEnum configValue);
-    int getConfigToInt(SettingsEnum configValue);
-    bool getConfigToBool(SettingsEnum configValue);
-    EncodingEnum getConfigEncodingEnum(SettingsEnum configValue);
-    QSize getConfigToSize(SettingsEnum configValue);
-    QPoint getConfigToPoint(SettingsEnum configValue);
+    QVariant getConfig(ConfigItem configValue) const;
+    QString getConfigToString(ConfigItem configValue) const;
+    int getConfigToInt(ConfigItem configValue) const;
+    bool getConfigToBool(ConfigItem configValue) const;
+    EncodingEnum getConfigToEncodingEnum(ConfigItem configValue) const;
+    Language getConfigToLanguage(ConfigItem configValue) const;
+    QSize getConfigToSize(ConfigItem configValue) const;
+    QPoint getConfigToPoint(ConfigItem configValue) const;
 
-    void setConfig(SettingsEnum configValue, const QVariant& value);
-    void setConfig(const QString &configValue, const QVariant& value) const;
-    void setConfigFromString(SettingsEnum configValue, const QString& string);
-    void setConfigFromInt(SettingsEnum configValue, int value);
-    void setConfigFromBool(SettingsEnum configValue, bool value);
-    void setConfigFromEncodingEnum(SettingsEnum configValue, EncodingEnum encodingValue);
-    void setConfigFromSize(SettingsEnum configValue, const QSize& size);
-    void setConfigFromPoint(SettingsEnum configValue, const QPoint& point);
+    void setConfig(ConfigItem configValue, const QVariant &value) const;
+    void setConfig(const QString &configValue, const QVariant &value) const;
+    void setConfigFromString(ConfigItem configValue, const QString &string) const;
+    void setConfigFromInt(ConfigItem configValue, int value) const;
+    void setConfigFromBool(ConfigItem configValue, bool value) const;
+    void setConfigFromEncodingEnum(ConfigItem configValue, EncodingEnum encodingValue) const;
+    void setConfigFromLanguage(ConfigItem configValue, Language language) const;
+    void setConfigFromSize(ConfigItem configValue, const QSize &size) const;
+    void setConfigFromPoint(ConfigItem configValue, const QPoint &point) const;
 
-    [[nodiscard]] const QString& getConfigPath() const {
+    [[nodiscard]] const QString &getConfigPath() const {
         return this->configPath;
     }
-    void setConfigPath(const QString& path) {
+
+    void setConfigPath(const QString &path) {
         this->configPath = path;
     };
 
 private:
-    QSettings* settings;
+    QSettings *settings;
     QString configPath;
-    QMap<QString, QVariant>* configMap;
+    ConfigMap *configMap;
 };
 
 

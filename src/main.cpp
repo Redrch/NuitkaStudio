@@ -1,6 +1,8 @@
 #include <QApplication>
 #include <QSplashScreen>
 #include <QThread>
+#include <QLocale>
+#include <QTranslator>
 
 #include <ElaApplication.h>
 #include <ElaWindow.h>
@@ -13,39 +15,39 @@ bool isDebug = true;
 
 void initProjectConfig() {
     // path data
-    PCM.addItem(new ProjectConfigType("pythonPath", QVariant("")));  // 0
-    PCM.addItem(new ProjectConfigType("mainFilePath", QVariant("")));  // 1
-    PCM.addItem(new ProjectConfigType("outputPath", QVariant("")));  // 2
-    PCM.addItem(new ProjectConfigType("outputFilename", QVariant("")));  // 3
-    PCM.addItem(new ProjectConfigType("projectPath", QVariant("")));  // 4
-    PCM.addItem(new ProjectConfigType("projectName", QVariant("")));  // 5
-    PCM.addItem(new ProjectConfigType("iconPath", QVariant("")));  // 6
+    PCM.addItem(new ProjectConfigType("pythonPath", QVariant(""))); // 0
+    PCM.addItem(new ProjectConfigType("mainFilePath", QVariant(""))); // 1
+    PCM.addItem(new ProjectConfigType("outputPath", QVariant(""))); // 2
+    PCM.addItem(new ProjectConfigType("outputFilename", QVariant(""))); // 3
+    PCM.addItem(new ProjectConfigType("projectPath", QVariant(""))); // 4
+    PCM.addItem(new ProjectConfigType("projectName", QVariant(""))); // 5
+    PCM.addItem(new ProjectConfigType("iconPath", QVariant(""))); // 6
     // bool data
-    PCM.addItem(new ProjectConfigType("standalone", QVariant(true)));  // 7
-    PCM.addItem(new ProjectConfigType("onefile", QVariant(false)));  // 8
-    PCM.addItem(new ProjectConfigType("removeOutput", QVariant(false)));  // 9
+    PCM.addItem(new ProjectConfigType("standalone", QVariant(true))); // 7
+    PCM.addItem(new ProjectConfigType("onefile", QVariant(false))); // 8
+    PCM.addItem(new ProjectConfigType("removeOutput", QVariant(false))); // 9
     // lto mode
-    PCM.addItem(new ProjectConfigType("ltoMode", QVariant::fromValue(LTOMode::Auto)));  // 10
+    PCM.addItem(new ProjectConfigType("ltoMode", QVariant::fromValue(LTOMode::Auto))); // 10
     // data list
-    PCM.addItem(new ProjectConfigType("dataList", QVariant(QStringList())));  // 11
+    PCM.addItem(new ProjectConfigType("dataList", QVariant(QStringList()))); // 11
     // file data
-    PCM.addItem(new ProjectConfigType("fileVersion", QVariant("")));  // 12
-    PCM.addItem(new ProjectConfigType("company", QVariant("")));  // 13
-    PCM.addItem(new ProjectConfigType("productName", QVariant("")));  // 14
-    PCM.addItem(new ProjectConfigType("productVersion", QVariant("")));  // 15
-    PCM.addItem(new ProjectConfigType("fileDescription", QVariant("")));  // 16
-    PCM.addItem(new ProjectConfigType("legalCopyright", QVariant("")));  // 17
-    PCM.addItem(new ProjectConfigType("legalTrademarks", QVariant("")));  // 18
+    PCM.addItem(new ProjectConfigType("fileVersion", QVariant(""))); // 12
+    PCM.addItem(new ProjectConfigType("company", QVariant(""))); // 13
+    PCM.addItem(new ProjectConfigType("productName", QVariant(""))); // 14
+    PCM.addItem(new ProjectConfigType("productVersion", QVariant(""))); // 15
+    PCM.addItem(new ProjectConfigType("fileDescription", QVariant(""))); // 16
+    PCM.addItem(new ProjectConfigType("legalCopyright", QVariant(""))); // 17
+    PCM.addItem(new ProjectConfigType("legalTrademarks", QVariant(""))); // 18
 }
 
 int main(int argc, char *argv[]) {
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 启动高DPI缩放
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // 启动高DPI缩放
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     qRegisterMetaType<LTOMode>("LTOMode");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
     qRegisterMetaType<EncodingEnum>("EncodingEnum");
+    qRegisterMetaType<Language>("Language");
     initProjectConfig();
-
 
     QApplication a(argc, argv);
     // Init config
@@ -57,15 +59,25 @@ int main(int argc, char *argv[]) {
     // 开屏动画
     QPixmap pixmap(":/logo");
     QSplashScreen splash(pixmap);
-    if (config.getConfigToBool(SettingsEnum::IsSplashScreen)) {
+    if (config.getConfigToBool(ConfigItem::IsSplashScreen)) {
         splash.show();
         a.processEvents();
     }
 
-    ElaApplication::getInstance()->init();
     // Init GDM
-    GDM.setString(GDIN::NPF_FILE_PATH, "");
-    GDM.setBool(GDIN::IS_OPEN_NPF, false);
+    GDM.setString(GDIN::npfFilePath, "");
+    GDM.setBool(GDIN::isOpenNPF, false);
+    GDM.set(GDIN::translator, QVariant::fromValue(new QTranslator));
+
+    // Load qm file
+    if (GDM.get(GDIN::translator).value<QTranslator*>()->load(
+        QString(":/lang/%1.qm").arg(Utils::enumToString(config.getConfigToLanguage(ConfigItem::Language))))) {
+        QApplication::installTranslator(GDM.get(GDIN::translator).value<QTranslator*>());
+    } else {
+        Logger::error("无法加载语言文件");
+    }
+
+    ElaApplication::getInstance()->init();
     // Init logger
     Logger::Config cfg;
     cfg.file_path = "app.log";
@@ -74,26 +86,26 @@ int main(int argc, char *argv[]) {
 
     // init mainwindow
     MainWindow w;
-    QThread::msleep(500);
+    QThread::msleep(500); // 仅用于让开屏动画可以正常显示，不至于一闪而过
     w.show();
     splash.finish(&w);
     // clean
     int ret = QApplication::exec();
     if (!isDebug) Logger::uninstallQtMessageHandler();
     logger.shutdown();
+    GDM.get(GDIN::translator).value<QTranslator*>()->deleteLater();
     return ret;
 }
 
 /*
 Version 1.3.0.0 TO-DO
-TODO: 添加英语模式
 TODO: 添加对打包日志进行备注的功能
 TODO: 添加隐藏控制台选项的功能
 TODO: 添加自定义指令的功能
 TODO: 每次打包递增版本号，提供增加版本号的按钮
 */
 
-/*
+/**
 Version 1.3.0.0
 重大修改：
 
@@ -111,16 +123,20 @@ Version 1.3.0.0
 11. 添加可以将文件拖动以打开的功能
 12. 添加按Tab切换页面的功能
 13. 添加启动动画，可关闭
+14.
 
 修复的问题：
 1. 修复了新建NPF文件时关闭窗口后会弹出导出文件选择窗口的问题
 2. 修复了新建NPF文件时文件没有后缀的问题
-*/
 
-/*
+
 代码方面的修改
 重大修改：
 1. 添加了ElaWidgetTools库
+2. 添加了EventBus用于广播信号
 普通修改：
 1. 分离了ProjectConfig类中关于ui的部分
+2. 重构了Config类
+3. 将SettingsEnum枚举的名称改为了ConfigItem
+4. 在Utils类中添加了通过QMetaType将enum转换为string或者int的函数
 */

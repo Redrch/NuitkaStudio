@@ -21,16 +21,18 @@
  *
 *************************************************************************/
 
-#ifndef PCM_H
-#define PCM_H
+#ifndef SIMNAME_H
+#define SIMNAME_H
 
 #include "global_data.h"
 #include "../utils/config.h"
 #include "project_config_manager.h"
+#include "../utils/event_bus.h"
 
 inline ProjectConfigManager &PCM = ProjectConfigManager::instance();
 inline GlobalData &GDM = GlobalData::instance();
 inline Config &config = Config::instance();
+inline EventBus &eventBus = EventBus::instance();
 namespace GDIN = GlobalDataItemName;
 
-#endif //PCM_H
+#endif //SIMNAME_H

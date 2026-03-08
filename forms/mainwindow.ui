@@ -29,7 +29,7 @@
        <string notr="true">QWidget {background: transparent;}</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="packPage">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -61,7 +61,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>969</width>
+             <width>757</width>
              <height>936</height>
             </rect>
            </property>
@@ -981,8 +981,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>500</width>
-             <height>572</height>
+             <width>982</width>
+             <height>590</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1071,6 +1071,38 @@
                        <item>
                         <property name="text">
                          <string>ascii</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="languageWidget" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_23">
+                     <item>
+                      <widget class="ElaText" name="languageLabel">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>语言</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="ElaComboBox" name="languageComboBox">
+                       <item>
+                        <property name="text">
+                         <string>简体中文</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>English</string>
                         </property>
                        </item>
                       </widget>

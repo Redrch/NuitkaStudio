@@ -5,6 +5,18 @@
 #ifndef NUITKASTUDIO_ABOUT_WINDOW_H
 #define NUITKASTUDIO_ABOUT_WINDOW_H
 
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+
+// 手动定义缺失的宏（Windows 11 特有属性）
+#ifndef DWMWA_CAPTION_COLOR
+#define DWMWA_CAPTION_COLOR 35
+#endif
+
+#ifndef DWMWA_TEXT_COLOR
+#define DWMWA_TEXT_COLOR 36
+#endif
+
 #include <QVBoxLayout>
 #include <ElaDialog.h>
 #include <ElaImageCard.h>
@@ -13,16 +25,13 @@
 
 #include "app_config.h"
 
-class AboutWindow : public ElaDialog {
+class AboutWindow : public QDialog {
 Q_OBJECT
 
 public:
     explicit AboutWindow(QWidget *parent = nullptr);
 
     ~AboutWindow() override;
-
-private:
-
 };
 
 
