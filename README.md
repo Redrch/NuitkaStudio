@@ -2,6 +2,8 @@
 
 Nuitka Studio 是一个帮助您使用python nuitka打包工具的软件，使用C++ Qt框架编写，目前仅支持Windows8.1+
 
+本项目使用 **Apache 2.0** 协议授权，请遵守开源协议
+
 ## 使用
 
 ### 基础
@@ -55,7 +57,7 @@ python解释器路径：项目所使用的python解释器的路径，需含有nu
 ## 构建项目
 
 1. 从Github上克隆仓库到本地  `git clone https://github.com/Redrch/NuitkaStudio.git`
-2. 确保设备安装有 mingw64  cmake  vcpkg  python3.11+(推荐3.13)，并且cmake  vcpkg  python 配有环境变量，如果没有请安装
+2. 确保设备安装有 mingw64,  cmake,  vcpkg,  python3.11+(推荐3.13)，并且cmake, vcpkg, python 配有环境变量，如果没有请安装
 3. 打开cmd，将工作目录移动到项目根目录
 4. 修改config.toml，将文件中的路径改为您设备上的路径
 5. 执行`python build.py`，执行完成后如果是debug模式构建结果在`cmake-build-debug`中，release模式在`releases/NuitkaStudio{版本号}·`目录下
@@ -72,33 +74,58 @@ spdlog: https://github.com/gabime/spdlog
 
 fmt: https://github.com/fmtlib/fmt
 
+
+
 ------------------------
+
+
 
 ## 附件
 
+### 格式声明
+
+1. 此标题下的两位版本号指的是这个版本号下的所有版本
+
+	例如：NuitkaStudio1.2指NuitkaStudio1.2.0.0和NuitkaStudio1.2.1.0两个版本（因为1.2就这两个版本）
+
+2. 版本号+指这个版本及以上的所有版本
+
+	例如：NuitkaStudio1.2+指NuitkaStudio1.2.0.0及以上的所有版本（包含NuitkaStudio1.2.0.0）
+
+
+
 ### NPF文件格式
 
-**此文件中的NPF文件仅代表NuitkaStudio所使用的Nuitka Project File(NPF)文件**
+此文件中的NPF文件仅代表NuitkaStudio所使用的Nuitka Project File(NPF)文件
 
-**此处仅讨论NuitkaStudio1.2.0.0以上的版本中使用的NPF文件，不讨论NuitkaStudio1.2.0.0以下版本所使用的NPF文件**
+此处仅讨论NuitkaStudio1.2.0.0以上的版本中使用的NPF文件，不讨论NuitkaStudio1.2.0.0以下版本所使用的NPF文件
 
-本质上，NPF文件是一个ZIP压缩包，格式如下所示
+
+
+#### NPF Version 1
+
+**注意：此版本已经不再维护，请使用NPF Version 2！**
+
+这个版本的npf文件只在NuitkaStudio1.2版本使用
+
+这个版本的npf文件，本质上是一个ZIP压缩包，格式如下所示
 
 ```
 - /
 --- data.json            // 存储npf文件的基本信息，例如NPF格式版本号，以及使用nuitka打包时的参数
 --- pack_log/            // nuitka打包日志
+------  note.json                         // 日志备注
 ------  yyyy-mm-dd_hh-MM-ss.log           // 具体文件
 ------  ...
 ```
 
-data.json 中的格式如下所示
+**data.json 中的格式如下所示**
 
 ```json
 {
     "npf_version": 1,
     "project": {
-        "company": "COMPANY",
+        "company": "company",
         "dataList": [
             ""
         ],
@@ -107,9 +134,9 @@ data.json 中的格式如下所示
         "iconPath": "logo path",
         "legalCopyright": "legal copyright",
         "legalTrademarks": "legal trademarks",
-        "ltoMode": 0/1/2,
+        "ltoMode": 0,
         "mainFilePath": "main path",
-        "onefile": true/false,
+        "onefile": false,
         "outputFilename": "output name",
         "outputPath": "output path",
         "productName": "name",
@@ -117,8 +144,8 @@ data.json 中的格式如下所示
         "projectName": "name",
         "projectPath": "path",
         "pythonPath": "python path",
-        "removeOutput": true/false,
-        "standalone": true/false
+        "removeOutput": false,
+        "standalone": false
     }
 }
 
@@ -127,3 +154,70 @@ data.json 中的格式如下所示
 ltoMode值中，0代表Auto，1代表Yes，2代表No
 
 npf_version值目前为1
+
+
+
+**pack_log/note.json文件中的内容如下所示**
+
+```json
+{
+    "log file name1": "note1",
+    "log file name2": "note2",
+    "log file name3": "note3",
+    "log file name4": "note4",
+    "log file name5": "note5"
+}
+```
+
+log file name 是log文件的文件名
+
+可以继续增加下去，这里只是举了一些例子
+
+
+
+#### NPF Version 2
+
+这是在NuitkaStudio1.3+的版本使用的格式，本质上是一个json文件，格式如下：
+
+```json
+{
+    "npf_version": 2,
+    "project": {
+        "company": "company",
+        "dataList": [
+            ""
+        ],
+        "fileDescription": "description",
+        "fileVersion": "version",
+        "iconPath": "logo path",
+        "legalCopyright": "legal copyright",
+        "legalTrademarks": "legal trademarks",
+        "ltoMode": 0,
+        "mainFilePath": "main path",
+        "onefile": false,
+        "outputFilename": "output name",
+        "outputPath": "output path",
+        "productName": "name",
+        "productVersion": "version",
+        "projectName": "name",
+        "projectPath": "path",
+        "pythonPath": "python path",
+        "removeOutput": false,
+        "standalone": false
+    },
+    "pack_log": {
+        "log name1": ["log1", "note"],
+    	"log name2": ["log2", "note"]
+    }
+}
+```
+
+"pack_log"字段中的内容可以继续增加
+
+
+
+
+
+------------------------------------------------------------------------
+
+NuitkaStudio      版权所有 © 2025-2026 Redrch
