@@ -11,6 +11,7 @@
 #include <QMetaEnum>
 #include <QSize>
 #include <QPoint>
+#include <QDataStream>
 
 #include <QDebug>
 
@@ -45,6 +46,8 @@ namespace ConfigEnumNS {
         FloatButtonPos,
         IsFloatButtonLight,
         IsSplashScreen,
+        IsSavePackLog,
+
         DefaultPythonPath,
         DefaultMainFilePath,
         DefaultOutputPath,
@@ -65,6 +68,19 @@ namespace ConfigEnumNS {
         NONE = -1
     };
 
+    // stream
+    inline QDataStream &operator<<(QDataStream &out, const Language &lang) {
+        out << static_cast<int>(lang);
+        return out;
+    }
+
+    inline QDataStream &operator>>(QDataStream &in, Language &lang) {
+        int val;
+        in >> val;
+        lang = static_cast<Language>(val);
+        return in;
+    }
+
     Q_ENUM_NS(ConfigItem)
     Q_ENUM_NS(Language)
     Q_ENUM_NS(EncodingEnum)
@@ -76,6 +92,7 @@ using namespace ConfigEnumNS;
 using ConfigGroupMap = QMap<QString, QVariant>;
 using ConfigMap = QMap<QString, ConfigGroupMap>;
 
+Q_DECLARE_METATYPE(Language)
 Q_DECLARE_METATYPE(EncodingEnum)
 
 // Singleton class
@@ -101,25 +118,25 @@ public:
     void readConfig() const;
 
     // Getter and setter
-    QVariant getConfig(const QString &configValue) const;
-    QVariant getConfig(ConfigItem configValue) const;
-    QString getConfigToString(ConfigItem configValue) const;
-    int getConfigToInt(ConfigItem configValue) const;
-    bool getConfigToBool(ConfigItem configValue) const;
-    EncodingEnum getConfigToEncodingEnum(ConfigItem configValue) const;
-    Language getConfigToLanguage(ConfigItem configValue) const;
-    QSize getConfigToSize(ConfigItem configValue) const;
-    QPoint getConfigToPoint(ConfigItem configValue) const;
+    QVariant get(const QString &configValue) const;
+    QVariant get(ConfigItem configValue) const;
+    QString getString(ConfigItem configValue) const;
+    int getInt(ConfigItem configValue) const;
+    bool getBool(ConfigItem configValue) const;
+    EncodingEnum getEncodingEnum(ConfigItem configValue) const;
+    Language getLanguage(ConfigItem configValue) const;
+    QSize getSize(ConfigItem configValue) const;
+    QPoint getPoint(ConfigItem configValue) const;
 
-    void setConfig(ConfigItem configValue, const QVariant &value) const;
-    void setConfig(const QString &configValue, const QVariant &value) const;
-    void setConfigFromString(ConfigItem configValue, const QString &string) const;
-    void setConfigFromInt(ConfigItem configValue, int value) const;
-    void setConfigFromBool(ConfigItem configValue, bool value) const;
-    void setConfigFromEncodingEnum(ConfigItem configValue, EncodingEnum encodingValue) const;
-    void setConfigFromLanguage(ConfigItem configValue, Language language) const;
-    void setConfigFromSize(ConfigItem configValue, const QSize &size) const;
-    void setConfigFromPoint(ConfigItem configValue, const QPoint &point) const;
+    void set(ConfigItem configValue, const QVariant &value) const;
+    void set(const QString &configValue, const QVariant &value) const;
+    void setString(ConfigItem configValue, const QString &string) const;
+    void setInt(ConfigItem configValue, int value) const;
+    void setBool(ConfigItem configValue, bool value) const;
+    void setEncodingEnum(ConfigItem configValue, EncodingEnum encodingValue) const;
+    void setLanguage(ConfigItem configValue, Language language) const;
+    void setSize(ConfigItem configValue, const QSize &size) const;
+    void setPoint(ConfigItem configValue, const QPoint &point) const;
 
     [[nodiscard]] const QString &getConfigPath() const {
         return this->configPath;
