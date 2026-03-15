@@ -11,14 +11,16 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
     this->setFocusPolicy(Qt::StrongFocus);
     qApp->installEventFilter(this);
     this->currentPageIndex = 0;
+    this->currentPackLogIndex = 0;
 
+    // set window flags
     this->setWindowButtonFlag(ElaAppBarType::NavigationButtonHint, false);
     this->setWindowButtonFlag(ElaAppBarType::RouteBackButtonHint, false);
     this->setWindowButtonFlag(ElaAppBarType::RouteForwardButtonHint, false);
 
-    this->projectConfig = new ProjectConfig;
+    // init objects
     this->packTimer = new QTimer(this);
-    this->packLog = new QList<PackLog>();
+    this->packLog = new QList<PackLog *>();
     this->mainTimer = new QTimer(this);
     this->mainTimer->start(1);
 
@@ -26,21 +28,31 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
     this->dataListModel = new QStringListModel(this);
 
     // Create the temp path
-    if (!QDir(config.getConfigToString(ConfigItem::TempPath)).exists()) {
-        if (!QDir().mkpath(config.getConfigToString(ConfigItem::TempPath))) {
+    if (!QDir(config.getString(ConfigItem::TempPath)).exists()) {
+        if (!QDir().mkpath(config.getString(ConfigItem::TempPath))) {
             Logger::warn("缓存文件夹创建失败");
         }
     }
 
-    if (!config.getConfigToString(ConfigItem::NpfPath).isEmpty()) {
-        QString path = config.getConfigToString(ConfigItem::NpfPath);
-        NPFStatusType status = this->projectConfig->loadProject(path);
+    // open npf file
+    if (!config.getString(ConfigItem::NpfPath).isEmpty()) {
+        QString path = config.getString(ConfigItem::NpfPath);
+        NPFStatusType status = ProjectConfig::loadProject(path);
         if (!this->npfStatusTypeHandler(status, path, false)) {
             if (!GDM.getString(GDIN::npfFilePath).isEmpty()) {
                 this->setWindowTitle(path.split("/").last() + " - Nuitka Studio");
             }
             GDM.setBool(GDIN::isOpenNPF, true);
         }
+
+        // note file
+        this->noteFile = new QFile(
+            GDM.getString(GDIN::packLogPath) + "/" + QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName() + "/note.json");
+        if (!this->noteFile->open(QIODevice::ReadOnly)) {
+            Logger::warn("无法打开note.json文件");
+        }
+        this->noteObject = QJsonDocument::fromJson(this->noteFile->readAll()).object();
+        this->noteFile->close();
     }
 
     // Init translator string
@@ -59,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
     this->connectOther();
 
     if (!GDM.getBool(GDIN::isOpenNPF)) {
-        this->showText("请先新建或打开一个NPF文件再进行操作", -1, Qt::red);
+        this->showText(tr("请先新建或打开一个NPF文件再进行操作"), -1, Qt::red);
     }
 
     this->updateUI();
@@ -69,8 +81,11 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
 
 MainWindow::~MainWindow() {
     config.writeConfig();
-    delete this->projectConfig;
     delete this->floatButton;
+    for (PackLog *log: *this->packLog) {
+        delete log;
+    }
+    delete this->packLog;
     delete ui;
 }
 
@@ -81,21 +96,21 @@ void MainWindow::startPack() {
     this->stopPackAction->setEnabled(true);
     QElapsedTimer timer;
 
-    QDateTime now = QDateTime::currentDateTime();
-    QString nowString = now.toString("yyyy-MM-dd_HH-mm-ss");
-    QString zipLogPath = NPF_PACK_LOG_PATH + "/" + nowString + ".log";
-    QString logPath = config.getConfigToString(ConfigItem::TempPath) + "/pack_log/" + nowString + ".log";
-    QString logDir = config.getConfigToString(ConfigItem::TempPath) + "/pack_log";
+    QString nowString = QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss");
+    QString logName = nowString + ".log";
+    QString npfFileName = QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName();
+    QString logDir = GDM.getString(GDIN::packLogPath) + "/" + npfFileName;
+    QString logPath = logDir + "/" + logName;
     if (!QDir(logDir).exists()) {
         if (!QDir().mkpath(logDir)) {
-            Logger::warn("打包日志缓存文件夹创建失败");
+            Logger::warn("打包日志文件夹创建失败");
         }
     }
     auto *logFile = new QFile(logPath);
     logFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+    this->noteObject.insert(logName, "");
 
     timer.start();
-
     this->packProcess = new QProcess(this);
 
     // Signals and slots
@@ -141,49 +156,7 @@ void MainWindow::startPack() {
                     logFile->deleteLater();
                 }
 
-                QString tempExtractPath = config.getConfigToString(ConfigItem::TempPath) + "/npf_repack_" + nowString;
-
-                if (!QDir().mkpath(tempExtractPath)) {
-                    Logger::error("创建解压文件夹失败，已停止归档");
-                    return;
-                }
-
-                QStringList extractedFiles =
-                        JlCompress::extractDir(GDM.getString(GDIN::npfFilePath), tempExtractPath);
-                if (extractedFiles.isEmpty()) {
-                    ui->consoleOutputEdit->appendPlainText("警告：原 NPF 文件内容解压失败或为空！归档已取消以保护原文件。");
-                    return; // 防止覆盖原包
-                }
-
-                if (!QFile::exists(tempExtractPath + "/data.json")) {
-                    ui->consoleOutputEdit->appendPlainText("致命错误：解压目录中未找到 data.json，停止打包。");
-                    return;
-                }
-
-                QString newLogTargetDir = tempExtractPath + "/pack_log";
-                if (!QDir().mkpath(newLogTargetDir)) {
-                    Logger::error("创建缓存日志文件失败，已停止归档");
-                    return;
-                }
-                QString newLogFilePath = newLogTargetDir + "/" + nowString + ".log";
-                QFile::copy(logPath, newLogFilePath);
-
-                QStringList fileList = QDir(newLogTargetDir).entryList(QDir::Files, QDir::LocaleAware | QDir::Name);
-                while (fileList.count() > config.getConfigToInt(ConfigItem::MaxPackLogCount)) {
-                    fileList.removeFirst();
-                    QFile::remove(newLogTargetDir + "/" + fileList[0]);
-                }
-
-                if (Compress::compressDir(tempExtractPath, GDM.getString(GDIN::npfFilePath))) {
-                    ui->consoleOutputEdit->appendPlainText("日志归档成功！");
-                } else {
-                    ui->consoleOutputEdit->appendPlainText("归档失败：无法重写 NPF 文件。");
-                }
-
-                QDir(tempExtractPath).removeRecursively();
-
-                ui->consoleOutputEdit->appendPlainText(QString("打包日志已存储至<npf_root>/pack_log/" + nowString + ".log"));
-                Logger::info(QString("打包日志已存储至<npf_root>/pack_log/" + nowString + ".log"));
+                this->saveNote();
             });
     // error occurred
     connect(this->packProcess, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
@@ -298,7 +271,7 @@ void MainWindow::startPack() {
     ui->consoleOutputEdit->appendPlainText(outputString);
     // pack timer
     this->startPackTime = QDateTime::currentDateTime();
-    this->packTimer->start(config.getConfigToInt(ConfigItem::PackTimerTriggerInterval));
+    this->packTimer->start(config.getInt(ConfigItem::PackTimerTriggerInterval));
     // console output
     ui->consoleOutputEdit->appendPlainText(
         PCM.getItemValueToString(PCE::PythonPath) + " " + args.
@@ -342,12 +315,12 @@ void MainWindow::stopPack() {
 
 void MainWindow::importProject() {
     QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio  导入项目文件",
-                                                config.getConfigToString(ConfigItem::DefaultDataPath),
+                                                config.getString(ConfigItem::DefaultDataPath),
                                                 "Nuitka Project File(*.npf);;All files(*)");
     if (path.isEmpty()) {
         return;
     }
-    NPFStatusType status = this->projectConfig->loadProject(path);
+    NPFStatusType status = ProjectConfig::loadProject(path);
     if (this->npfStatusTypeHandler(status, path)) {
         return;
     }
@@ -362,12 +335,12 @@ void MainWindow::importProject() {
 
 void MainWindow::exportProject() {
     QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio  导出项目文件",
-                                                config.getConfigToString(ConfigItem::DefaultDataPath),
+                                                config.getString(ConfigItem::DefaultDataPath),
                                                 "Nuitka Project File(*.npf);;All files(*)");
     if (path.isEmpty()) {
         return;
     }
-    NPFStatusType status = this->projectConfig->saveProject(path);
+    NPFStatusType status = ProjectConfig::saveProject(path, false);
     if (this->npfStatusTypeHandler(status, path)) {
         return;
     }
@@ -381,7 +354,7 @@ void MainWindow::exportProject() {
 // Slots
 void MainWindow::onAddDataFileItemClicked() {
     QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
-                                                    config.getConfigToString(ConfigItem::DefaultDataPath));
+                                                    config.getString(ConfigItem::DefaultDataPath));
     if (filePath.isEmpty()) {
         return;
     }
@@ -393,7 +366,7 @@ void MainWindow::onAddDataFileItemClicked() {
 
 void MainWindow::onAddDataDirItemClicked() {
     QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
-                                                        config.getConfigToString(ConfigItem::DefaultDataPath),
+                                                        config.getString(ConfigItem::DefaultDataPath),
                                                         QFileDialog::ShowDirsOnly);
     if (dirPath.isEmpty()) {
         return;
@@ -421,13 +394,16 @@ void MainWindow::onFileMenuTriggered(QAction *action) {
 
     if (text == this->controlText->menu_new) {
         QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio 新建NPF文件",
-                                                    config.getConfigToString(ConfigItem::DefaultDataPath),
+                                                    config.getString(ConfigItem::DefaultDataPath),
                                                     "Nuitka Project File(*.npf);;All files(*)");
         if (path.isEmpty()) {
             return;
         }
         PCM.setDefaultValue();
-        if (this->npfStatusTypeHandler(this->projectConfig->saveProject(path), path)) {
+        if (this->npfStatusTypeHandler(ProjectConfig::saveProject(path, config.getBool(ConfigItem::IsSavePackLog)),
+                                       path)) {
+            Logger::error("创建NPF文件错误");
+            QMessageBox::critical(this, "Nuitka Studio Error", tr("创建NPF文件错误"));
             return;
         }
         GDM.setString(GDIN::npfFilePath, path);
@@ -448,7 +424,8 @@ void MainWindow::onFileMenuTriggered(QAction *action) {
         this->importProject();
         this->clearText();
     } else if (text == this->controlText->menu_save) {
-        this->npfStatusTypeHandler(this->projectConfig->saveProject(GDM.getString(GDIN::npfFilePath)),
+        this->npfStatusTypeHandler(ProjectConfig::saveProject(GDM.getString(GDIN::npfFilePath),
+                                                              config.getBool(ConfigItem::IsSavePackLog)),
                                    GDM.getString(GDIN::npfFilePath));
     } else if (text == this->controlText->menu_saveAs) {
         this->exportProject();
@@ -458,7 +435,7 @@ void MainWindow::onFileMenuTriggered(QAction *action) {
             PCM.setDefaultValue();
             GDM.setString(GDIN::npfFilePath, "");
             GDM.setBool(GDIN::isOpenNPF, false);
-            config.setConfigFromString(ConfigItem::NpfPath, "");
+            config.setString(ConfigItem::NpfPath, "");
             this->setWindowTitle("Nuitka Studio");
             this->updateUI();
         }
@@ -570,44 +547,55 @@ void MainWindow::updatePackUI() const {
 }
 
 void MainWindow::updateSettingsUI() const {
-    ui->defaultPyPathEdit->setText(config.getConfigToString(ConfigItem::DefaultPythonPath));
-    ui->defaultMainPathEdit->setText(config.getConfigToString(ConfigItem::DefaultMainFilePath));
-    ui->defaultOutputPathEdit->setText(config.getConfigToString(ConfigItem::DefaultOutputPath));
-    ui->defaultIconPathEdit->setText(config.getConfigToString(ConfigItem::DefaultIconPath));
-    ui->defaultDataPathEdit->setText(config.getConfigToString(ConfigItem::DefaultDataPath));
+    ui->defaultPyPathEdit->setText(config.getString(ConfigItem::DefaultPythonPath));
+    ui->defaultMainPathEdit->setText(config.getString(ConfigItem::DefaultMainFilePath));
+    ui->defaultOutputPathEdit->setText(config.getString(ConfigItem::DefaultOutputPath));
+    ui->defaultIconPathEdit->setText(config.getString(ConfigItem::DefaultIconPath));
+    ui->defaultDataPathEdit->setText(config.getString(ConfigItem::DefaultDataPath));
 
     ui->consoleInputEncodingCombo->setCurrentIndex(
-        Utils::enumToInt<EncodingEnum>(config.getConfigToEncodingEnum(ConfigItem::ConsoleInputEncoding)));
+        Utils::enumToInt<EncodingEnum>(config.getEncodingEnum(ConfigItem::ConsoleInputEncoding)));
     ui->consoleOutputEncodingCombo->setCurrentIndex(
-        Utils::enumToInt<EncodingEnum>(config.getConfigToEncodingEnum(ConfigItem::ConsoleOutputEncoding)));
+        Utils::enumToInt<EncodingEnum>(config.getEncodingEnum(ConfigItem::ConsoleOutputEncoding)));
     ui->languageComboBox->setCurrentIndex(
-        Utils::enumToInt<Language>(config.getConfigToLanguage(ConfigItem::Language)));
+        Utils::enumToInt<Language>(config.getLanguage(ConfigItem::Language)));
 
-    ui->packTimerTriggerIntervalSpin->setValue(config.getConfigToInt(ConfigItem::PackTimerTriggerInterval));
-    ui->maxPackLogCountSpin->setValue(config.getConfigToInt(ConfigItem::MaxPackLogCount));
+    ui->packTimerTriggerIntervalSpin->setValue(config.getInt(ConfigItem::PackTimerTriggerInterval));
+    ui->maxPackLogCountSpin->setValue(config.getInt(ConfigItem::MaxPackLogCount));
 
-    ui->showCloseWindowCheckbox->setChecked(config.getConfigToBool(ConfigItem::IsShowCloseWindow));
-    ui->hideOnCloseCheckbox->setChecked(config.getConfigToBool(ConfigItem::IsHideOnClose));
-    if (config.getConfigToBool(ConfigItem::IsShowCloseWindow)) {
+    ui->showCloseWindowCheckbox->setChecked(config.getBool(ConfigItem::IsShowCloseWindow));
+    ui->hideOnCloseCheckbox->setChecked(config.getBool(ConfigItem::IsHideOnClose));
+    if (config.getBool(ConfigItem::IsShowCloseWindow)) {
         ui->hideOnCloseCheckbox->setEnabled(false);
     } else {
         ui->hideOnCloseCheckbox->setEnabled(true);
     }
-    ui->splashScreenCheckbox->setChecked(config.getConfigToBool(ConfigItem::IsSplashScreen));
+    ui->splashScreenCheckbox->setChecked(config.getBool(ConfigItem::IsSplashScreen));
+    ui->savePackLog->setChecked(config.getBool(ConfigItem::IsSavePackLog));
 
-    ui->tempPathEdit->setText(config.getConfigToString(ConfigItem::TempPath));
+    ui->tempPathEdit->setText(config.getString(ConfigItem::TempPath));
 }
 
 void MainWindow::updatePackLogUI() {
     this->readPackLog();
     QStringList logStringList;
-    for (PackLog &log: *this->packLog) {
-        logStringList.append(log.logFileName);
+    for (PackLog *log: *this->packLog) {
+        logStringList.append(log->logFileName);
     }
     this->packLogModel->setStringList(logStringList);
-    if (this->packLog->count() > 0) {
-        ui->packLogContent->setPlainText(this->packLog->at(0).logContent);
+
+    if (this->packLog->isEmpty()) {
+        ui->packLogContent->clear();
+        ui->noteEdit->clear();
+        this->currentPackLogIndex = 0;
+        return;
     }
+
+    if (this->currentPackLogIndex < 0 || this->currentPackLogIndex >= this->packLog->count()) {
+        this->currentPackLogIndex = 0;
+    }
+    ui->packLogContent->setPlainText(this->packLog->at(0)->logContent);
+    ui->noteEdit->setText(this->packLog->at(this->currentPackLogIndex)->logNote);
 }
 
 // Connect functions
@@ -641,7 +629,7 @@ void MainWindow::connectPackPage() {
     connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::PythonPath, QFileDialog::getOpenFileName(
                         this, "Nuitka Studio  Python解释器选择",
-                        config.getConfigToString(ConfigItem::DefaultPythonPath), "exe(*.exe)"));
+                        config.getString(ConfigItem::DefaultPythonPath), "exe(*.exe)"));
         ui->pythonFileEdit->setText(PCM.getItemValueToString(PCE::PythonPath));
     });
 
@@ -649,7 +637,7 @@ void MainWindow::connectPackPage() {
     connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::MainfilePath, QFileDialog::getOpenFileName(
                         this, "Nuitka Studio  主文件选择",
-                        config.getConfigToString(ConfigItem::DefaultMainFilePath),
+                        config.getString(ConfigItem::DefaultMainFilePath),
                         "Python file(*.py)"));
         ui->mainPathEdit->setText(PCM.getItemValueToString(PCE::MainfilePath));
     });
@@ -658,7 +646,7 @@ void MainWindow::connectPackPage() {
     connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::OutputPath, QFileDialog::getExistingDirectory(
                         this, "Nuitka Studio  输出路径",
-                        config.getConfigToString(ConfigItem::DefaultOutputPath),
+                        config.getString(ConfigItem::DefaultOutputPath),
                         QFileDialog::ShowDirsOnly));
         ui->outputPathEdit->setText(PCM.getItemValueToString(PCE::OutputPath));
     });
@@ -667,7 +655,7 @@ void MainWindow::connectPackPage() {
     connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
         PCM.setItem(PCE::ProjectPath, QFileDialog::getExistingDirectory(
                         this, "Nuitka Studio  项目路径",
-                        config.getConfigToString(ConfigItem::DefaultMainFilePath),
+                        config.getString(ConfigItem::DefaultMainFilePath),
                         QFileDialog::ShowDirsOnly));
         ui->projectPathEdit->setText(
             PCM.getItemValueToString(PCE::ProjectPath));
@@ -839,19 +827,19 @@ void MainWindow::connectSettingsPage() {
     connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [=](int index) {
                 EncodingEnum encoding = Utils::intToEnum<EncodingEnum>(index);
-                config.setConfigFromEncodingEnum(ConfigItem::ConsoleInputEncoding, encoding);
+                config.setEncodingEnum(ConfigItem::ConsoleInputEncoding, encoding);
             });
     // Console Output Encoding
     connect(ui->consoleOutputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [=](int index) {
                 EncodingEnum encoding = Utils::intToEnum<EncodingEnum>(index);
-                config.setConfigFromEncodingEnum(ConfigItem::ConsoleOutputEncoding, encoding);
+                config.setEncodingEnum(ConfigItem::ConsoleOutputEncoding, encoding);
             });
     // Language
     connect(ui->languageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [=](int index) {
                 Language language = Utils::intToEnum<Language>(index);
-                config.setConfigFromLanguage(ConfigItem::Language, language);
+                config.setLanguage(ConfigItem::Language, language);
                 if (GDM.get(GDIN::translator).value<QTranslator *>()->load(
                     QString(":/lang/%1.qm").arg(Utils::enumToString(language)))) {
                     QApplication::installTranslator(GDM.get(GDIN::translator).value<QTranslator *>());
@@ -862,21 +850,21 @@ void MainWindow::connectSettingsPage() {
             });
     // Pack Timer Trigger Interval
     connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
-        config.setConfig(ConfigItem::PackTimerTriggerInterval, value);
+        config.set(ConfigItem::PackTimerTriggerInterval, value);
     });
     // Max Pack Log Count
     connect(ui->maxPackLogCountSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
-        config.setConfig(ConfigItem::MaxPackLogCount, value);
+        config.set(ConfigItem::MaxPackLogCount, value);
     });
     // Is Show Close Window
     connect(ui->showCloseWindowCheckbox, QCheckBox::toggled, this, [=](bool checked) {
         if (checked) {
-            config.setConfigFromBool(ConfigItem::IsShowCloseWindow, true);
+            config.setBool(ConfigItem::IsShowCloseWindow, true);
         } else {
-            config.setConfigFromBool(ConfigItem::IsShowCloseWindow, false);
+            config.setBool(ConfigItem::IsShowCloseWindow, false);
         }
         // Is Enabled hideOnCloseCheckbox
-        if (config.getConfigToBool(ConfigItem::IsShowCloseWindow)) {
+        if (config.getBool(ConfigItem::IsShowCloseWindow)) {
             ui->hideOnCloseCheckbox->setEnabled(false);
         } else {
             ui->hideOnCloseCheckbox->setEnabled(true);
@@ -885,18 +873,22 @@ void MainWindow::connectSettingsPage() {
     // Is Hide On Close
     connect(ui->hideOnCloseCheckbox, QCheckBox::toggled, this, [=](bool checked) {
         if (checked) {
-            config.setConfigFromBool(ConfigItem::IsHideOnClose, true);
+            config.setBool(ConfigItem::IsHideOnClose, true);
         } else {
-            config.setConfigFromBool(ConfigItem::IsHideOnClose, false);
+            config.setBool(ConfigItem::IsHideOnClose, false);
         }
     });
     // Is Splash Screen
     connect(ui->splashScreenCheckbox, QCheckBox::toggled, this, [=](bool checked) {
-        config.setConfigFromBool(ConfigItem::IsSplashScreen, checked);
+        config.setBool(ConfigItem::IsSplashScreen, checked);
+    });
+    // Is Save Pack log
+    connect(ui->savePackLog, &QCheckBox::toggled, this, [=](bool checked) {
+        config.setBool(ConfigItem::IsSavePackLog, checked);
     });
     // Temp Path
     connect(ui->tempPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setConfig(ConfigItem::TempPath, text);
+        config.set(ConfigItem::TempPath, text);
     });
 
 
@@ -904,65 +896,65 @@ void MainWindow::connectSettingsPage() {
     // Browse Buttons
     // Default Python Path Browse
     connect(ui->defaultPyPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setConfig(ConfigItem::DefaultPythonPath,
-                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
-                                                           config.getConfigToString(ConfigItem::DefaultPythonPath),
-                                                           QFileDialog::ShowDirsOnly));
-        ui->defaultPyPathEdit->setText(config.getConfigToString(ConfigItem::DefaultPythonPath));
+        config.set(ConfigItem::DefaultPythonPath,
+                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
+                                                     config.getString(ConfigItem::DefaultPythonPath),
+                                                     QFileDialog::ShowDirsOnly));
+        ui->defaultPyPathEdit->setText(config.getString(ConfigItem::DefaultPythonPath));
     });
     // Default Main File Path Browse
     connect(ui->defaultMainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setConfig(ConfigItem::DefaultMainFilePath,
-                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
-                                                           config.getConfigToString(ConfigItem::DefaultMainFilePath),
-                                                           QFileDialog::ShowDirsOnly));
-        ui->defaultMainPathEdit->setText(config.getConfigToString(ConfigItem::DefaultMainFilePath));
+        config.set(ConfigItem::DefaultMainFilePath,
+                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
+                                                     config.getString(ConfigItem::DefaultMainFilePath),
+                                                     QFileDialog::ShowDirsOnly));
+        ui->defaultMainPathEdit->setText(config.getString(ConfigItem::DefaultMainFilePath));
     });
     // Default Output Path Browse
     connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setConfig(ConfigItem::DefaultOutputPath,
-                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
-                                                           config.getConfigToString(ConfigItem::DefaultOutputPath),
-                                                           QFileDialog::ShowDirsOnly));
-        ui->defaultOutputPathEdit->setText(config.getConfigToString(ConfigItem::DefaultOutputPath));
+        config.set(ConfigItem::DefaultOutputPath,
+                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
+                                                     config.getString(ConfigItem::DefaultOutputPath),
+                                                     QFileDialog::ShowDirsOnly));
+        ui->defaultOutputPathEdit->setText(config.getString(ConfigItem::DefaultOutputPath));
     });
     // Default Icon Path Browse
     connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setConfig(ConfigItem::DefaultIconPath,
-                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
-                                                           config.getConfigToString(ConfigItem::DefaultIconPath),
-                                                           QFileDialog::ShowDirsOnly));
-        ui->defaultIconPathEdit->setText(config.getConfigToString(ConfigItem::DefaultIconPath));
+        config.set(ConfigItem::DefaultIconPath,
+                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
+                                                     config.getString(ConfigItem::DefaultIconPath),
+                                                     QFileDialog::ShowDirsOnly));
+        ui->defaultIconPathEdit->setText(config.getString(ConfigItem::DefaultIconPath));
     });
     // Default Data Path Browse
     connect(ui->defaultDataPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.setConfig(ConfigItem::DefaultDataPath,
-                         QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认数据路径选择",
-                                                           config.getConfigToString(ConfigItem::DefaultDataPath),
-                                                           QFileDialog::ShowDirsOnly));
-        ui->defaultDataPathEdit->setText(config.getConfigToString(ConfigItem::DefaultDataPath));
+        config.set(ConfigItem::DefaultDataPath,
+                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认数据路径选择",
+                                                     config.getString(ConfigItem::DefaultDataPath),
+                                                     QFileDialog::ShowDirsOnly));
+        ui->defaultDataPathEdit->setText(config.getString(ConfigItem::DefaultDataPath));
     });
 
     // Line Edits
     // Python Edit
     connect(ui->defaultPyPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setConfigFromString(ConfigItem::DefaultPythonPath, text);
+        config.setString(ConfigItem::DefaultPythonPath, text);
     });
     // Main file Edit
     connect(ui->defaultMainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setConfigFromString(ConfigItem::DefaultMainFilePath, text);
+        config.setString(ConfigItem::DefaultMainFilePath, text);
     });
     // Output Edit
     connect(ui->defaultOutputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setConfigFromString(ConfigItem::DefaultOutputPath, text);
+        config.setString(ConfigItem::DefaultOutputPath, text);
     });
     // Icon Edit
     connect(ui->defaultIconPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setConfigFromString(ConfigItem::DefaultIconPath, text);
+        config.setString(ConfigItem::DefaultIconPath, text);
     });
     // Data Edit
     connect(ui->defaultDataPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setConfigFromString(ConfigItem::DefaultDataPath, text);
+        config.setString(ConfigItem::DefaultDataPath, text);
     });
 
     // Save button
@@ -1026,6 +1018,7 @@ void MainWindow::connectOther() {
         ui->showCloseWindowCheckbox->setStyleSheet(ui->showCloseWindowCheckbox->styleSheet() += textStyleSheet);
         ui->hideOnCloseCheckbox->setStyleSheet(ui->hideOnCloseCheckbox->styleSheet() += textStyleSheet);
         ui->splashScreenCheckbox->setStyleSheet(ui->splashScreenCheckbox->styleSheet() += textStyleSheet);
+        ui->savePackLog->setStyleSheet(ui->savePackLog->styleSheet() += textStyleSheet);
     });
 
     connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
@@ -1046,13 +1039,25 @@ void MainWindow::connectOther() {
 void MainWindow::connectPackLog() {
     connect(ui->packLogFileList, &ElaListView::clicked, this, [=](const QModelIndex &index) {
         int row = index.row();
-        const QString &content = this->packLog->at(row).logContent;
-        ui->packLogContent->setPlainText(content);
+        this->currentPackLogIndex = row;
+        PackLog *packLog = this->packLog->at(row);
+        ui->packLogContent->setPlainText(packLog->logContent);
+        ui->noteEdit->setText(packLog->logNote);
+    });
+
+    connect(ui->noteEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        PackLog *packLog = this->packLog->at(this->currentPackLogIndex);
+        packLog->logNote = text;
+        this->noteObject.insert(packLog->logFileName, text);
+        this->saveNote();
     });
 }
 
 // Init functions
 void MainWindow::initUI() {
+    // Pack log
+    ui->packLogFileList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     // Status bar
     this->messageLabel = new ElaText("", 9, this);
     this->messageLabel->setAlignment(Qt::AlignCenter);
@@ -1153,11 +1158,11 @@ void MainWindow::genData(bool isUpdateUI) {
         }
     }
 
-    this->genPythonPath();
-    this->genMainfilePath();
-    this->genOutputPath();
-    this->genOutputName();
-    this->genFileInfo();
+    genPythonPath();
+    genMainfilePath();
+    genOutputPath();
+    genOutputName();
+    genFileInfo();
     if (isUpdateUI) {
         this->updateUI();
     }
@@ -1226,7 +1231,7 @@ void MainWindow::genFileInfo() {
 
 // events
 void MainWindow::closeEvent(QCloseEvent *event) {
-    if (config.getConfigToBool(ConfigItem::IsShowCloseWindow)) {
+    if (config.getBool(ConfigItem::IsShowCloseWindow)) {
         QDialog dialog(this);
         QVBoxLayout mainLayout;
         dialog.setLayout(&mainLayout);
@@ -1256,9 +1261,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         });
         connect(&hideCheckbox, &QCheckBox::stateChanged, [=](int state) {
             if (state == Qt::Checked) {
-                config.setConfigFromBool(ConfigItem::IsShowCloseWindow, false);
+                config.setBool(ConfigItem::IsShowCloseWindow, false);
             } else if (state == Qt::Unchecked) {
-                config.setConfigFromBool(ConfigItem::IsShowCloseWindow, true);
+                config.setBool(ConfigItem::IsShowCloseWindow, true);
             }
             config.writeConfig();
         });
@@ -1266,12 +1271,12 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         dialog.exec();
 
         if (shouldQuit) {
-            config.setConfigFromBool(ConfigItem::IsHideOnClose, false);
+            config.setBool(ConfigItem::IsHideOnClose, false);
             event->accept();
             config.writeConfig();
             qApp->quit();
         } else if (shouldHide) {
-            config.setConfigFromBool(ConfigItem::IsHideOnClose, true);
+            config.setBool(ConfigItem::IsHideOnClose, true);
             this->hide();
             event->ignore();
             config.writeConfig();
@@ -1279,7 +1284,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
             event->ignore();
         }
     } else {
-        if (config.getConfigToBool(ConfigItem::IsHideOnClose)) {
+        if (config.getBool(ConfigItem::IsHideOnClose)) {
             this->hide();
             event->ignore();
         } else {
@@ -1319,7 +1324,7 @@ void MainWindow::dropEvent(QDropEvent *event) {
                 Logger::info("拖拽文件至窗口，文件路径：" + filePath);
                 QString suffix = pathInfo.suffix().toLower();
                 if (suffix == "npf") {
-                    if (!this->npfStatusTypeHandler(this->projectConfig->loadProject(filePath), filePath)) {
+                    if (!this->npfStatusTypeHandler(ProjectConfig::loadProject(filePath), filePath)) {
                         this->genData();
                         this->clearText(TextPos::TopLabel);
                         this->enabledInput();
@@ -1500,24 +1505,30 @@ void MainWindow::readPackLog() {
         Logger::warn("NPF文件路径为空，无法调用MainWindow::readPackLog函数");
         return;
     }
-    QString nowString = QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss");
-    QString zipTempPath = config.getConfigToString(ConfigItem::TempPath) + "/npf_repack_" + nowString;
-    QString packLogPath = zipTempPath + "/pack_log";
+    QString packLogRoot = GDM.getString(GDIN::packLogPath) + "/" + QFileInfo(GDM.getString(GDIN::npfFilePath)).
+                          fileName();
 
-    Compress::extractZip(GDM.getString(GDIN::npfFilePath), zipTempPath);
-    QStringList logList = QDir(packLogPath).entryList(QDir::Files | QDir::NoDotAndDotDot);
-    for (const QString &logFileName: logList) {
-        QFile file(packLogPath + "/" + logFileName);
-        if (!file.open(QIODevice::ReadOnly)) {
-            QMessageBox::warning(this, "Nuitka Studio Warning", "无法打开打包日志文件" + logFileName);
-            Logger::warn("无法打开打包日志文件" + logFileName);
-            continue;
-        }
-        QString log = QString::fromUtf8(file.readAll());
-        this->packLog->append(PackLog(logFileName, log));
+    if (!QDir(packLogRoot).exists()) {
+        Logger::warn("MainWindow::readPackLog(): 打包日志目录不存在, " + packLogRoot);
+        return;
     }
-    // remove temp files
-    QDir(zipTempPath).removeRecursively();
+    QStringList packLogFileList = QDir(packLogRoot).entryList(QDir::Files);
+    if (packLogFileList.contains("note.json")) {
+        packLogFileList.removeOne("note.json");
+    }
+
+    for (const QString &packLogFile: packLogFileList) {
+        QFile file(packLogRoot + "/" + packLogFile);
+        if (!file.open(QIODevice::ReadOnly)) {
+            QMessageBox::critical(this, "Nuitka Studio Error", "无法加载打包日志");
+            return;
+        }
+
+        QString packLog = QString::fromUtf8(file.readAll());
+        QString note = this->noteObject.value(packLogFile).toString();
+
+        this->packLog->append(new PackLog(packLogFile, packLog, note));
+    }
 }
 
 bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path, bool isTip) {
@@ -1531,8 +1542,18 @@ bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path,
         case NPFStatusType::NPFNotFound:
             if (isTip) QMessageBox::critical(this, "Nuitka Studio Error", QString("找不到npf文件%1").arg(path));
             return true;
+        case NPFStatusType::NPFNotOpen:
+            if (isTip) QMessageBox::critical(this, "Nuitka Studio Error", QString("无法打开npf文件"));
+        case NPFStatusType::NotFoundNote:
+            if (isTip) QMessageBox::critical(this, "Nuitka Studio Error", QString("note.json文件错误，请尝试不保存打包日志文件"));
         case NPFStatusType::NPFRight:
             return false;
     }
     return true;
+}
+
+void MainWindow::saveNote() const {
+    this->noteFile->open(QIODevice::WriteOnly);
+    this->noteFile->write(QJsonDocument(this->noteObject).toJson());
+    this->noteFile->close();
 }

@@ -45,8 +45,13 @@ int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     qRegisterMetaType<LTOMode>("LTOMode");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
-    qRegisterMetaType<EncodingEnum>("EncodingEnum");
-    qRegisterMetaType<Language>("Language");
+
+    qRegisterMetaType<EncodingEnum>("ConfigEnumNS::EncodingEnum");
+    qRegisterMetaType<Language>("ConfigEnumNS::Language");
+    qRegisterMetaTypeStreamOperators<Language>("ConfigEnumNS::Language");
+
+    qRegisterMetaType<PackLog>("PackLog");
+
     initProjectConfig();
 
     QApplication a(argc, argv);
@@ -59,38 +64,43 @@ int main(int argc, char *argv[]) {
     // 开屏动画
     QPixmap pixmap(":/logo");
     QSplashScreen splash(pixmap);
-    if (config.getConfigToBool(ConfigItem::IsSplashScreen)) {
+    if (config.getBool(ConfigItem::IsSplashScreen)) {
         splash.show();
         a.processEvents();
     }
 
-    // Init GDM
-    GDM.setString(GDIN::npfFilePath, "");
-    GDM.setBool(GDIN::isOpenNPF, false);
-    GDM.set(GDIN::translator, QVariant::fromValue(new QTranslator));
-
-    // Load qm file
-    if (GDM.get(GDIN::translator).value<QTranslator*>()->load(
-        QString(":/lang/%1.qm").arg(Utils::enumToString(config.getConfigToLanguage(ConfigItem::Language))))) {
-        QApplication::installTranslator(GDM.get(GDIN::translator).value<QTranslator*>());
-    } else {
-        Logger::error("无法加载语言文件");
-    }
-
-    ElaApplication::getInstance()->init();
     // Init logger
     Logger::Config cfg;
     cfg.file_path = "app.log";
     Logger logger(cfg);
     if (!isDebug) Logger::installQtMessageHandler();
 
+    // Init GDM
+    GDM.setString(GDIN::npfFilePath, "");
+    GDM.setBool(GDIN::isOpenNPF, false);
+    GDM.set(GDIN::translator, QVariant::fromValue(new QTranslator));
+    GDM.setString(GDIN::packLogPath, QApplication::applicationDirPath() + "/pack_log");
+
+    // Load qm file
+    if (GDM.get(GDIN::translator).value<QTranslator*>()->load(
+        QString(":/lang/%1.qm").arg(Utils::enumToString(config.getLanguage(ConfigItem::Language))))) {
+        QApplication::installTranslator(GDM.get(GDIN::translator).value<QTranslator*>());
+        Logger::info("语言文件加载完毕");
+    } else {
+        Logger::error("无法加载语言文件");
+    }
+
+    ElaApplication::getInstance()->init();
+
     // init mainwindow
     MainWindow w;
     QThread::msleep(500); // 仅用于让开屏动画可以正常显示，不至于一闪而过
     w.show();
     splash.finish(&w);
-    // clean
+    // load
     int ret = QApplication::exec();
+
+    // clean
     if (!isDebug) Logger::uninstallQtMessageHandler();
     logger.shutdown();
     GDM.get(GDIN::translator).value<QTranslator*>()->deleteLater();
@@ -99,7 +109,7 @@ int main(int argc, char *argv[]) {
 
 /*
 Version 1.3.0.0 TO-DO
-TODO: 添加对打包日志进行备注的功能
+TODO:
 TODO: 添加隐藏控制台选项的功能
 TODO: 添加自定义指令的功能
 TODO: 每次打包递增版本号，提供增加版本号的按钮
@@ -108,7 +118,8 @@ TODO: 每次打包递增版本号，提供增加版本号的按钮
 /**
 Version 1.3.0.0
 重大修改：
-
+1. 添加英语模式
+2. NPF文件改用了NPF Version 2格式
 普通修改：
 1. 移除了导出页面，跟换为了打包日志页面
 2. 移除了"工具"菜单
@@ -123,12 +134,13 @@ Version 1.3.0.0
 11. 添加可以将文件拖动以打开的功能
 12. 添加按Tab切换页面的功能
 13. 添加启动动画，可关闭
-14.
+14. 将打包计时器的位置改到了底部中间位置
+15. 添加对打包日志进行备注的功能
 
 修复的问题：
 1. 修复了新建NPF文件时关闭窗口后会弹出导出文件选择窗口的问题
 2. 修复了新建NPF文件时文件没有后缀的问题
-
+3. 修复了打包时有时会提示 “警告：原 NPF 文件内容解压失败或为空！归档已取消以保护原文件。” 的问题
 
 代码方面的修改
 重大修改：
@@ -139,4 +151,5 @@ Version 1.3.0.0
 2. 重构了Config类
 3. 将SettingsEnum枚举的名称改为了ConfigItem
 4. 在Utils类中添加了通过QMetaType将enum转换为string或者int的函数
+5. 修改了Config类api接口的名称
 */

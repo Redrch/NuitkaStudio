@@ -31,7 +31,7 @@ public:
     QList<ProjectConfigType *> *getList() const;
     int getIndex(const QString &name) const;
 
-    ProjectConfigType *getItem(int index);
+    ProjectConfigType *getItem(int index) const;
     ProjectConfigType *getItem(PCE value);
 
     QVariant getItemValue(int index);

@@ -54,7 +54,7 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent) {
     githubUrlText->setTextInteractionFlags(Qt::TextSelectableByMouse);
     githubUrlText->setCursor(Qt::PointingHandCursor);
     githubUrlText->setWordWrap(false);
-    ElaText *copyrightText = new ElaText(tr("版权所有 © 2026 Redrch"), 14, this);
+    ElaText *copyrightText = new ElaText(tr("版权所有 © 2025-2026 Redrch"), 14, this);
     copyrightText->setWordWrap(false);
 
     QVBoxLayout *textLayout = new QVBoxLayout();

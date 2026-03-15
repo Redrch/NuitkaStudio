@@ -74,7 +74,9 @@ spdlog: https://github.com/gabime/spdlog
 
 fmt: https://github.com/fmtlib/fmt
 
+<br>
 
+<br>
 
 ------------------------
 
@@ -114,7 +116,6 @@ fmt: https://github.com/fmtlib/fmt
 - /
 --- data.json            // 存储npf文件的基本信息，例如NPF格式版本号，以及使用nuitka打包时的参数
 --- pack_log/            // nuitka打包日志
-------  note.json                         // 日志备注
 ------  yyyy-mm-dd_hh-MM-ss.log           // 具体文件
 ------  ...
 ```
@@ -151,9 +152,9 @@ fmt: https://github.com/fmtlib/fmt
 
 ```
 
-ltoMode值中，0代表Auto，1代表Yes，2代表No
+`ltoMode`值中，0代表`Auto`，1代表`Yes`，2代表`No`
 
-npf_version值目前为1
+`npf_version`值目前为1
 
 
 
@@ -169,7 +170,7 @@ npf_version值目前为1
 }
 ```
 
-log file name 是log文件的文件名
+`log file name`是log文件的文件名
 
 可以继续增加下去，这里只是举了一些例子
 
@@ -181,7 +182,7 @@ log file name 是log文件的文件名
 
 ```json
 {
-    "npf_version": 2,
+    "npf_version": "2",
     "project": {
         "company": "company",
         "dataList": [
@@ -212,12 +213,17 @@ log file name 是log文件的文件名
 }
 ```
 
-"pack_log"字段中的内容可以继续增加
+`pack_log`字段中的内容可以继续增加
 
+如果没有勾选包含打包日志，那么npf文件中不会含有`pack_log`字段
 
+**注意，此版本及以后版本中的`npf_version`字段是字符串**
+<br>
+<br>
+<br>
 
 
 
 ------------------------------------------------------------------------
 
-NuitkaStudio      版权所有 © 2025-2026 Redrch
+NuitkaStudio      版权所有 © 2025-2026 Redrch   Email: redrch327@gmail.com

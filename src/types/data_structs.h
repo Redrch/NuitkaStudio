@@ -120,5 +120,9 @@ struct PackLog {
     }
 };
 
+using PackLogList = QList<PackLog>;
+Q_DECLARE_METATYPE(PackLog)
+Q_DECLARE_METATYPE(QList<PackLog>)
+
 
 #endif //DATASTRUCTS_H

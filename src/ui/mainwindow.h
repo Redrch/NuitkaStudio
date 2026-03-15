@@ -102,12 +102,13 @@ private:
     // variants
     Ui::MainWindow *ui;
 
-    ProjectConfig *projectConfig;
-
     QDateTime startPackTime;
     QTimer *packTimer;
     QTimer *mainTimer;
     QProcess *packProcess;
+    QFile *noteFile;
+    QJsonObject noteObject;
+
     // bar
     ElaTabBar *topTabBar;
     ElaMenuBar *menuBar;
@@ -137,13 +138,14 @@ private:
     QAction *quitAction;
 
     // pack log
-    QList<PackLog> *packLog;
+    QList<PackLog*> *packLog;
 
     // models
     QStringListModel *packLogModel;
     QStringListModel *dataListModel;
 
     int currentPageIndex;
+    int currentPackLogIndex;
 
     // functions
     // Update UI functions
@@ -184,6 +186,7 @@ private:
     // util functions
     void readPackLog();
     bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);
+    void saveNote() const;
 
 private slots:
     void onAddDataFileItemClicked();
@@ -201,12 +204,12 @@ private slots:
 
     // Gen path functions
     void genData(bool isUpdateUI = true);
-    void genPythonPath();
-    void genMainfilePath();
-    void genOutputPath();
-    void genOutputName();
+    static void genPythonPath();
+    static void genMainfilePath();
+    static void genOutputPath();
+    static void genOutputName();
     // Gen file info functions
-    void genFileInfo();
+    static void genFileInfo();
 
     void retranslateCustomUi() const;
 protected:

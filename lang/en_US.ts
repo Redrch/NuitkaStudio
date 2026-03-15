@@ -365,7 +365,7 @@
         <location filename="../src/ui/mainwindow.cpp" line="492"/>
         <location filename="../src/ui/mainwindow.h" line="88"/>
         <source>打包日志</source>
-        <translation>Packaging log</translation>
+        <translation>Pack log</translation>
     </message>
     <message>
         <location filename="../forms/mainwindow.ui" line="1631"/>

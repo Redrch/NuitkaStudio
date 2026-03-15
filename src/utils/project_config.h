@@ -24,6 +24,8 @@ enum class NPFStatusType {
     NPFDamage,
     NPFVersionError,
     NPFNotFound,
+    NPFNotOpen,
+    NotFoundNote,
     NPFRight
 };
 
@@ -32,10 +34,9 @@ public:
     ProjectConfig();
     ~ProjectConfig();
 
-    NPFStatusType loadProject(const QString& path) const;
-    NPFStatusType saveProject(const QString& path) const;
-private:
-    Compress* compress;
+    static NPFStatusType loadProject(const QString& path) ;
+
+    static NPFStatusType saveProject(const QString& path, bool savePackLog);
 };
 
 

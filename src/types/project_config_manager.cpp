@@ -39,7 +39,11 @@ int ProjectConfigManager::getIndex(const QString &name) const {
     return -1;
 }
 
-ProjectConfigType *ProjectConfigManager::getItem(int index) {
+ProjectConfigType *ProjectConfigManager::getItem(int index) const {
+    if (index < 0 || index >= this->configList->size()) {
+        Logger::error("Crash prevented! Out of range index:" + index);
+        return nullptr;
+    }
     return this->configList->at(index);
 }
 
@@ -91,13 +95,21 @@ int ProjectConfigManager::getLength() const {
 
 void ProjectConfigManager::setItem(const int index, const QVariant &value) {
     ProjectConfigType *configItem = getItem(index);
-    configItem->set_itemValue(value);
+    if (configItem) {
+        configItem->set_itemValue(value);
+    } else {
+        Logger::error(QString("无法设置索引为 %1 的配置项：索引越界").arg(index));
+    }
 }
 
 void ProjectConfigManager::setItem(PCE configValue, const QVariant &value) {
     int index = static_cast<int>(configValue);
     ProjectConfigType *configItem = getItem(index);
-    configItem->set_itemValue(value);
+    if (configItem) {
+        configItem->set_itemValue(value);
+    } else {
+        Logger::error(QString("无法设置索引为 %1 的配置项：索引越界").arg(index));
+    }
 }
 
 void ProjectConfigManager::appendItemToStringList(int index, const QString &value) {
