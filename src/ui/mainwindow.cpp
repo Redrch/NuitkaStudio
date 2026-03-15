@@ -621,6 +621,42 @@ void MainWindow::connectStackedWidget() {
 void MainWindow::connectMenubar() {
     connect(ui->fileMenu, &QMenu::triggered, this, &MainWindow::onFileMenuTriggered);
     connect(ui->helpMenu, &QMenu::triggered, this, &MainWindow::onHelpMenuTriggered);
+    connect(ui->basicSettingsAction, &QAction::triggered, this, [=]() {
+        if (config.getBool(ConfigItem::BasicSettings)) {
+            ui->baseWidget->hide();
+            config.setBool(ConfigItem::BasicSettings, false);
+        } else {
+            ui->baseWidget->show();
+            config.setBool(ConfigItem::BasicSettings, true);
+        }
+    });
+    connect(ui->packAndDataAction, &QAction::triggered, this, [=]() {
+        if (config.getBool(ConfigItem::PackAndData)) {
+            ui->buildAndDataGroups->hide();
+            config.setBool(ConfigItem::PackAndData, false);
+        } else {
+            ui->buildAndDataGroups->show();
+            config.setBool(ConfigItem::PackAndData, true);
+        }
+    });
+    connect(ui->fileInfoAction, &QAction::triggered, this, [=]() {
+        if (config.getBool(ConfigItem::FileInfo)) {
+            ui->infoDataWidget->hide();
+            config.setBool(ConfigItem::FileInfo, false);
+        } else {
+            ui->infoDataWidget->show();
+            config.setBool(ConfigItem::FileInfo, true);
+        }
+    });
+    connect(ui->consoleAction, &QAction::triggered, this, [=]() {
+        if (config.getBool(ConfigItem::Console)) {
+            ui->outputWidget->hide();
+            config.setBool(ConfigItem::Console, false);
+        } else {
+            ui->outputWidget->show();
+            config.setBool(ConfigItem::Console, true);
+        }
+    });
 }
 
 void MainWindow::connectPackPage() {
@@ -1121,6 +1157,16 @@ void MainWindow::initUI() {
     this->floatButton->setAttribute(Qt::WA_TranslucentBackground);
     this->floatButton->hide();
 
+    // Window
+    if (config.getBool(ConfigItem::BasicSettings)) ui->baseWidget->show();
+    else ui->baseWidget->hide();
+    if (config.getBool(ConfigItem::PackAndData)) ui->buildAndDataGroups->show();
+    else ui->buildAndDataGroups->hide();
+    if (config.getBool(ConfigItem::FileInfo)) ui->infoDataWidget->show();
+    else ui->infoDataWidget->hide();
+    if (config.getBool(ConfigItem::Console)) ui->outputWidget->show();
+    else ui->outputWidget->hide();
+
     this->initMenuBar();
 }
 
@@ -1457,6 +1503,10 @@ void MainWindow::noEnableInput() const {
 
     this->startPackAction->setEnabled(false);
     this->stopPackAction->setEnabled(false);
+
+    ui->packLogFileList->setEnabled(false);
+    ui->noteEdit->setEnabled(false);
+    ui->packLogContent->setEnabled(false);
 }
 
 void MainWindow::enabledInput() const {
@@ -1496,6 +1546,10 @@ void MainWindow::enabledInput() const {
 
     this->startPackAction->setEnabled(true);
     this->stopPackAction->setEnabled(true);
+
+    ui->packLogFileList->setEnabled(true);
+    ui->noteEdit->setEnabled(true);
+    ui->packLogContent->setEnabled(true);
 }
 
 // util functions

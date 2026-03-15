@@ -29,7 +29,7 @@
        <string notr="true">QWidget {background: transparent;}</string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="packPage">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -61,7 +61,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>757</width>
+             <width>969</width>
              <height>936</height>
             </rect>
            </property>
@@ -981,7 +981,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>969</width>
+             <width>520</width>
              <height>605</height>
             </rect>
            </property>
@@ -1726,8 +1726,18 @@
     <addaction name="helpAction"/>
     <addaction name="aboutAction"/>
    </widget>
+   <widget class="ElaMenu" name="windowMenu">
+    <property name="title">
+     <string>窗口(&amp;W)</string>
+    </property>
+    <addaction name="basicSettingsAction"/>
+    <addaction name="packAndDataAction"/>
+    <addaction name="fileInfoAction"/>
+    <addaction name="consoleAction"/>
+   </widget>
    <addaction name="fileMenu"/>
    <addaction name="helpMenu"/>
+   <addaction name="windowMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="openAction">
@@ -1778,6 +1788,26 @@
   <action name="closeFileAction">
    <property name="text">
     <string>关闭文件(&amp;C)</string>
+   </property>
+  </action>
+  <action name="consoleAction">
+   <property name="text">
+    <string>控制台</string>
+   </property>
+  </action>
+  <action name="basicSettingsAction">
+   <property name="text">
+    <string>基础设置</string>
+   </property>
+  </action>
+  <action name="packAndDataAction">
+   <property name="text">
+    <string>打包与数据设置</string>
+   </property>
+  </action>
+  <action name="fileInfoAction">
+   <property name="text">
+    <string>文件信息设置</string>
    </property>
   </action>
  </widget>

@@ -28,6 +28,11 @@ Config::Config() {
     this->addConfig("IsSplashScreen", QVariant(true), ConfigGroup::General);
     this->addConfig("IsSavePackLog", QVariant(false), ConfigGroup::General);
 
+    this->addConfig("BasicSettings", QVariant(true), ConfigGroup::Window);
+    this->addConfig("PackAndData", QVariant(true), ConfigGroup::Window);
+    this->addConfig("FileInfo", QVariant(true), ConfigGroup::Window);
+    this->addConfig("Console", QVariant(true), ConfigGroup::Window);
+
     this->addConfig("DefaultPythonPath", "C:/", ConfigGroup::DefaultPath);
     this->addConfig("DefaultMainFilePath", "C:/", ConfigGroup::DefaultPath);
     this->addConfig("DefaultOutputPath", "C:/", ConfigGroup::DefaultPath);
@@ -84,6 +89,13 @@ void Config::writeConfig() const {
     this->settings->setValue("IsSavePackLog", this->get(ConfigItem::IsSavePackLog));
     this->settings->endGroup();
 
+    this->settings->beginGroup("Window");
+    this->settings->setValue("BasicSettings", this->get(ConfigItem::Console));
+    this->settings->setValue("PackAndData", this->get(ConfigItem::Console));
+    this->settings->setValue("FileInfo", this->get(ConfigItem::Console));
+    this->settings->setValue("Console", this->get(ConfigItem::Console));
+    this->settings->endGroup();
+
     this->settings->beginGroup("DefaultPath");
     this->settings->setValue("DefaultPythonPath", this->get(ConfigItem::DefaultPythonPath));
     this->settings->setValue("DefaultMainFilePath", this->get(ConfigItem::DefaultMainFilePath));
@@ -116,6 +128,13 @@ void Config::readConfig() const {
     this->set(ConfigItem::IsFloatButtonLight, this->settings->value("IsFloatButtonLight").toBool());
     this->set(ConfigItem::IsSplashScreen, this->settings->value("IsSplashScreen").toBool());
     this->set(ConfigItem::IsSavePackLog, this->settings->value("IsSavePackLog").toBool());
+    this->settings->endGroup();
+
+    this->settings->beginGroup("Window");
+    this->set(ConfigItem::BasicSettings, this->settings->value("BasicSettings").toString());
+    this->set(ConfigItem::PackAndData, this->settings->value("PackAndData").toString());
+    this->set(ConfigItem::FileInfo, this->settings->value("FileInfo").toString());
+    this->set(ConfigItem::Console, this->settings->value("Console").toString());
     this->settings->endGroup();
 
     this->settings->beginGroup("DefaultPath");

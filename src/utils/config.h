@@ -48,6 +48,11 @@ namespace ConfigEnumNS {
         IsSplashScreen,
         IsSavePackLog,
 
+        BasicSettings,
+        PackAndData,
+        FileInfo,
+        Console,
+
         DefaultPythonPath,
         DefaultMainFilePath,
         DefaultOutputPath,
@@ -59,6 +64,7 @@ namespace ConfigEnumNS {
 
     enum class ConfigGroup {
         General,
+        Window,
         DefaultPath
     };
 
