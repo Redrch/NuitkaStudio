@@ -62,7 +62,7 @@
              <x>0</x>
              <y>0</y>
              <width>969</width>
-             <height>936</height>
+             <height>998</height>
             </rect>
            </property>
            <property name="styleSheet">
@@ -463,6 +463,30 @@
                            </item>
                           </layout>
                          </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="customCommandWidget" native="true">
+                       <layout class="QVBoxLayout" name="verticalLayout_14">
+                        <item>
+                         <widget class="ElaText" name="customCommandLabel">
+                          <property name="font">
+                           <font>
+                            <pointsize>10</pointsize>
+                           </font>
+                          </property>
+                          <property name="toolTip">
+                           <string>需要使用空格来分割选项</string>
+                          </property>
+                          <property name="text">
+                           <string>自定义命令参数</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="ElaLineEdit" name="customCommandEdit"/>
                         </item>
                        </layout>
                       </widget>
@@ -1742,22 +1766,22 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="openAction">
    <property name="text">
-    <string>打开(&amp;O)</string>
+    <string>打开</string>
    </property>
   </action>
   <action name="saveAction">
    <property name="text">
-    <string>保存(&amp;S)</string>
+    <string>保存</string>
    </property>
   </action>
   <action name="helpAction">
    <property name="text">
-    <string>帮助(&amp;H)</string>
+    <string>帮助</string>
    </property>
   </action>
   <action name="aboutAction">
    <property name="text">
-    <string>关于(&amp;A)</string>
+    <string>关于</string>
    </property>
   </action>
   <action name="action">
@@ -1767,7 +1791,7 @@
   </action>
   <action name="newAction">
    <property name="text">
-    <string>新建(&amp;N)</string>
+    <string>新建</string>
    </property>
   </action>
   <action name="packLogAction">
@@ -1782,12 +1806,12 @@
   </action>
   <action name="saveAsAction">
    <property name="text">
-    <string>另存为(&amp;A)</string>
+    <string>另存为</string>
    </property>
   </action>
   <action name="closeFileAction">
    <property name="text">
-    <string>关闭文件(&amp;C)</string>
+    <string>关闭文件</string>
    </property>
   </action>
   <action name="consoleAction">

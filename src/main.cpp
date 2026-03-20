@@ -15,29 +15,31 @@ bool isDebug = true;
 
 void initProjectConfig() {
     // path data
-    PCM.addItem(new ProjectConfigType("pythonPath", QVariant(""))); // 0
-    PCM.addItem(new ProjectConfigType("mainFilePath", QVariant(""))); // 1
-    PCM.addItem(new ProjectConfigType("outputPath", QVariant(""))); // 2
-    PCM.addItem(new ProjectConfigType("outputFilename", QVariant(""))); // 3
-    PCM.addItem(new ProjectConfigType("projectPath", QVariant(""))); // 4
-    PCM.addItem(new ProjectConfigType("projectName", QVariant(""))); // 5
-    PCM.addItem(new ProjectConfigType("iconPath", QVariant(""))); // 6
+    PCM.addItem(new ProjectConfigType("pythonPath", QVariant("")));                  // 0
+    PCM.addItem(new ProjectConfigType("mainFilePath", QVariant("")));                // 1
+    PCM.addItem(new ProjectConfigType("outputPath", QVariant("")));                  // 2
+    PCM.addItem(new ProjectConfigType("outputFilename", QVariant("")));              // 3
+    PCM.addItem(new ProjectConfigType("projectPath", QVariant("")));                 // 4
+    PCM.addItem(new ProjectConfigType("projectName", QVariant("")));                 // 5
+    PCM.addItem(new ProjectConfigType("iconPath", QVariant("")));                    // 6
     // bool data
-    PCM.addItem(new ProjectConfigType("standalone", QVariant(true))); // 7
-    PCM.addItem(new ProjectConfigType("onefile", QVariant(false))); // 8
-    PCM.addItem(new ProjectConfigType("removeOutput", QVariant(false))); // 9
+    PCM.addItem(new ProjectConfigType("standalone", QVariant(true)));                // 7
+    PCM.addItem(new ProjectConfigType("onefile", QVariant(false)));                  // 8
+    PCM.addItem(new ProjectConfigType("removeOutput", QVariant(false)));             // 9
     // lto mode
-    PCM.addItem(new ProjectConfigType("ltoMode", QVariant::fromValue(LTOMode::Auto))); // 10
+    PCM.addItem(new ProjectConfigType("ltoMode", QVariant::fromValue(LTOMode::Auto)));       // 10
     // data list
-    PCM.addItem(new ProjectConfigType("dataList", QVariant(QStringList()))); // 11
+    PCM.addItem(new ProjectConfigType("dataList", QVariant(QStringList())));    // 11
     // file data
-    PCM.addItem(new ProjectConfigType("fileVersion", QVariant(""))); // 12
-    PCM.addItem(new ProjectConfigType("company", QVariant(""))); // 13
-    PCM.addItem(new ProjectConfigType("productName", QVariant(""))); // 14
-    PCM.addItem(new ProjectConfigType("productVersion", QVariant(""))); // 15
-    PCM.addItem(new ProjectConfigType("fileDescription", QVariant(""))); // 16
-    PCM.addItem(new ProjectConfigType("legalCopyright", QVariant(""))); // 17
-    PCM.addItem(new ProjectConfigType("legalTrademarks", QVariant(""))); // 18
+    PCM.addItem(new ProjectConfigType("fileVersion", QVariant("")));                 // 12
+    PCM.addItem(new ProjectConfigType("company", QVariant("")));                     // 13
+    PCM.addItem(new ProjectConfigType("productName", QVariant("")));                 // 14
+    PCM.addItem(new ProjectConfigType("productVersion", QVariant("")));              // 15
+    PCM.addItem(new ProjectConfigType("fileDescription", QVariant("")));             // 16
+    PCM.addItem(new ProjectConfigType("legalCopyright", QVariant("")));              // 17
+    PCM.addItem(new ProjectConfigType("legalTrademarks", QVariant("")));             // 18
+    // custom commands
+    PCM.addItem(new ProjectConfigType("customCommand", QVariant("")));               // 19
 }
 
 int main(int argc, char *argv[]) {
@@ -109,7 +111,6 @@ int main(int argc, char *argv[]) {
 
 /*
 Version 1.3.0.0 TO-DO
-TODO: 添加自定义指令的功能
 TODO: 每次打包递增版本号，提供增加版本号的按钮
 */
 
@@ -135,6 +136,7 @@ Version 1.3.0.0
 13. 将打包计时器的位置改到了底部中间位置
 14. 添加对打包日志进行备注的功能
 15. 添加隐藏窗体的功能
+16. 添加自定义指令的功能
 
 修复的问题：
 1. 修复了新建NPF文件时关闭窗口后会弹出导出文件选择窗口的问题
@@ -151,4 +153,5 @@ Version 1.3.0.0
 3. 将SettingsEnum枚举的名称改为了ConfigItem
 4. 在Utils类中添加了通过QMetaType将enum转换为string或者int的函数
 5. 修改了Config类api接口的名称
+6. 修改了菜单栏信号的连接方式
 */

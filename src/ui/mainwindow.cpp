@@ -261,6 +261,11 @@ void MainWindow::startPack() {
         args << "--trademarks=" + PCM.getItemValueToString(
             PCE::LegalTrademarks);
     }
+    if (!PCM.getItemValueToString(PCE::CustomCommand).isEmpty()) {
+        QString command = PCM.getItemValueToString(PCE::CustomCommand);
+        QStringList commandArgs = command.split(" ");
+        args << commandArgs;
+    }
 
     this->packProcess->start(
         PCM.getItemValueToString(PCE::PythonPath), args);
@@ -388,73 +393,6 @@ void MainWindow::onRemoveItemClicked() const {
     }
 }
 
-void MainWindow::onFileMenuTriggered(QAction *action) {
-    QString text = action->text();
-    Logger::info(QString("菜单：文件, 菜单项 %1 触发triggered事件").arg(text));
-
-    if (text == this->controlText->menu_new) {
-        QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio 新建NPF文件",
-                                                    config.getString(ConfigItem::DefaultDataPath),
-                                                    "Nuitka Project File(*.npf);;All files(*)");
-        if (path.isEmpty()) {
-            return;
-        }
-        PCM.setDefaultValue();
-        if (this->npfStatusTypeHandler(ProjectConfig::saveProject(path, config.getBool(ConfigItem::IsSavePackLog)),
-                                       path)) {
-            Logger::error("创建NPF文件错误");
-            QMessageBox::critical(this, "Nuitka Studio Error", tr("创建NPF文件错误"));
-            return;
-        }
-        GDM.setString(GDIN::npfFilePath, path);
-        GDM.setBool(GDIN::isOpenNPF, true);
-        QString dirPath = QFileInfo(path).absolutePath();
-        QStringList entryList = QDir(dirPath).entryList();
-        if (entryList.contains("src") || entryList.contains("main.py")) {
-            int choose = QMessageBox::question(this, "Nuitka Studio",
-                                               "检测到此目录是一个项目目录，是否自动填写参数（此判断有时会误判）");
-            if (choose == QMessageBox::Yes) {
-                PCM.setItem(PCE::ProjectPath, dirPath);
-                this->genData();
-            }
-        }
-
-        this->clearText();
-    } else if (text == this->controlText->menu_open) {
-        this->importProject();
-        this->clearText();
-    } else if (text == this->controlText->menu_save) {
-        this->npfStatusTypeHandler(ProjectConfig::saveProject(GDM.getString(GDIN::npfFilePath),
-                                                              config.getBool(ConfigItem::IsSavePackLog)),
-                                   GDM.getString(GDIN::npfFilePath));
-    } else if (text == this->controlText->menu_saveAs) {
-        this->exportProject();
-    } else if (text == this->controlText->menu_closeFile) {
-        int choose = QMessageBox::question(this, "Nuitka Studio", "关闭后未保存的数据将会丢失，是否确认关闭");
-        if (choose == QMessageBox::Yes) {
-            PCM.setDefaultValue();
-            GDM.setString(GDIN::npfFilePath, "");
-            GDM.setBool(GDIN::isOpenNPF, false);
-            config.setString(ConfigItem::NpfPath, "");
-            this->setWindowTitle("Nuitka Studio");
-            this->updateUI();
-        }
-    }
-}
-
-void MainWindow::onHelpMenuTriggered(QAction *action) {
-    QString text = action->text();
-    Logger::info(QString("菜单：帮助, 菜单项 %1 触发triggered事件").arg(text));
-
-    if (text == this->controlText->menu_help) {
-        QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
-    } else if (text == this->controlText->menu_about) {
-        AboutWindow *aboutWindow = new AboutWindow(this);
-        aboutWindow->setAttribute(Qt::WA_DeleteOnClose);
-        aboutWindow->exec();
-    }
-}
-
 void MainWindow::retranslateCustomUi() const {
     this->controlText->menu_new = tr("新建(&N)");
     this->controlText->menu_open = tr("打开(&O)");
@@ -505,6 +443,7 @@ void MainWindow::updatePackUI() const {
     ui->iconFileEdit->setText(PCM.getItemValueToString(PCE::IconPath));
     ui->projectPathEdit->setText(PCM.getItemValueToString(PCE::ProjectPath));
     ui->projectNameEdit->setText(PCM.getItemValueToString(PCE::ProjectName));
+    ui->customCommandEdit->setText(PCM.getItemValueToString(PCE::CustomCommand));
 
     ui->standaloneCheckbox->setCheckState(
         PCM.getItemValueToBool(PCE::Standalone)
@@ -619,8 +558,71 @@ void MainWindow::connectStackedWidget() {
 }
 
 void MainWindow::connectMenubar() {
-    connect(ui->fileMenu, &QMenu::triggered, this, &MainWindow::onFileMenuTriggered);
-    connect(ui->helpMenu, &QMenu::triggered, this, &MainWindow::onHelpMenuTriggered);
+    // File Menu
+    connect(ui->newAction, &QAction::triggered, this, [=]() {
+        QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio 新建NPF文件",
+                                                    config.getString(ConfigItem::DefaultDataPath),
+                                                    "Nuitka Project File(*.npf);;All files(*)");
+        if (path.isEmpty()) {
+            return;
+        }
+        PCM.setDefaultValue();
+        if (this->npfStatusTypeHandler(ProjectConfig::saveProject(path, config.getBool(ConfigItem::IsSavePackLog)),
+                                       path)) {
+            Logger::error("创建NPF文件错误");
+            QMessageBox::critical(this, "Nuitka Studio Error", tr("创建NPF文件错误"));
+            return;
+        }
+        GDM.setString(GDIN::npfFilePath, path);
+        GDM.setBool(GDIN::isOpenNPF, true);
+        QString dirPath = QFileInfo(path).absolutePath();
+        QStringList entryList = QDir(dirPath).entryList();
+        if (entryList.contains("src") || entryList.contains("main.py")) {
+            int choose = QMessageBox::question(this, "Nuitka Studio",
+                                               "检测到此目录是一个项目目录，是否自动填写参数（此判断有时会误判）");
+            if (choose == QMessageBox::Yes) {
+                PCM.setItem(PCE::ProjectPath, dirPath);
+                this->genData();
+            }
+        }
+
+        this->clearText();
+    });
+    connect(ui->openAction, &QAction::triggered, this, [=]() {
+        this->importProject();
+        this->clearText();
+    });
+    connect(ui->saveAction, &QAction::triggered, this, [=]() {
+        this->npfStatusTypeHandler(ProjectConfig::saveProject(GDM.getString(GDIN::npfFilePath),
+                                                              config.getBool(ConfigItem::IsSavePackLog)),
+                                   GDM.getString(GDIN::npfFilePath));
+    });
+    connect(ui->saveAsAction, &QAction::triggered, this, [=]() {
+        this->exportProject();
+    });
+    connect(ui->closeFileAction, &QAction::triggered, this, [=]() {
+        int choose = QMessageBox::question(this, "Nuitka Studio", "关闭后未保存的数据将会丢失，是否确认关闭");
+        if (choose == QMessageBox::Yes) {
+            PCM.setDefaultValue();
+            GDM.setString(GDIN::npfFilePath, "");
+            GDM.setBool(GDIN::isOpenNPF, false);
+            config.setString(ConfigItem::NpfPath, "");
+            this->setWindowTitle("Nuitka Studio");
+            this->updateUI();
+        }
+    });
+
+    // Help Menu
+    connect(ui->helpAction, &QAction::triggered, this, [=]() {
+        QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
+    });
+    connect(ui->aboutAction, &QAction::triggered, this, [=]() {
+        AboutWindow *aboutWindow = new AboutWindow(this);
+        aboutWindow->setAttribute(Qt::WA_DeleteOnClose);
+        aboutWindow->exec();
+    });
+
+    // Window Menu
     connect(ui->basicSettingsAction, &QAction::triggered, this, [=]() {
         if (config.getBool(ConfigItem::BasicSettings)) {
             ui->baseWidget->hide();
@@ -766,6 +768,10 @@ void MainWindow::connectPackPage() {
         } else if (state == Qt::Checked) {
             PCM.setItem(PCE::RemoveOutput, true);
         }
+    });
+    // Custom Command
+    connect(ui->customCommandEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        PCM.setItem(PCE::CustomCommand, text);
     });
 
     // LTO Mode Checkbox

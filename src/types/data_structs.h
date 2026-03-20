@@ -34,49 +34,50 @@ inline QDataStream &operator>>(QDataStream &in, LTOMode &mode) {
     return in;
 }
 
-inline QMap<int, int> configListAndUiListMap = {
-    {0, 0},
-    {1, 1},
-    {2, 2},
-    {3, 3},
-    {4, 10},
-    {5, 11},
-    {6, 4},
-    {7, 5},
-    {8, 6},
-    {9, 7},
-    {10, 9},
-    {11, 8},
-    {12, 12},
-    {13, 13},
-    {14, 14},
-    {15, 15},
-    {16, 16},
-    {17, 17},
-    {18, 18},
-};
-
-inline QMap<int, int> configListAndUiListInverseMap = {
-    {0, 0},
-    {1, 1},
-    {2, 2},
-    {3, 3},
-    {4, 6},
-    {5, 7},
-    {6, 8},
-    {7, 9},
-    {8, 11},
-    {9, 10},
-    {10, 4},
-    {11, 5},
-    {12, 12},
-    {13, 13},
-    {14, 14},
-    {15, 15},
-    {16, 16},
-    {17, 17},
-    {18, 18},
-};
+// inline QMap<int, int> configListAndUiListMap = {
+//     {0, 0},
+//     {1, 1},
+//     {2, 2},
+//     {3, 3},
+//     {4, 10},
+//     {5, 11},
+//     {6, 4},
+//     {7, 5},
+//     {8, 6},
+//     {9, 7},
+//     {10, 9},
+//     {11, 8},
+//     {12, 12},
+//     {13, 13},
+//     {14, 14},
+//     {15, 15},
+//     {16, 16},
+//     {17, 17},
+//     {18, 18},
+//
+// };
+//
+// inline QMap<int, int> configListAndUiListInverseMap = {
+//     {0, 0},
+//     {1, 1},
+//     {2, 2},
+//     {3, 3},
+//     {4, 6},
+//     {5, 7},
+//     {6, 8},
+//     {7, 9},
+//     {8, 11},
+//     {9, 10},
+//     {10, 4},
+//     {11, 5},
+//     {12, 12},
+//     {13, 13},
+//     {14, 14},
+//     {15, 15},
+//     {16, 16},
+//     {17, 17},
+//     {18, 18},
+// };
 
 enum class ProjectConfigEnum {
     PythonPath,
@@ -98,6 +99,7 @@ enum class ProjectConfigEnum {
     FileDescription,
     LegalCopyright,
     LegalTrademarks,
+    CustomCommand
 };
 
 using PCE = ProjectConfigEnum;

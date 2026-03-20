@@ -193,9 +193,6 @@ private slots:
     void onAddDataDirItemClicked();
     void onRemoveItemClicked() const;
 
-    void onFileMenuTriggered(QAction *action);
-    void onHelpMenuTriggered(QAction *action);
-
     void startPack();
     void stopPack();
 
