@@ -60,9 +60,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-392</y>
              <width>969</width>
-             <height>998</height>
+             <height>1002</height>
             </rect>
            </property>
            <property name="styleSheet">
@@ -708,6 +708,18 @@
                      </item>
                      <item>
                       <widget class="ElaLineEdit" name="fileVersionEdit"/>
+                     </item>
+                     <item>
+                      <widget class="ElaPushButton" name="addVersionButton">
+                       <property name="font">
+                        <font>
+                         <pointsize>10</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>递增版本号</string>
+                       </property>
+                      </widget>
                      </item>
                     </layout>
                    </widget>

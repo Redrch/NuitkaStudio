@@ -840,9 +840,24 @@ void MainWindow::connectPackPage() {
     // file info
     connect(ui->fileVersionEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         PCM.setItem(PCE::FileVersion, text);
-        this->genFileInfo();
+    });
+    // add version button
+    connect(ui->addVersionButton, &QPushButton::clicked, this, [=]() {
+        QString version = PCM.getItemValueToString(PCE::FileVersion);
+        QStringList versionList = version.split(".");
+        const QString& oriLastVersion = versionList.last();
+        int versionInt = oriLastVersion.toInt();
+        versionInt += 1;
+        QString lastVersion = QString::number(versionInt);
+        versionList.removeLast();
+        versionList.append(lastVersion);
+        version = versionList.join(".");
+        Logger::debug(version);
+        PCM.setItem(PCE::FileVersion, version);
+        PCM.setItem(PCE::ProductVersion, version);
         this->updateUI();
     });
+
     connect(ui->companyEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
         PCM.setItem(PCE::Company, text);
     });
