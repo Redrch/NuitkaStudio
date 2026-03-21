@@ -11,7 +11,7 @@
 #include "types/simname.h"
 #include "types/color.h"
 
-bool isDebug = true;
+bool isDebug = false;
 
 void initProjectConfig() {
     // path data
@@ -119,6 +119,7 @@ Version 1.3.0.0
 1. 添加英语模式
 2. NPF文件改用了NPF Version 2格式
 3. 采用ElaWidgetTools库美化并重构了ui
+4. 修改了软件图标
 普通修改：
 1. 移除了导出页面，跟换为了打包日志页面
 2. 移除了"工具"菜单
@@ -137,6 +138,7 @@ Version 1.3.0.0
 15. 添加隐藏窗体的功能
 16. 添加自定义指令的功能
 17. 添加增加版本号的按钮
+17. 将README文件, 许可证文件, NOTICE文件的副本放在的软件目录下
 
 修复的问题：
 1. 修复了新建NPF文件时关闭窗口后会弹出导出文件选择窗口的问题
