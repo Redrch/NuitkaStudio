@@ -7,7 +7,7 @@ file(TO_CMAKE_PATH "${CMAKE_BINARY_DIR}" CMAKE_BINARY_DIR)
 # 强制设置编译器的环境变量为正斜杠格式
 set(ENV{VCPKG_ROOT} "D:/Develop/Cpp/vcpkg")
 
-project(NuitkaStudio VERSION 1.2.1.0)
+project(NuitkaStudio VERSION 1.3.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -22,7 +22,6 @@ if (NOT WIN32)
 endif ()
 
 # set app info
-set(AUTHOR "Redrch")
 string(TIMESTAMP BUILD_TIME "%Y-%m-%d %H:%M:%S")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/app_config.h.in
@@ -42,6 +41,9 @@ string(REPLACE "\\" "/" _vcpkg_installed "${_vcpkg_installed}/${VCPKG_TARGET_TRI
 set(spdlog_DIR "${_vcpkg_installed}/lib/cmake/spdlog" "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
 message(STATUS "spdlog_DIR -> ${spdlog_DIR}")
 
+set(ELEGANT_INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/ElaWidgetTools")
+set(ELEGANT_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+
 list(APPEND CMAKE_PREFIX_PATH
         "${_vcpkg_installed}/lib/cmake"
         "${_vcpkg_installed}/share"
@@ -52,6 +54,12 @@ find_package(spdlog CONFIG REQUIRED HINTS
         "${_vcpkg_installed}/lib/cmake/spdlog"
         "${_vcpkg_installed}/share/spdlog"
         "${_vcpkg_installed}/cmake"
+)
+add_library(ElaWidgetTools SHARED IMPORTED)
+set_target_properties(ElaWidgetTools PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${ELEGANT_INC_DIR}"
+        IMPORTED_IMPLIB "${ELEGANT_LIB_DIR}/libElaWidgetTools.dll.a"
+        IMPORTED_LOCATION "${ELEGANT_LIB_DIR}/ElaWidgetTools.dll"
 )
 
 find_package(Qt5 COMPONENTS
@@ -65,17 +73,22 @@ list(APPEND CMAKE_PREFIX_PATH "${BZIP2_ROOT}")
 find_package(BZip2 REQUIRED)
 
 # 设置路径变量
-set(LOCAL_QUAZIP_ROOT    "${CMAKE_CURRENT_SOURCE_DIR}")
+set(LOCAL_QUAZIP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(LOCAL_QUAZIP_INCLUDE "${LOCAL_QUAZIP_ROOT}/include") # 指向 quazip 文件夹的父目录
-set(LOCAL_QUAZIP_DLL     "${LOCAL_QUAZIP_ROOT}/lib/libquazip1-qt5.dll")
+set(LOCAL_QUAZIP_DLL "${LOCAL_QUAZIP_ROOT}/lib/libquazip1-qt5.dll")
 
 # 验证文件是否存在（防止配置阶段报错不清晰）
-if(NOT EXISTS "${LOCAL_QUAZIP_DLL}")
+if (NOT EXISTS "${LOCAL_QUAZIP_DLL}")
     message(FATAL_ERROR "找不到 QuaZip DLL: ${LOCAL_QUAZIP_DLL}")
-endif()
+endif ()
 
 # 创建导入目标 (MinGW 下直接链接 DLL 也是可以的)
 add_library(QuaZip::Local SHARED IMPORTED)
+find_library(MATERIAL_LIB
+        NAMES components
+        PATHS ${LOCAL_QMW_LIB}
+        NO_DEFAULT_PATH
+)
 
 set(SOURCES
         src/main.cpp
@@ -83,15 +96,11 @@ set(SOURCES
         src/ui/mainwindow.h
         src/utils/config.cpp
         src/utils/config.h
-        src/ui/export_datalist_window.cpp
-        src/ui/export_datalist_window.h
         src/utils/logger.cpp
         src/utils/logger.h
         src/ui/about_window.cpp
         src/ui/about_window.h
         src/app_config.h.in
-        src/ui/new_project_window.cpp
-        src/ui/new_project_window.h
         src/utils/project_config.cpp
         src/utils/project_config.h
         src/types/data_structs.h
@@ -106,17 +115,17 @@ set(SOURCES
         src/types/global_data.cpp
         src/types/global_data.h
         src/types/constants.h
-        src/ui/pack_log_window.cpp
-        src/ui/pack_log_window.h
+        src/types/color.h
+        src/ui/float_button.cpp
+        src/ui/float_button.h
+        src/utils/event_bus.cpp
+        src/utils/event_bus.h
 )
 set(RESOURCES
         resource.qrc
+        translations.qrc
         logo.rc
-        forms/export_datalist_window.ui
         forms/mainwindow.ui
-        forms/about_window.ui
-        forms/new_project_window.ui
-        forms/pack_log_window.ui
 )
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
@@ -141,12 +150,15 @@ target_link_libraries(NuitkaStudio
         spdlog::spdlog
         BZip2::BZip2
         QuaZip::Local
+        dwmapi
 )
+
+target_link_libraries(NuitkaStudio PRIVATE ElaWidgetTools)
 
 set_target_properties(QuaZip::Local PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${LOCAL_QUAZIP_INCLUDE}"
-        IMPORTED_LOCATION             "${LOCAL_QUAZIP_DLL}"
-        IMPORTED_IMPLIB               "${LOCAL_QUAZIP_DLL}" # MinGW 支持直接把 DLL 当作导入库链接
+        IMPORTED_LOCATION "${LOCAL_QUAZIP_DLL}"
+        IMPORTED_IMPLIB "${LOCAL_QUAZIP_DLL}"
 )
 
 target_include_directories(NuitkaStudio PRIVATE
@@ -157,8 +169,8 @@ target_include_directories(NuitkaStudio PRIVATE
 
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 
-if(ENABLE_ASAN)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if (ENABLE_ASAN)
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # try to find libasan in the toolchain link dirs
         find_library(ASAN_LIB asan
                 PATHS ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}
@@ -166,25 +178,25 @@ if(ENABLE_ASAN)
         )
 
         # try common clang runtime name on mingw/clang
-        if(NOT ASAN_LIB AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        if (NOT ASAN_LIB AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             find_library(ASAN_LIB clang_rt.asan-x86_64
                     PATHS ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}
                     NO_DEFAULT_PATH
             )
-        endif()
+        endif ()
 
-        if(ASAN_LIB)
+        if (ASAN_LIB)
             message(STATUS "Enabling AddressSanitizer (found ${ASAN_LIB})")
             set(ASAN_COMMON_FLAGS -fsanitize=address -fno-omit-frame-pointer -g -O1)
             target_compile_options(NuitkaStudio PRIVATE ${ASAN_COMMON_FLAGS})
             target_link_options(NuitkaStudio PRIVATE -fsanitize=address)
-        else()
+        else ()
             message(WARNING "ASan requested but no libasan found in the toolchain. Disable ENABLE_ASAN or switch to a clang toolchain / WSL.")
-        endif()
-    else()
+        endif ()
+    else ()
         message(WARNING "ASan requires gcc/clang. On MSVC use clang-cl or other tools.")
-    endif()
-endif()
+    endif ()
+endif ()
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
@@ -214,3 +226,27 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
 endif ()
+
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/ElaWidgetTools.dll
+        ${CMAKE_CURRENT_BINARY_DIR}/ElaWidgetTools.dll
+        COPYONLY
+)
+
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libquazip1-qt5.dll
+        ${CMAKE_CURRENT_BINARY_DIR}/libquazip1-qt5.dll
+        COPYONLY
+)
+
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/bz2.dll
+        ${CMAKE_CURRENT_BINARY_DIR}/bz2.dll
+        COPYONLY
+)
+
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/zlib1.dll
+        ${CMAKE_CURRENT_BINARY_DIR}/zlib1.dll
+        COPYONLY
+)

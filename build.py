@@ -4,7 +4,7 @@ import os
 import shutil
 import tomllib
 
-VERSION = "1.2.1.0"
+VERSION = "1.3.0.0"
 
 config_dict = tomllib.load(open("config.toml", "rb"))
 path_dict = config_dict["Path"]
@@ -35,7 +35,11 @@ if not is_debug:
     shutil.copyfile("lib/libquazip1-qt5.dll", f"{output_path}/libquazip1-qt5.dll")
     shutil.copyfile("cmake-build-release/vcpkg_installed/x64-mingw-dynamic/bin/libbz2.dll", f"{output_path}/bz2.dll")
     shutil.copyfile("lib/zlib1.dll", f"{output_path}/zlib1.dll")
+    shutil.copyfile("lib/ElaWidgetTools.dll", f"{output_path}/ElaWidgetTools.dll")
     shutil.copytree("licenses", f"{output_path}/licenses")
+    shutil.copyfile("LICENSE", f"{output_path}/LICENSE")
+    shutil.copyfile("README.md", f"{output_path}/README.md")
+    shutil.copyfile("NOTICE", f"{output_path}/NOTICE")
 
     os.chdir(output_path)
     # remove files

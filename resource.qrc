@@ -1,6 +1,10 @@
 <RCC>
   <qresource prefix="/">
-    <file alias="logo.ico">assets/logo.ico</file>
+    <file>assets/stop-dark.png</file>
+    <file>assets/stop-light.png</file>
+    <file>assets/start-light.png</file>
+    <file>assets/start-dark.png</file>
+    <file alias="logo.ico">assets/NuitkaStudioLogo.ico</file>
     <file alias="logo">assets/NuitkaStudioLogo.png</file>
   </qresource>
 </RCC>

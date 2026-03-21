@@ -4,43 +4,29 @@
 
 #include "project_config.h"
 
-ProjectConfig::ProjectConfig(QWidget *parent) {
-    this->parent = parent;
-    this->compress = new Compress;
-}
+ProjectConfig::ProjectConfig() = default;
 
-ProjectConfig::~ProjectConfig() {
-    delete this->compress;
-}
+ProjectConfig::~ProjectConfig() = default;
 
-QString ProjectConfig::loadProject(const QString &path) const {
-    QString filePath;
-    if (path.isEmpty()) {
-        filePath = QFileDialog::getOpenFileName(this->parent, "Nuitka Studio  导入项目文件",
-                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
-                                                "Nuitka Project File(*.npf);;All files(*)");
-        if (filePath.isEmpty()) {
-            return "";
-        }
-    } else {
-        filePath = path;
+NPFStatusType ProjectConfig::loadProject(const QString &path) {
+    if (!QFile::exists(path)) {
+        return NPFStatusType::NPFNotFound;
     }
 
-    this->compress->setZipPath(filePath);
-    QByteArray data = this->compress->readZip("data.json");
-
-    QJsonDocument doc = QJsonDocument::fromJson(data);
-    if (!doc.isObject()) {
-        Logger::error(QString("ProjectConfig::importProject: npf文件%1已损坏，请尝试更换文件").arg(filePath));
-        QMessageBox::critical(this->parent, "Nuitka Studio Error", QString("npf文件%1已损坏，请尝试更换文件").arg(filePath));
-        return "";
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return NPFStatusType::NPFNotOpen;
     }
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     QJsonObject root = doc.object();
-    if (root.value("npf_version") != NPF_VERSION) {
-        Logger::error("ProjectConfig::importProject: 此npf文件的格式版本错误，请尝试更换文件");
-        QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件的格式版本错误，请尝试更换文件");
-        return "";
+
+    // npf version
+    if (root.value("npf_version").toString() != NPF_VERSION) {
+        Logger::error("ProjectConfig::loadProject: 此npf文件的格式版本错误，请尝试更换文件");
+        return NPFStatusType::NPFVersionError;
     }
+
+    // project
     QJsonObject project = root.value("project").toObject();
     for (auto item = project.begin(); item != project.end(); ++item) {
         QString key = item.key();
@@ -51,46 +37,57 @@ QString ProjectConfig::loadProject(const QString &path) const {
         }
         const int index = PCM.getIndex(key);
         if (index == -1) {
-            Logger::error("ProjectConfig::importProject: 此npf文件已损坏，请尝试更换文件");
-            QMessageBox::critical(this->parent, "Nuitka Studio Error", "此npf文件已损坏，请尝试更换文件");
-            return "";
+            Logger::error("ProjectConfig::loadProject: 此npf文件已损坏，请尝试更换文件");
+            return NPFStatusType::NPFDamage;
         }
         PCM.setItem(index, value);
     }
-    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
-    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
+    GDM.setString(GDIN::npfFilePath, path);
+    config.setString(ConfigItem::NpfPath, path);
     config.writeConfig();
     Logger::info("导入NPF文件");
-    return filePath;
+
+    // pack log
+    if (root.contains("pack_log")) {
+        QString packLogRoot = GDM.getString(GDIN::packLogPath) + "/" + QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName();
+        if (!QDir(packLogRoot).exists()) {
+            if (!QDir().mkdir(packLogRoot)) {
+                Logger::warn("无法创建文件夹" + packLogRoot);
+            }
+        }
+        QJsonObject packLog = root.value("pack_log").toObject();
+        QJsonObject notes;
+        for (auto item = packLog.begin(); item != packLog.end(); ++item) {
+            QString fileName = item.key();
+            QJsonArray array = item.value().toArray();
+
+            if (array.size() < 2) {
+                Logger::warn(QString("pack_log 项 '%1' 格式不完整，已跳过").arg(fileName));
+                continue;
+            }
+
+            QString content = array[0].toString();
+            QString note = array[1].toString();
+            notes.insert(fileName, note);
+
+            QFile logFile(packLogRoot + "/" + fileName);
+            logFile.open(QIODevice::WriteOnly);
+            logFile.write(content.toUtf8());
+            logFile.close();
+        }
+
+        QJsonDocument noteDoc(notes);
+        QFile noteFile(packLogRoot + "/note.json");
+        noteFile.open(QIODevice::WriteOnly);
+        noteFile.write(noteDoc.toJson());
+        noteFile.close();
+    }
+
+    GDM.setString(GDIN::npfFilePath, path);
+    return NPFStatusType::NPFRight;
 }
 
-QString ProjectConfig::saveProject(const QString &path) const {
-    QString filePath = "";
-    if (path == "") {
-        filePath = QFileDialog::getSaveFileName(this->parent, "Nuitka Studio  导出项目文件",
-                                                config.getConfigToString(SettingsEnum::DefaultDataPath),
-                                                "Nuitka Project File(*.npf);;All files(*)");
-        if (filePath.isEmpty()) {
-            return "";
-        }
-    } else {
-        filePath = path;
-    }
-    this->compress->setZipPath(filePath);
-
-    if (QFile::exists(filePath)) {
-        auto f = QMessageBox::question(this->parent, "Nuitka Studio",
-                                       "这一个NPF文件已存在，再次导出将会覆盖所有数据，是否确认覆盖");
-        if (f == QMessageBox::Yes) {
-            QFile::remove(filePath);
-        } else {
-            return "";
-        }
-    }
-
-    QString jsonPath = "data.json";
-
-    // json string
+NPFStatusType ProjectConfig::saveProject(const QString &path, bool savePackLog) {
     QJsonObject root;
     root.insert("npf_version", NPF_VERSION);
 
@@ -105,14 +102,54 @@ QString ProjectConfig::saveProject(const QString &path) const {
     }
     root.insert("project", project);
 
-    QJsonDocument doc(root);
-    QString docString = doc.toJson();
+    if (savePackLog) {
+        QString packLogRoot = GDM.getString(GDIN::packLogPath) + "/" + QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName();
+        QJsonObject packLog;
+        QStringList packLogFileList = QDir(packLogRoot).entryList(QDir::Files);
+
+        // read note
+        bool hasNote = packLogFileList.contains("note.json");
+        if (!hasNote) {
+            Logger::error("无法找到note.json文件，保存中断");
+            return NPFStatusType::NotFoundNote;
+        }
+        packLogFileList.removeOne("note.json");
+        QFile noteFile(packLogRoot + "/note.json");
+        if (!noteFile.open(QIODevice::ReadOnly)) {
+            Logger::error("无法打开note.json文件，保存中断");
+            return NPFStatusType::NotFoundNote;
+        }
+        QByteArray noteJsonText = noteFile.readAll();
+        noteFile.close();
+        QJsonDocument noteDoc = QJsonDocument::fromJson(noteJsonText);
+        QJsonObject noteObject = noteDoc.object();
+
+        // read log
+        for (const QString& packLogFile: packLogFileList) {
+            QFile file(packLogRoot + "/" + packLogFile);
+            if (!file.open(QIODevice::ReadOnly)) {
+                Logger::error("无法打开打包日志文件" + packLogFile);
+            }
+            QString packLogText = QString::fromUtf8(file.readAll());
+            file.close();
+            QString note = noteObject.value(packLogFile).toString();
+            QJsonArray packLogArray;
+            packLogArray << packLogText;
+            packLogArray << note;
+            packLog.insert(packLogFile, packLogArray);
+        }
+
+        root.insert("pack_log", packLog);
+    }
 
     // write
-    this->compress->writeZip(jsonPath, docString.toUtf8());
-    GDM.setString(GDIN::NPF_FILE_PATH, filePath);
-    config.setConfigFromString(SettingsEnum::NpfPath, filePath);
-    config.writeConfig();
+    QJsonDocument doc(root);
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) {
+        return NPFStatusType::NPFNotOpen;
+    }
+    file.write(doc.toJson());
+    file.close();
     Logger::info("导出NPF文件");
-    return filePath;
+    return NPFStatusType::NPFRight;
 }

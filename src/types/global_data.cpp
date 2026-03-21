@@ -73,3 +73,16 @@ void GlobalData::setDouble(const QString &name, const double &value) {
     this->dataMap->insert(name, QVariant(value));
     emit this->valueChanged(name, value);
 }
+
+void GlobalData::setStringList(const QString &name, const QStringList &value) {
+    QMutexLocker lock(mutex);
+    this->dataMap->insert(name, QVariant(value));
+    emit this->valueChanged(name, value);
+}
+
+void GlobalData::addToStringList(const QString &name, const QString &value) const {
+    QMutexLocker lock(mutex);
+    QStringList list = this->dataMap->value(name).toStringList();
+    list.append(value);
+    this->dataMap->insert(name, QVariant(list));
+}

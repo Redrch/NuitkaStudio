@@ -20,18 +20,23 @@
 #include "logger.h"
 #include "utils.h"
 
-
+enum class NPFStatusType {
+    NPFDamage,
+    NPFVersionError,
+    NPFNotFound,
+    NPFNotOpen,
+    NotFoundNote,
+    NPFRight
+};
 
 class ProjectConfig {
 public:
-    explicit ProjectConfig(QWidget* parent);
+    ProjectConfig();
     ~ProjectConfig();
 
-    QString loadProject(const QString& path = "") const;
-    QString saveProject(const QString& path = "") const;
-private:
-    QWidget *parent;
-    Compress* compress;
+    static NPFStatusType loadProject(const QString& path) ;
+
+    static NPFStatusType saveProject(const QString& path, bool savePackLog);
 };
 
 

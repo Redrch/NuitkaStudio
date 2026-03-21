@@ -14,6 +14,8 @@
 
 #include <QString>
 #include <QList>
+#include <QStringListModel>
+#include <QPointer>
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -22,18 +24,27 @@
 #include <QSystemTrayIcon>
 #include <QIcon>
 #include <QCloseEvent>
+#include <QCursor>
+#include <QTranslator>
 
 #include <QDateTime>
 #include <QElapsedTimer>
 #include <QTimer>
 #include <QProcessEnvironment>
+#include <QDragEnterEvent>
+#include <QMimeData>
+#include <QDialog>
 
 #include <QDebug>
 
-#include "export_datalist_window.h"
+#include <ElaWindow.h>
+#include <ElaTabBar.h>
+#include <ElaMenuBar.h>
+#include <ElaTheme.h>
+#include <ElaIconButton.h>
+
 #include "about_window.h"
-#include "new_project_window.h"
-#include "pack_log_window.h"
+#include "float_button.h"
 
 #include "../types/data_structs.h"
 #include "../types/project_config_manager.h"
@@ -44,6 +55,7 @@
 #include "../utils/logger.h"
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
+#include "../types/color.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -51,16 +63,35 @@ namespace Ui {
     class MainWindow;
 }
 
+QT_END_NAMESPACE
+
 enum class TextPos {
     TopLabel,
     Statusbar,
     SystemMessage
 };
 
-QT_END_NAMESPACE
-
-class MainWindow : public QMainWindow {
+class MainWindow : public ElaWindow {
     Q_OBJECT
+
+    struct ControlText {
+        QString menu_new = tr("新建(&N)");
+        QString menu_open = tr("打开(&O)");
+        QString menu_save = tr("保存(&S)");
+        QString menu_saveAs = tr("另存为(&A)");
+        QString menu_closeFile = tr("关闭文件(&C)");
+        QString menu_help = tr("帮助(&H)");
+        QString menu_about = tr("关于(&A)");
+
+        QString topbar_pack = tr("打包");
+        QString topbar_settings = tr("设置");
+        QString topbar_packLog = tr("打包日志");
+
+        QString exit_label = tr("您想要将软件关闭还是最小化至系统托盘");
+        QString exit_trayButton = tr("最小化至系统托盘");
+        QString exit_exitButton = tr("退出软件");
+        QString exit_hideButton = tr("不再显示该窗口（隐藏后行为可以在设置中看到）");
+    };
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -68,13 +99,20 @@ public:
     ~MainWindow() override;
 
 private:
+    // variants
     Ui::MainWindow *ui;
-
-    ProjectConfig *projectConfig;
 
     QDateTime startPackTime;
     QTimer *packTimer;
+    QTimer *mainTimer;
     QProcess *packProcess;
+    QFile *noteFile;
+    QJsonObject noteObject;
+
+    // bar
+    ElaTabBar *topTabBar;
+    ElaMenuBar *menuBar;
+
     // controls
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;
@@ -82,6 +120,15 @@ private:
     QComboBox *ltoModeCombobox;
     QLabel *messageLabel;
     QLabel *topTextLabel;
+    FloatButton* floatButton;
+    ControlText* controlText;
+
+    // actions
+    QAction *packAction;
+    QAction *settingsAction;
+    QAction *packLogAction;
+    QAction *floatButtonAction;
+
     // tray menu
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;
@@ -90,26 +137,37 @@ private:
     QAction *showAction;
     QAction *quitAction;
 
+    // pack log
+    QList<PackLog*> *packLog;
+
+    // models
+    QStringListModel *packLogModel;
+    QStringListModel *dataListModel;
+
+    int currentPageIndex;
+    int currentPackLogIndex;
+
     // functions
     // Update UI functions
-    void updateExportTable() const;
     void updatePackUI() const;
     void updateSettingsUI() const;
-    void updateUI() const;
+    void updatePackLogUI();
+    void updateUI();
 
     // Connect signals and slots functions
     void connectStackedWidget();
     void connectMenubar();
     void connectPackPage();
     void connectSettingsPage();
-    void connectExportPage();
     void connectTrayMenu();
     void connectOther();
+    void connectPackLog();
 
     // Init functions
     void initUI();
+    void initMenuBar();
 
-    // ui utils functions
+    // ui util functions
     /**
      * MainWindow::showText
      * @param text Showed text.
@@ -125,35 +183,38 @@ private:
     void enabledInput() const;
     void noEnableInput() const;
 
+    // util functions
+    void readPackLog();
+    bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);
+    void saveNote() const;
+
 private slots:
     void onAddDataFileItemClicked();
     void onAddDataDirItemClicked();
-    void onRemoveItemClicked();
-    void onProjectTableCellDoubleClicked(int row, int column);
-
-    void onFileMenuTriggered(QAction *action);
-    void onToolMenuTriggered(QAction *action);
-    void onHelpMenuTriggered(QAction *action);
+    void onRemoveItemClicked() const;
 
     void startPack();
     void stopPack();
 
     void importProject();
     void exportProject();
-    void newProject();
 
     // Gen path functions
     void genData(bool isUpdateUI = true);
-    void genPythonPath();
-    void genMainfilePath();
-    void genOutputPath();
-    void genOutputName();
+    static void genPythonPath();
+    static void genMainfilePath();
+    static void genOutputPath();
+    static void genOutputName();
     // Gen file info functions
-    void genFileInfo();
+    static void genFileInfo();
 
+    void retranslateCustomUi() const;
 protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 };
 
 
