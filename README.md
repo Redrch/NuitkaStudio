@@ -1,5 +1,12 @@
 # Nuitka Studio
 
+[![GitHub stars](https://img.shields.io/github/stars/Redrch/NuitkaStudio?style=flat-square)](https://github.com/Redrch/NuitkaStudio/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Redrch/NuitkaStudio?style=flat-square)](https://github.com/Redrch/NuitkaStudio/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/Redrch/NuitkaStudio?style=flat-square)](https://github.com/Redrch/NuitkaStudio/issues)
+![GitHub last commit](https://img.shields.io/github/last-commit/Redrch/NuitkaStudio?style=flat-square)
+[![Github license](https://img.shields.io/github/license/Redrch/NuitkaStudio?style=flat-square)](https://github.com/Redrch/NuitkaStudio/blob/main/LICENSE)
+![C++](https://img.shields.io/badge/C++-%2300599C.svg?style=flat-square&logo=cplusplus&logoColor=white)
+
 Nuitka Studio 是一个帮助您使用python nuitka打包工具的软件，使用C++ Qt框架编写，目前仅支持Windows8.1+
 
 本项目使用 **Apache 2.0** 协议授权，请遵守开源协议
@@ -96,7 +103,7 @@ python解释器路径：项目所使用的python解释器的路径，需含有nu
 
 	如果为否，那么只会将打包日志文件存储在`软件根目录/pack_log/npf文件名`目录下
 
-	**警告：如果你将最大日志文件数量的值设置的很大，开启此选项会将npf文件变得巨大无比，这样加载npf文件的速度会变慢**
+	**警告：如果你将最大日志文件数量的值设置得很大，开启此选项会将npf文件变得巨大无比，这样加载npf文件的速度会变慢**
 
 
 
