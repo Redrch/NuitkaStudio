@@ -54,46 +54,46 @@ ProjectConfigType *ProjectConfigManager::getItem(PCE value) {
     return config;
 }
 
-QVariant ProjectConfigManager::getItemValue(int index) {
+QVariant ProjectConfigManager::get(int index) {
     ProjectConfigType *config = getItem(index);
     if (config == nullptr) return QVariant();
     return config->get_itemValue();
 }
 
-QVariant ProjectConfigManager::getItemValue(PCE configValue) {
+QVariant ProjectConfigManager::get(PCE configValue) {
     int index = static_cast<int>(configValue);
-    return getItemValue(index);
+    return get(index);
 }
 
-QString ProjectConfigManager::getItemValueToString(int index) {
-    return getItemValue(index).toString();
+QString ProjectConfigManager::getString(int index) {
+    return get(index).toString();
 }
 
-QString ProjectConfigManager::getItemValueToString(PCE value) {
-    return getItemValue(value).toString();
+QString ProjectConfigManager::getString(PCE value) {
+    return get(value).toString();
 }
 
-QStringList ProjectConfigManager::getItemValueToStringList(int index) {
-    return getItemValue(index).toStringList();
+QStringList ProjectConfigManager::getStringList(int index) {
+    return get(index).toStringList();
 }
 
-QStringList ProjectConfigManager::getItemValueToStringList(PCE value) {
-    return this->getItemValueToStringList(static_cast<int>(value));
+QStringList ProjectConfigManager::getStringList(PCE value) {
+    return this->getStringList(static_cast<int>(value));
 }
 
-bool ProjectConfigManager::getItemValueToBool(int index) {
-    return getItemValue(index).toBool();
+bool ProjectConfigManager::getBool(int index) {
+    return get(index).toBool();
 }
 
-bool ProjectConfigManager::getItemValueToBool(PCE value) {
-    return getItemValue(value).toBool();
+bool ProjectConfigManager::getBool(PCE value) {
+    return get(value).toBool();
 }
 
 int ProjectConfigManager::getLength() const {
     return this->configList->size();
 }
 
-void ProjectConfigManager::setItem(const int index, const QVariant &value) {
+void ProjectConfigManager::set(const int index, const QVariant &value) {
     ProjectConfigType *configItem = getItem(index);
     if (configItem) {
         configItem->set_itemValue(value);
@@ -102,7 +102,7 @@ void ProjectConfigManager::setItem(const int index, const QVariant &value) {
     }
 }
 
-void ProjectConfigManager::setItem(PCE configValue, const QVariant &value) {
+void ProjectConfigManager::set(PCE configValue, const QVariant &value) {
     int index = static_cast<int>(configValue);
     ProjectConfigType *configItem = getItem(index);
     if (configItem) {
@@ -112,36 +112,36 @@ void ProjectConfigManager::setItem(PCE configValue, const QVariant &value) {
     }
 }
 
-void ProjectConfigManager::appendItemToStringList(int index, const QString &value) {
-    QVariant rawList = this->getItemValue(index);
+void ProjectConfigManager::appendToStringList(int index, const QString &value) {
+    QVariant rawList = this->get(index);
     QStringList stringList = rawList.toStringList();
     stringList.append(value);
-    this->setItem(index, QVariant(stringList));
+    this->set(index, QVariant(stringList));
 }
 
-void ProjectConfigManager::appendItemToStringList(PCE configValue, const QString &value) {
+void ProjectConfigManager::appendToStringList(PCE configValue, const QString &value) {
     int index = static_cast<int>(configValue);
-    this->appendItemToStringList(index, value);
+    this->appendToStringList(index, value);
 }
 
-void ProjectConfigManager::removeItemFromStringList(int index, const QString &value) {
-    QStringList stringList = this->getItemValue(index).toStringList();
+void ProjectConfigManager::removeFromStringList(int index, const QString &value) {
+    QStringList stringList = this->get(index).toStringList();
     stringList.removeOne(value);
-    this->setItem(index, QVariant(stringList));
+    this->set(index, QVariant(stringList));
 }
 
-void ProjectConfigManager::removeItemFromStringList(int index, int valueIndex) {
-    QStringList stringList = this->getItemValue(index).toStringList();
+void ProjectConfigManager::removeFromStringList(int index, int valueIndex) {
+    QStringList stringList = this->get(index).toStringList();
     stringList.removeAt(valueIndex);
-    this->setItem(index, QVariant(stringList));
+    this->set(index, QVariant(stringList));
 }
 
-void ProjectConfigManager::removeItemFromStringList(PCE configValue, const QString &value) {
-    this->removeItemFromStringList(static_cast<int>(configValue), value);
+void ProjectConfigManager::removeFromStringList(PCE configValue, const QString &value) {
+    this->removeFromStringList(static_cast<int>(configValue), value);
 }
 
-void ProjectConfigManager::removeItemFromStringList(PCE configValue, int valueIndex) {
-    this->removeItemFromStringList(static_cast<int>(configValue), valueIndex);
+void ProjectConfigManager::removeFromStringList(PCE configValue, int valueIndex) {
+    this->removeFromStringList(static_cast<int>(configValue), valueIndex);
 }
 
 void ProjectConfigManager::setList(QList<ProjectConfigType *> *list) {
