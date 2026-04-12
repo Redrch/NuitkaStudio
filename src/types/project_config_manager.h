@@ -25,9 +25,6 @@ public:
     ProjectConfigManager(const ProjectConfigManager &) = delete;
     ProjectConfigManager &operator=(const ProjectConfigManager &) = delete;
 
-    ProjectConfigManager();
-    ~ProjectConfigManager() override;
-
     int getUpdateInterval() const;
     void setUpdateInterval(const int value);
 
@@ -64,6 +61,9 @@ public slots:
     void updateGlobalUI();
 
 private:
+    ProjectConfigManager();
+    ~ProjectConfigManager() override;
+
     QList<ProjectConfigType *> *configList;
 
     int updateInterval;

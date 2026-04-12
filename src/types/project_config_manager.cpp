@@ -9,7 +9,7 @@ ProjectConfigManager::ProjectConfigManager() {
     this->configList = new QList<ProjectConfigType *>();
     this->updateInterval = 100;
     this->updateCounter = 0;
-    this->updateTimer = new QTimer();
+    this->updateTimer = new QTimer(this);
     this->updateTimer->setInterval(this->updateInterval);
 
     connect(this->updateTimer, QTimer::timeout, [this] {
@@ -18,8 +18,6 @@ ProjectConfigManager::ProjectConfigManager() {
             this->updateCounter = 0;
         }
     });
-
-    this->updateTimer->start();
 }
 
 ProjectConfigManager::~ProjectConfigManager() {
@@ -120,6 +118,9 @@ void ProjectConfigManager::set(const int index, const QVariant &value) {
     if (configItem) {
         configItem->set_itemValue(value);
         this->updateCounter += 1;
+        if (!this->updateTimer->isActive()) {
+            this->updateTimer->start();
+        }
     } else {
         Logger::error(QString("无法设置索引为 %1 的配置项：索引越界").arg(index));
     }
@@ -127,13 +128,7 @@ void ProjectConfigManager::set(const int index, const QVariant &value) {
 
 void ProjectConfigManager::set(PCE configValue, const QVariant &value) {
     int index = static_cast<int>(configValue);
-    ProjectConfigType *configItem = getItem(index);
-    if (configItem) {
-        configItem->set_itemValue(value);
-        this->updateCounter += 1;
-    } else {
-        Logger::error(QString("无法设置索引为 %1 的配置项：索引越界").arg(index));
-    }
+    this->set(index, value);
 }
 
 void ProjectConfigManager::appendToStringList(int index, const QString &value) {
