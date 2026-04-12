@@ -60,9 +60,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-392</y>
+             <y>-114</y>
              <width>969</width>
-             <height>1002</height>
+             <height>1026</height>
             </rect>
            </property>
            <property name="styleSheet">
@@ -372,20 +372,8 @@
                       <widget class="QWidget" name="removeOutputAndLtoWidget" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_9">
                         <item>
-                         <widget class="ElaCheckBox" name="removeOutputCheckbox">
-                          <property name="font">
-                           <font>
-                            <pointsize>10</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>删除编译临时文件</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QWidget" name="LtoWidget" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_8">
+                         <widget class="QWidget" name="widget_6" native="true">
+                          <layout class="QVBoxLayout" name="verticalLayout_5">
                            <item>
                             <widget class="ElaText" name="ltoLabel">
                              <property name="font">
@@ -399,66 +387,72 @@
                             </widget>
                            </item>
                            <item>
-                            <widget class="QWidget" name="widget_6" native="true">
-                             <layout class="QVBoxLayout" name="verticalLayout_5">
-                              <item>
-                               <widget class="ElaCheckBox" name="ltoNo">
-                                <property name="font">
-                                 <font>
-                                  <pointsize>10</pointsize>
-                                 </font>
-                                </property>
-                                <property name="text">
-                                 <string>禁用 LTO</string>
-                                </property>
-                                <property name="autoExclusive">
-                                 <bool>true</bool>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="ElaCheckBox" name="ltoYes">
-                                <property name="font">
-                                 <font>
-                                  <pointsize>10</pointsize>
-                                 </font>
-                                </property>
-                                <property name="text">
-                                 <string>启用 LTO</string>
-                                </property>
-                                <property name="checked">
-                                 <bool>false</bool>
-                                </property>
-                                <property name="autoExclusive">
-                                 <bool>true</bool>
-                                </property>
-                                <property name="tristate">
-                                 <bool>false</bool>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="ElaCheckBox" name="ltoAuto">
-                                <property name="font">
-                                 <font>
-                                  <pointsize>10</pointsize>
-                                 </font>
-                                </property>
-                                <property name="text">
-                                 <string>自动 LTO</string>
-                                </property>
-                                <property name="checkable">
-                                 <bool>true</bool>
-                                </property>
-                                <property name="checked">
-                                 <bool>true</bool>
-                                </property>
-                                <property name="autoExclusive">
-                                 <bool>true</bool>
-                                </property>
-                               </widget>
-                              </item>
-                             </layout>
+                            <widget class="ElaCheckBox" name="ltoNo">
+                             <property name="font">
+                              <font>
+                               <pointsize>10</pointsize>
+                              </font>
+                             </property>
+                             <property name="text">
+                              <string>禁用 LTO</string>
+                             </property>
+                             <property name="autoExclusive">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="ElaCheckBox" name="ltoYes">
+                             <property name="font">
+                              <font>
+                               <pointsize>10</pointsize>
+                              </font>
+                             </property>
+                             <property name="text">
+                              <string>启用 LTO</string>
+                             </property>
+                             <property name="checked">
+                              <bool>false</bool>
+                             </property>
+                             <property name="autoExclusive">
+                              <bool>true</bool>
+                             </property>
+                             <property name="tristate">
+                              <bool>false</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="ElaCheckBox" name="ltoAuto">
+                             <property name="font">
+                              <font>
+                               <pointsize>10</pointsize>
+                              </font>
+                             </property>
+                             <property name="text">
+                              <string>自动 LTO</string>
+                             </property>
+                             <property name="checkable">
+                              <bool>true</bool>
+                             </property>
+                             <property name="checked">
+                              <bool>true</bool>
+                             </property>
+                             <property name="autoExclusive">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="ElaCheckBox" name="removeOutputCheckbox">
+                             <property name="font">
+                              <font>
+                               <pointsize>10</pointsize>
+                              </font>
+                             </property>
+                             <property name="text">
+                              <string>删除编译临时文件</string>
+                             </property>
                             </widget>
                            </item>
                           </layout>

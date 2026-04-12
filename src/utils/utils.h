@@ -75,6 +75,8 @@ public:
     static int enumToInt(T enumValue) {
         return static_cast<int>(enumValue);
     }
+
+    static void setWidgetPixelSize(QWidget *widget, int pixelSize);
 };
 
 

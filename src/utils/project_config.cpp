@@ -40,7 +40,7 @@ NPFStatusType ProjectConfig::loadProject(const QString &path) {
             Logger::error("ProjectConfig::loadProject: 此npf文件已损坏，请尝试更换文件");
             return NPFStatusType::NPFDamage;
         }
-        PCM.setItem(index, value);
+        PCM.set(index, value);
     }
     GDM.setString(GDIN::npfFilePath, path);
     config.setString(ConfigItem::NpfPath, path);

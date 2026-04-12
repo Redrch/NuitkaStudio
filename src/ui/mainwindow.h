@@ -56,6 +56,7 @@
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
 #include "../types/color.h"
+#include "pack_page.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -144,12 +145,14 @@ private:
     QStringListModel *packLogModel;
     QStringListModel *dataListModel;
 
+    // pages
+    PackPage *packPage;
+
     int currentPageIndex;
     int currentPackLogIndex;
 
     // functions
     // Update UI functions
-    void updatePackUI() const;
     void updateSettingsUI() const;
     void updatePackLogUI();
     void updateUI();
@@ -157,7 +160,6 @@ private:
     // Connect signals and slots functions
     void connectStackedWidget();
     void connectMenubar();
-    void connectPackPage();
     void connectSettingsPage();
     void connectTrayMenu();
     void connectOther();

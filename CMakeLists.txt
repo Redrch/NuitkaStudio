@@ -7,7 +7,7 @@ file(TO_CMAKE_PATH "${CMAKE_BINARY_DIR}" CMAKE_BINARY_DIR)
 # 强制设置编译器的环境变量为正斜杠格式
 set(ENV{VCPKG_ROOT} "D:/Develop/Cpp/vcpkg")
 
-project(NuitkaStudio VERSION 1.3.0.0)
+project(NuitkaStudio VERSION 1.4.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -120,6 +120,10 @@ set(SOURCES
         src/ui/float_button.h
         src/utils/event_bus.cpp
         src/utils/event_bus.h
+        src/ui/pack_page.cpp
+        src/ui/pack_page.h
+        src/ui/settings_page.cpp
+        src/ui/settings_page.h
 )
 set(RESOURCES
         resource.qrc

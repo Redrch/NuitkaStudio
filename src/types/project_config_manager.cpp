@@ -9,15 +9,7 @@ ProjectConfigManager::ProjectConfigManager() {
     this->configList = new QList<ProjectConfigType *>();
     this->updateInterval = 100;
     this->updateCounter = 0;
-    this->updateTimer = new QTimer(this);
-    this->updateTimer->setInterval(this->updateInterval);
-
-    connect(this->updateTimer, QTimer::timeout, [this] {
-        if (this->updateCounter != 0) {
-            emit this->updateUI();
-            this->updateCounter = 0;
-        }
-    });
+    this->updateTimer = nullptr;
 }
 
 ProjectConfigManager::~ProjectConfigManager() {
@@ -33,7 +25,9 @@ int ProjectConfigManager::getUpdateInterval() const {
 
 void ProjectConfigManager::setUpdateInterval(const int value) {
     this->updateInterval = value;
-    this->updateTimer->setInterval(this->updateInterval);
+    if (this->updateTimer) {
+        this->updateTimer->setInterval(this->updateInterval);
+    }
 }
 
 void ProjectConfigManager::addItem(ProjectConfigType *config) const {
@@ -118,7 +112,15 @@ void ProjectConfigManager::set(const int index, const QVariant &value) {
     if (configItem) {
         configItem->set_itemValue(value);
         this->updateCounter += 1;
-        if (!this->updateTimer->isActive()) {
+        if (!this->updateTimer) {
+            this->updateTimer = new QTimer(this);
+            this->updateTimer->setInterval(this->updateInterval);
+            connect(this->updateTimer, QTimer::timeout, [this] {
+                if (this->updateCounter != 0) {
+                    emit this->updateUI();
+                    this->updateCounter = 0;
+                }
+            });
             this->updateTimer->start();
         }
     } else {

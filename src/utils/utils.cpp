@@ -3,8 +3,9 @@
 //
 
 #include "utils.h"
-
 #include "logger.h"
+#include <QFont>
+#include <QWidget>
 
 
 QString Utils::boolToString(bool v) {
@@ -58,5 +59,11 @@ QList<QVariant> Utils::StringListToListVariant(const QList<QString> &list) {
         result.append(QVariant(item));
     }
     return result;
+}
+
+void Utils::setWidgetPixelSize(QWidget *widget, int pixelSize) {
+    QFont font = widget->font();
+    font.setPixelSize(pixelSize);
+    widget->setFont(font);
 }
 
