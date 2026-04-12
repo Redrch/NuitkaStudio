@@ -11,8 +11,11 @@
 #include "../utils/logger.h"
 #include "../utils/utils.h"
 #include "data_structs.h"
+#include <QObject>
+#include <QTimer>
 
-class ProjectConfigManager {
+class ProjectConfigManager : public QObject {
+    Q_OBJECT
 public:
     static ProjectConfigManager &instance() {
         static ProjectConfigManager instance;
@@ -23,7 +26,10 @@ public:
     ProjectConfigManager &operator=(const ProjectConfigManager &) = delete;
 
     ProjectConfigManager();
-    ~ProjectConfigManager();
+    ~ProjectConfigManager() override;
+
+    int getUpdateInterval() const;
+    void setUpdateInterval(const int value);
 
     void addItem(ProjectConfigType *config) const;
     void setList(QList<ProjectConfigType *> *list);
@@ -32,16 +38,16 @@ public:
     int getIndex(const QString &name) const;
 
     ProjectConfigType *getItem(int index) const;
-    ProjectConfigType *getItem(PCE value);
+    ProjectConfigType *getItem(PCE value) const;
 
-    QVariant get(int index);
-    QVariant get(PCE value);
-    QString getString(int index);
-    QString getString(PCE value);
-    QStringList getStringList(int index);
-    QStringList getStringList(PCE value);
-    bool getBool(int index);
-    bool getBool(PCE value);
+    QVariant get(int index) const;
+    QVariant get(PCE value) const;
+    QString getString(int index) const;
+    QString getString(PCE value) const;
+    QStringList getStringList(int index) const;
+    QStringList getStringList(PCE value) const;
+    bool getBool(int index) const;
+    bool getBool(PCE value) const;
 
     void set(int index, const QVariant& value);
     void set(PCE configValue, const QVariant& value);
@@ -54,8 +60,18 @@ public:
 
     void setDefaultValue() const;
 
+public slots:
+    void updateGlobalUI();
+
 private:
     QList<ProjectConfigType *> *configList;
+
+    int updateInterval;
+    int updateCounter;
+    QTimer *updateTimer;
+
+signals:
+    Q_SIGNAL void updateUI();
 };
 
 

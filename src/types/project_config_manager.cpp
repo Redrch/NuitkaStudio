@@ -7,6 +7,19 @@
 
 ProjectConfigManager::ProjectConfigManager() {
     this->configList = new QList<ProjectConfigType *>();
+    this->updateInterval = 100;
+    this->updateCounter = 0;
+    this->updateTimer = new QTimer();
+    this->updateTimer->setInterval(this->updateInterval);
+
+    connect(this->updateTimer, QTimer::timeout, [this] {
+        if (this->updateCounter != 0) {
+            emit this->updateUI();
+            this->updateCounter = 0;
+        }
+    });
+
+    this->updateTimer->start();
 }
 
 ProjectConfigManager::~ProjectConfigManager() {
@@ -14,7 +27,16 @@ ProjectConfigManager::~ProjectConfigManager() {
         delete config;
     }
     delete this->configList;
-};
+}
+
+int ProjectConfigManager::getUpdateInterval() const {
+    return this->updateInterval;
+}
+
+void ProjectConfigManager::setUpdateInterval(const int value) {
+    this->updateInterval = value;
+    this->updateTimer->setInterval(this->updateInterval);
+}
 
 void ProjectConfigManager::addItem(ProjectConfigType *config) const {
     if (config == nullptr) return;
@@ -47,45 +69,45 @@ ProjectConfigType *ProjectConfigManager::getItem(int index) const {
     return this->configList->at(index);
 }
 
-ProjectConfigType *ProjectConfigManager::getItem(PCE value) {
+ProjectConfigType *ProjectConfigManager::getItem(PCE value) const {
     int index = static_cast<int>(value);
     ProjectConfigType *config = getItem(index);
     if (config == nullptr) return nullptr;
     return config;
 }
 
-QVariant ProjectConfigManager::get(int index) {
+QVariant ProjectConfigManager::get(int index) const {
     ProjectConfigType *config = getItem(index);
     if (config == nullptr) return QVariant();
     return config->get_itemValue();
 }
 
-QVariant ProjectConfigManager::get(PCE configValue) {
+QVariant ProjectConfigManager::get(PCE configValue) const {
     int index = static_cast<int>(configValue);
     return get(index);
 }
 
-QString ProjectConfigManager::getString(int index) {
+QString ProjectConfigManager::getString(int index) const {
     return get(index).toString();
 }
 
-QString ProjectConfigManager::getString(PCE value) {
+QString ProjectConfigManager::getString(PCE value) const {
     return get(value).toString();
 }
 
-QStringList ProjectConfigManager::getStringList(int index) {
+QStringList ProjectConfigManager::getStringList(int index) const {
     return get(index).toStringList();
 }
 
-QStringList ProjectConfigManager::getStringList(PCE value) {
+QStringList ProjectConfigManager::getStringList(PCE value) const {
     return this->getStringList(static_cast<int>(value));
 }
 
-bool ProjectConfigManager::getBool(int index) {
+bool ProjectConfigManager::getBool(int index) const {
     return get(index).toBool();
 }
 
-bool ProjectConfigManager::getBool(PCE value) {
+bool ProjectConfigManager::getBool(PCE value) const {
     return get(value).toBool();
 }
 
@@ -97,6 +119,7 @@ void ProjectConfigManager::set(const int index, const QVariant &value) {
     ProjectConfigType *configItem = getItem(index);
     if (configItem) {
         configItem->set_itemValue(value);
+        this->updateCounter += 1;
     } else {
         Logger::error(QString("无法设置索引为 %1 的配置项：索引越界").arg(index));
     }
@@ -107,6 +130,7 @@ void ProjectConfigManager::set(PCE configValue, const QVariant &value) {
     ProjectConfigType *configItem = getItem(index);
     if (configItem) {
         configItem->set_itemValue(value);
+        this->updateCounter += 1;
     } else {
         Logger::error(QString("无法设置索引为 %1 的配置项：索引越界").arg(index));
     }
@@ -172,4 +196,8 @@ void ProjectConfigManager::setDefaultValue() const {
                 }
         }
     }
+}
+
+void ProjectConfigManager::updateGlobalUI() {
+    emit this->updateUI();
 }
