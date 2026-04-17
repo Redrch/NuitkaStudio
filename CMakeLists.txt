@@ -1,19 +1,10 @@
 cmake_minimum_required(VERSION 3.31)
-
-# 强制将所有路径转换为 POSIX 风格（正斜杠）
-file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR)
-file(TO_CMAKE_PATH "${CMAKE_BINARY_DIR}" CMAKE_BINARY_DIR)
-
-# 强制设置编译器的环境变量为正斜杠格式
-set(ENV{VCPKG_ROOT} "D:/Develop/Cpp/vcpkg")
-
 project(NuitkaStudio VERSION 1.4.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
 
 # not Windows
@@ -28,66 +19,34 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/app_config.h.in
         ${CMAKE_CURRENT_BINARY_DIR}/app_config.h
         @ONLY)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# include spdlog lib
-if (NOT DEFINED VCPKG_TARGET_TRIPLET)
-    set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "vcpkg triplet")
-endif ()
-
-set(_vcpkg_installed "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed")
-
-string(REPLACE "\\" "/" _vcpkg_installed "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
-set(spdlog_DIR "${_vcpkg_installed}/lib/cmake/spdlog" "${_vcpkg_installed}/${VCPKG_TARGET_TRIPLET}")
-message(STATUS "spdlog_DIR -> ${spdlog_DIR}")
-
-set(ELEGANT_INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/ElaWidgetTools")
-set(ELEGANT_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-
-list(APPEND CMAKE_PREFIX_PATH
-        "${_vcpkg_installed}/lib/cmake"
-        "${_vcpkg_installed}/share"
-)
-message(STATUS "CMAKE_PREFIX_PATH -> ${CMAKE_PREFIX_PATH}")
-
-find_package(spdlog CONFIG REQUIRED HINTS
-        "${_vcpkg_installed}/lib/cmake/spdlog"
-        "${_vcpkg_installed}/share/spdlog"
-        "${_vcpkg_installed}/cmake"
-)
-add_library(ElaWidgetTools SHARED IMPORTED)
-set_target_properties(ElaWidgetTools PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ELEGANT_INC_DIR}"
-        IMPORTED_IMPLIB "${ELEGANT_LIB_DIR}/libElaWidgetTools.dll.a"
-        IMPORTED_LOCATION "${ELEGANT_LIB_DIR}/ElaWidgetTools.dll"
-)
-
+# find packages
 find_package(Qt5 COMPONENTS
         Core
         Gui
         Widgets
         REQUIRED)
 
-set(BZIP2_ROOT "${_vcpkg_installed}/x64-mingw-dynamic/bin")
-list(APPEND CMAKE_PREFIX_PATH "${BZIP2_ROOT}")
 find_package(BZip2 REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
-# 设置路径变量
-set(LOCAL_QUAZIP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-set(LOCAL_QUAZIP_INCLUDE "${LOCAL_QUAZIP_ROOT}/include") # 指向 quazip 文件夹的父目录
-set(LOCAL_QUAZIP_DLL "${LOCAL_QUAZIP_ROOT}/lib/libquazip1-qt5.dll")
-
-# 验证文件是否存在（防止配置阶段报错不清晰）
-if (NOT EXISTS "${LOCAL_QUAZIP_DLL}")
-    message(FATAL_ERROR "找不到 QuaZip DLL: ${LOCAL_QUAZIP_DLL}")
-endif ()
-
-# 创建导入目标 (MinGW 下直接链接 DLL 也是可以的)
-add_library(QuaZip::Local SHARED IMPORTED)
-find_library(MATERIAL_LIB
-        NAMES components
-        PATHS ${LOCAL_QMW_LIB}
-        NO_DEFAULT_PATH
+set(THIRD_PARTY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+if(NOT EXISTS "${THIRD_PARTY_INCLUDE_DIR}")
+    file(MAKE_DIRECTORY "${THIRD_PARTY_INCLUDE_DIR}")
+    MESSAGE(WARNING "Not found include dir.")
+endif()
+# Quazip
+add_library(QuaZip::Quazip SHARED IMPORTED)
+set_target_properties(QuaZip::Quazip PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${THIRD_PARTY_INCLUDE_DIR}"
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/lib/libquazip1-qt5.dll"
+        IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/libquazip1-qt5.dll"
+)
+# ElaWidgetTools
+add_library(ElaWidgetTools::ElaWidgetTools SHARED IMPORTED)
+set_target_properties(ElaWidgetTools::ElaWidgetTools PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${THIRD_PARTY_INCLUDE_DIR}/ElaWidgetTools"
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/lib/ElaWidgetTools.dll"
+        IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/libElaWidgetTools.dll.a"
 )
 
 set(SOURCES
@@ -124,6 +83,8 @@ set(SOURCES
         src/ui/pack_page.h
         src/ui/settings_page.cpp
         src/ui/settings_page.h
+        src/application.cpp
+        src/application.h
 )
 set(RESOURCES
         resource.qrc
@@ -153,16 +114,9 @@ target_link_libraries(NuitkaStudio
         Qt5::Widgets
         spdlog::spdlog
         BZip2::BZip2
-        QuaZip::Local
+        QuaZip::Quazip
+        ElaWidgetTools::ElaWidgetTools
         dwmapi
-)
-
-target_link_libraries(NuitkaStudio PRIVATE ElaWidgetTools)
-
-set_target_properties(QuaZip::Local PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${LOCAL_QUAZIP_INCLUDE}"
-        IMPORTED_LOCATION "${LOCAL_QUAZIP_DLL}"
-        IMPORTED_IMPLIB "${LOCAL_QUAZIP_DLL}"
 )
 
 target_include_directories(NuitkaStudio PRIVATE
@@ -231,26 +185,93 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     endforeach (QT_LIB)
 endif ()
 
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/ElaWidgetTools.dll
-        ${CMAKE_CURRENT_BINARY_DIR}/ElaWidgetTools.dll
-        COPYONLY
+# install
+# clear install dir
+install(CODE "
+    message(STATUS \"Cleaning install directory: \${CMAKE_INSTALL_PREFIX}\")
+    file(REMOVE_RECURSE \"\${CMAKE_INSTALL_PREFIX}\")
+    file(MAKE_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}\")
+")
+# set install dir
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/Install" CACHE PATH "Install Prefix" FORCE)
+endif()
+
+# install main file
+install(TARGETS NuitkaStudio
+        RUNTIME DESTINATION .
+        COMPONENT Runtime
 )
 
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/libquazip1-qt5.dll
-        ${CMAKE_CURRENT_BINARY_DIR}/libquazip1-qt5.dll
-        COPYONLY
+# install third-party libs
+install(FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/ElaWidgetTools.dll"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/libquazip1-qt5.dll"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/bz2.dll"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/zlib1.dll"
+        DESTINATION .
+        COMPONENT Runtime
 )
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/libspdlogd.dll"
+        "${CMAKE_CURRENT_BINARY_DIR}/libfmtd.dll"
+        DESTINATION .
+        COMPONENT Runtime
+    )
+else ()
+    install(FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/libspdlog.dll"
+            "${CMAKE_CURRENT_BINARY_DIR}/libfmt.dll"
+            DESTINATION .
+            COMPONENT Runtime
+    )
+endif ()
 
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/bz2.dll
-        ${CMAKE_CURRENT_BINARY_DIR}/bz2.dll
-        COPYONLY
-)
+# windeployqt
+if(WIN32)
+    get_target_property(_qt_core_path Qt5::Core LOCATION)
+    get_filename_component(_qt_bin_dir "${_qt_core_path}" DIRECTORY)
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
 
-configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/zlib1.dll
-        ${CMAKE_CURRENT_BINARY_DIR}/zlib1.dll
-        COPYONLY
-)
+    if(WINDEPLOYQT_EXECUTABLE)
+        install(CODE "
+            message(STATUS \"Running windeployqt...\")
+            execute_process(
+                COMMAND \"${WINDEPLOYQT_EXECUTABLE}\"
+                --no-compiler-runtime
+                --no-svg
+                --no-opengl-sw
+                --no-translations
+                \"\${CMAKE_INSTALL_PREFIX}/NuitkaStudio.exe\"
+            )
+        " COMPONENT Runtime)
+    endif()
+endif()
+
+# CPack
+# Config
+set(CPACK_PACKAGE_NAME "NuitkaStudio")
+set(CPACK_PACKAGE_VENDOR "Redrch")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Nuitka Studio Setup")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "NuitkaStudio")
+set(CPACK_MONOLITHIC_INSTALL 1)
+set(CPACK_GENERATOR "ZIP;NSIS")
+
+# NSIS
+if(WIN32)
+     set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/NuitkaStudioSetupLogo.ico")
+
+    set(CPACK_NSIS_PACKAGE_NAME "Nuitka Studio")
+    set(CPACK_NSIS_DISPLAY_NAME "Nuitka Studio ${PROJECT_VERSION}")
+    set(CPACK_NSIS_HELP_LINK "https://github.com/Redrch/NuitkaStudio")
+
+    # Shortcut
+    set(CPACK_NSIS_CREATE_ICONS_EXTRA "
+        CreateShortCut '$DESKTOP\\Nuitka Studio.lnk' '$INSTDIR\\NuitkaStudio.exe'
+    ")
+endif()
+
+# include CPack module
+include(CPack)

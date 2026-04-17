@@ -7,7 +7,10 @@
       <w>buildsystems</w>
       <w>darkstyle</w>
       <w>dcompiler</w>
+      <w>dumpversion</w>
       <w>dvcpkg</w>
+      <w>excinfo</w>
+      <w>fmtd</w>
       <w>gdin</w>
       <w>iconengines</w>
       <w>imageformats</w>
@@ -24,15 +27,18 @@
       <w>lupdate</w>
       <w>mainfile</w>
       <w>mainwindow</w>
+      <w>makensis</w>
       <w>melman</w>
       <w>nuitkastudio</w>
       <w>pixmaps</w>
       <w>projectconfig</w>
       <w>projectconfigtype</w>
       <w>projectconfigtypemanager</w>
+      <w>ptti</w>
       <w>qwindows</w>
       <w>redrch</w>
       <w>simname</w>
+      <w>spdlogd</w>
       <w>tachenov</w>
       <w>timedout</w>
       <w>zverovich</w>

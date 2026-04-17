@@ -1,0 +1,32 @@
+[General]
+# version, Please don't modify
+version = "1.4.0.0"
+# clean or not before building
+is_clean = 1
+# install or not building use tools
+is_install_tools = 1
+# uninstall tools or not after building
+is_uninstall_tools = 1
+
+[Path]
+# ninja exe's path
+ninja_path = "C:/Program Files/JetBrains/CLion 2025.1.2/bin/ninja/win/x64/ninja.exe"
+# vcpkg cmake file's path  eg.c:/vcpkg/buildsystems/vcpkg.cmake
+vcpkg_path = "D:/Develop/Cpp/vcpkg/scripts/buildsystems/vcpkg.cmake"
+# mingw path  eg.c:/qt5.14.2/5.14.2/mingw73_64
+mingw_path = "D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64"
+
+[Install]
+# install or not, 0 is false, 1 is true
+is_install = 1
+# install path
+install_path = "Install"
+# general or not setup
+is_general_setup = 1
+
+[Tools]
+mingw_url = "https://mirror.maeen.sa/qtproject/online/qtsdkrepository/windows_x86/desktop/tools_mingw/qt.tools.win64_mingw730/7.3.0-1x86_64-7.3.0-release-posix-seh-rt_v5-rev0.7z"
+ninja_url = "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip"
+cmake_url = "https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-windows-x86_64.zip"
+vcpkg_url = "https://github.com/microsoft/vcpkg.git"
+nsis_url = "https://zenlayer.dl.sourceforge.net/project/nsis/NSIS%203/3.11/nsis-3.11-setup.exe?viasf=1"

@@ -9,7 +9,7 @@
 #include "ui/mainwindow.h"
 #include "utils/logger.h"
 #include "types/simname.h"
-#include "types/color.h"
+#include "ui/settings_page.h"
 
 void initProjectConfig() {
     // path data
@@ -100,6 +100,9 @@ int main(int argc, char *argv[]) {
     w.show();
     splash.finish(&w);
 
+    SettingsPage settingsPage;
+    settingsPage.show();
+
     // load
     int ret = QApplication::exec();
 
@@ -126,7 +129,9 @@ Version 1.4.0.0
 普通修改：
 代码方面：
 重大修改：
+1. 增加了编译时如果工具不存在自动安装的功能
 普通修改：
 1. 修改了PCM的接口名称
 2. 添加了PCM自动刷新ui的功能
+3. 简化了cmake脚本
 */
