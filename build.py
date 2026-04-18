@@ -10,6 +10,7 @@ import subprocess
 import sys
 import zipfile
 import stat
+import ssl
 
 # read config
 config_dict = tomllib.load(open("build_config.toml", "rb"))
@@ -23,6 +24,7 @@ path_dict = config_dict["Path"]
 ninja_path = path_dict["ninja_path"]
 vcpkg_path = path_dict["vcpkg_path"]
 mingw_path = path_dict["mingw_path"]
+cmake_path = "cmake"
 
 install_dict = config_dict["Install"]
 install_path = install_dict["install_path"]
@@ -31,16 +33,29 @@ is_general_setup: bool = install_dict["is_general_setup"]
 
 tools_dict = config_dict["Tools"]
 
+# ssl
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+ctx.options |= ssl.OP_LEGACY_SERVER_CONNECT
+opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=ctx))
+urllib.request.install_opener(opener)
+
 # 7z
 def get_7z_executable():
     """检测系统中可用的 7z 命令行工具"""
-    # check 7z
+    # find 7z
     for cmd in ["7z", "7zr"]:
         path = shutil.which(cmd)
-        if path:
-            return path
+        if path: return path
 
-    # check installation paths
     default_paths = [
         r"C:\Program Files\7-Zip\7z.exe",
         r"C:\Program Files (x86)\7-Zip\7z.exe"
@@ -60,15 +75,17 @@ def get_7z_executable():
 
 # mingw
 def ensure_qt_mingw():
-    # find gcc
-    gcc_path = shutil.which("gcc")
-    if gcc_path:
-        version_out = subprocess.check_output(["gcc", "-dumpversion"]).decode().strip()
-        if version_out.startswith("7.3"):
-            print(f"Found compatible MinGW in PATH: {gcc_path}")
-            return True
+    # find mingw
+    gcc_exe = shutil.which("gcc")
+    if gcc_exe:
+        try:
+            version_out = subprocess.check_output([gcc_exe, "-dumpversion"]).decode().strip()
+            if version_out.startswith("7.3"):
+                print(f"Found compatible MinGW in PATH: {gcc_exe}")
+                return True
+        except:
+            pass
 
-    # looking for gcc at search dir
     search_dirs = [
         os.path.abspath("external/mingw730_64"),
         r"C:\Qt\Qt5.14.2\Tools\mingw730_64",
@@ -76,18 +93,13 @@ def ensure_qt_mingw():
         r"C:\Qt\Tools\mingw730_64",
     ]
 
-    for d in search_dirs:
-        gcc_exe = os.path.join(d, "bin", "gcc.exe")
-        if os.path.exists(gcc_exe):
-            print(f"Detected MinGW at: {d}")
-            # add mingw to PATH
-            os.environ["PATH"] = os.path.join(d, "bin") + os.pathsep + os.environ["PATH"]
-            return True
+    config_mingw = tools_dict.get("mingw_path")
+    if config_mingw:
+        search_dirs.insert(0, config_mingw)
 
-    if os.path.exists(mingw_path):
-        print(f"Detected MinGW at: {mingw_path}")
-        os.environ["PATH"] = os.path.join(mingw_path, "bin") + os.pathsep + os.environ["PATH"]
-        return True
+    for d in search_dirs:
+        if os.path.exists(d):
+            return True
 
     # install
     print("No compatible MinGW found. Starting automatic installation...")
@@ -100,13 +112,28 @@ def ensure_qt_mingw():
 
     if not os.path.exists(archive_file):
         print(f"Downloading from {mingw_url}...")
-        urllib.request.urlretrieve(mingw_url, archive_file)
+        try:
+            # download file
+            urllib.request.urlretrieve(mingw_url, archive_file)
 
-    if not os.path.exists("external"):
-        os.makedirs("external")
+            file_size = os.path.getsize(archive_file)
+            if file_size < 10 * 1024 * 1024:
+                os.remove(archive_file)
+                raise Exception(f"下载的文件过小 ({file_size} bytes)，可能下载已中断，请检查网络或更换镜像源。")
 
-    print("Extracting MinGW...")
-    subprocess.run(f'{sz_cmd} x {archive_file} -oexternal -y', shell=True, check=True)
+        except Exception as e:
+            if os.path.exists(archive_file): os.remove(archive_file)
+            print(f"Error downloading MinGW: {e}")
+            return False
+
+    if not os.path.exists(archive_file):
+        print("Archive file missing, download might have failed.")
+        return False
+
+    print("Extracting MinGW (This may take a while)...")
+    subprocess.run(f'{sz_cmd} x {archive_file} -o"external" -y', shell=True, check=True)
+    shutil.move(r"external/Tools/mingw730_64", target_dir)
+    shutil.rmtree(r"external/Tools")
 
     # clean
     if os.path.exists(archive_file):
@@ -157,7 +184,7 @@ def ensure_ninja():
             zip_ref.extractall(extract_dir)
         os.remove(zip_name)
 
-        # 加入 PATH
+        # add ninja to PATH
         os.environ["PATH"] = os.path.abspath(extract_dir) + os.pathsep + os.environ["PATH"]
         print(f"Ninja installed to: {extract_dir}")
         return os.path.join(extract_dir, "ninja.exe")
@@ -167,9 +194,15 @@ def ensure_ninja():
 
 # cmake
 def ensure_cmake():
-    cmake_path = shutil.which("cmake")
-    if cmake_path:
-        return True
+    global cmake_path
+    search_paths = [
+        r"C:\Program Files\CMake",
+        r"C:\Program Files (x86)\CMake",
+        os.path.abspath("external/cmake-3.31.6-windows-x86_64")
+    ]
+    for d in search_paths:
+        if os.path.exists(d):
+            return True
 
     print("CMake not found. Downloading portable version...")
     url = tools_dict["cmake_url"]
@@ -185,6 +218,7 @@ def ensure_cmake():
     # add cmake to PATH
     full_path = os.path.abspath(os.path.join("external", "cmake-3.31.6-windows-x86_64", "bin"))
     os.environ["PATH"] = full_path + os.pathsep + os.environ["PATH"]
+    cmake_path = os.path.join(full_path, "cmake.exe")
     return True
 
 # vcpkg
@@ -326,11 +360,11 @@ if is_install_tools:
 
 build_start_time = time.time()
 if is_clean:
-    os.system('cmake --build cmake-build-release --target clean')
+    os.system(f'{cmake_path} --build cmake-build-release --target clean')
 
 # build
 os.system(
-    fr'cmake -DCMAKE_BUILD_TYPE=Release "-DCMAKE_MAKE_PROGRAM={ninja_path}" '
+    fr'{cmake_path} -DCMAKE_BUILD_TYPE=Release "-DCMAKE_MAKE_PROGRAM={ninja_path}" '
     fr'-DCMAKE_TOOLCHAIN_FILE={vcpkg_path} -DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic -DVCPKG_HOST_TRIPLET=x64-mingw-dynamic '
     fr'-DCMAKE_PREFIX_PATH=D:/Develop/QtDev/Qt5.14.2/5.14.2/mingw73_64 '
     fr'-DCMAKE_INSTALL_PREFIX=D:/Develop/Projects/nuitka-studio/{install_path} '
@@ -340,7 +374,7 @@ os.system('cmake --build cmake-build-release --target NuitkaStudio -j 30')
 # install
 if is_install:
     print("Installing...")
-    os.system('cmake --install cmake-build-release')
+    os.system(f'{cmake_path} --install cmake-build-release')
 
 # general setup
 if is_general_setup:
@@ -352,6 +386,7 @@ build_end_time = time.time()
 # uninstall tools
 if is_uninstall_tools:
     print("Uninstalling build tools...")
+    uninstall_tools()
     uninstall_nsis_automatically()
 
 end_time = time.time()

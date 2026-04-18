@@ -788,14 +788,6 @@ void MainWindow::connectOther() {
         QString textColorHex = textColor.name();
         QString textStyleSheet = QString("color: %1;").arg(textColorHex);
 
-        ui->standaloneCheckbox->setStyleSheet(ui->standaloneCheckbox->styleSheet() += textStyleSheet);
-        ui->onefileCheckbox->setStyleSheet(ui->onefileCheckbox->styleSheet() += textStyleSheet);
-        ui->removeOutputCheckbox->setStyleSheet(ui->removeOutputCheckbox->styleSheet() += textStyleSheet);
-
-        ui->ltoNo->setStyleSheet(ui->ltoNo->styleSheet() += textStyleSheet);
-        ui->ltoYes->setStyleSheet(ui->ltoYes->styleSheet() += textStyleSheet);
-        ui->ltoAuto->setStyleSheet(ui->ltoAuto->styleSheet() += textStyleSheet);
-
         ui->showCloseWindowCheckbox->setStyleSheet(ui->showCloseWindowCheckbox->styleSheet() += textStyleSheet);
         ui->hideOnCloseCheckbox->setStyleSheet(ui->hideOnCloseCheckbox->styleSheet() += textStyleSheet);
         ui->splashScreenCheckbox->setStyleSheet(ui->splashScreenCheckbox->styleSheet() += textStyleSheet);

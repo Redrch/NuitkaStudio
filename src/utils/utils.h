@@ -77,6 +77,7 @@ public:
     }
 
     static void setWidgetPixelSize(QWidget *widget, int pixelSize);
+    static void addWidgetStyleSheet(QWidget *widget, const QString &styleSheet);
 };
 
 

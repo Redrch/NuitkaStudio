@@ -67,3 +67,7 @@ void Utils::setWidgetPixelSize(QWidget *widget, int pixelSize) {
     widget->setFont(font);
 }
 
+void Utils::addWidgetStyleSheet(QWidget *widget, const QString &styleSheet) {
+    widget->setStyleSheet(widget->styleSheet() += styleSheet);
+}
+

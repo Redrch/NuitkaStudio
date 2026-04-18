@@ -15,6 +15,7 @@
 #include <ElaPushButton.h>
 #include <ElaCheckBox.h>
 #include <ElaListView.h>
+#include <ElaTheme.h>
 
 PackPage::PackPage(QWidget *parent) : QWidget(parent) {
     this->setMinimumSize(950, 570);
@@ -275,6 +276,17 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
                     break;
             }
             customArgEdit->setText(PCM.getString(PCE::CustomCommand));
+        });
+        connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=](ElaThemeType::ThemeMode mode) {
+            const QColor &textColor = ElaThemeColor(mode, ThemeColor::BasicText);
+            QString textColorHex = textColor.name();
+            QString textStyleSheet = QString("color: %1;").arg(textColorHex);
+            Utils::addWidgetStyleSheet(standaloneButton, textStyleSheet);
+            Utils::addWidgetStyleSheet(onefileButton, textStyleSheet);
+            Utils::addWidgetStyleSheet(removePackFile, textStyleSheet);
+            Utils::addWidgetStyleSheet(ltoAuto, textStyleSheet);
+            Utils::addWidgetStyleSheet(ltoYes, textStyleSheet);
+            Utils::addWidgetStyleSheet(ltoNo, textStyleSheet);
         });
     }
 #pragma endregion

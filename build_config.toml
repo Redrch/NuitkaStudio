@@ -25,7 +25,8 @@ install_path = "Install"
 is_general_setup = 1
 
 [Tools]
-mingw_url = "https://mirror.maeen.sa/qtproject/online/qtsdkrepository/windows_x86/desktop/tools_mingw/qt.tools.win64_mingw730/7.3.0-1x86_64-7.3.0-release-posix-seh-rt_v5-rev0.7z"
+# 如果下载速度很慢，可以尝试国内镜像  https://mirrors.tuna.tsinghua.edu.cn/qt/online/qtsdkrepository/windows_x86/desktop/tools_mingw/qt.tools.win64_mingw730/7.3.0-0x86_64-7.3.0-release-posix-seh-rt_v5-rev0.7z
+mingw_url = "https://mirrors.tuna.tsinghua.edu.cn/qt/online/qtsdkrepository/windows_x86/desktop/tools_mingw/qt.tools.win64_mingw730/7.3.0-0x86_64-7.3.0-release-posix-seh-rt_v5-rev0.7z"
 ninja_url = "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip"
 cmake_url = "https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-windows-x86_64.zip"
 vcpkg_url = "https://github.com/microsoft/vcpkg.git"
