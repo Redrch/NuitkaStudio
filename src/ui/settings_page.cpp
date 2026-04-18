@@ -3,7 +3,8 @@
 //
 
 #include "settings_page.h"
-#include "../utils/utils.h"
+#include "application.h"
+#include "utils/utils.h"
 #include <QVBoxLayout>
 #include <ElaScrollArea.h>
 #include <ElaScrollPageArea.h>

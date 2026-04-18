@@ -1,16 +1,41 @@
 //
-// Created by david on 2026/4/15.
+// Created by redrch on 2026/4/15.
 //
 
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include <QObject>
+#include <QSplashScreen>
 
+#include "ui/mainwindow.h"
+#include "utils/logger.h"
 
-class Application {
+// Singleton
+class Application : public QObject {
+    Q_OBJECT
 
+public:
+    static Application& instance() {
+        static Application instance;
+        return instance;
+    }
+    Application(const Application&) = delete;
+    Application& operator=(const Application&) = delete;
+
+    void init();
+    void exit() const;
+    void run();
+    void restart() const;
+
+private:
+    Application();
+
+    Logger* logger{};
+    QSplashScreen* splash{};
+    MainWindow* mainWindow{};
 };
 
-
+#define app Application::instance()
 
 #endif //APPLICATION_H
