@@ -47,7 +47,7 @@
 #include "float_button.h"
 
 #include "../types/data_structs.h"
-#include "../types/project_config_manager.h"
+#include "../global/project_config_manager.h"
 #include "../types/simname.h"
 
 #include "../utils/utils.h"
@@ -56,7 +56,9 @@
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
 #include "../types/color.h"
+
 #include "pack_page.h"
+#include "settings_page.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -147,20 +149,19 @@ private:
 
     // pages
     PackPage *packPage;
+    SettingsPage *settingsPage;
 
     int currentPageIndex;
     int currentPackLogIndex;
 
     // functions
     // Update UI functions
-    void updateSettingsUI() const;
     void updatePackLogUI();
     void updateUI();
 
     // Connect signals and slots functions
     void connectStackedWidget();
     void connectMenubar();
-    void connectSettingsPage();
     void connectTrayMenu();
     void connectOther();
     void connectPackLog();

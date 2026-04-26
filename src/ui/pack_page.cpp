@@ -127,27 +127,27 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
         });
         connect(projectPathButton, &QPushButton::clicked, [=]() {
             QString path = QFileDialog::getExistingDirectory(baseCard, "Nuitka Studio",
-                                                             config.getString(ConfigItem::DefaultMainFilePath));
+                                                             config.getString(ConfigItem::DefaultProjectPath));
             projectPathEdit->setText(path);
             PCM.set(PCE::ProjectPath, path);
         });
         connect(mainFileButton, &QPushButton::clicked, [=]() {
             QString path = QFileDialog::getOpenFileName(baseCard, "Nuitka Studio",
-                                                        config.getString(ConfigItem::DefaultMainFilePath),
+                                                        config.getString(ConfigItem::DefaultProjectPath),
                                                         "Python File(*.py)");
             pythonPathEdit->setText(path);
             PCM.set(PCE::MainfilePath, path);
         });
         connect(pythonPathButton, &QPushButton::clicked, [=]() {
             QString path = QFileDialog::getOpenFileName(baseCard, "Nuitka Studio",
-                                                        config.getString(ConfigItem::DefaultMainFilePath),
+                                                        config.getString(ConfigItem::DefaultPythonPath),
                                                         "exe(*.exe)");
             pythonPathEdit->setText(path);
             PCM.set(PCE::PythonPath, path);
         });
         connect(outputPathButton, &QPushButton::clicked, [=]() {
             QString path = QFileDialog::getExistingDirectory(baseCard, "Nuitka Studio",
-                                                             config.getString(ConfigItem::DefaultMainFilePath));
+                                                             config.getString(ConfigItem::DefaultProjectPath));
             outputPathEdit->setText(path);
             PCM.set(PCE::OutputPath, path);
         });
@@ -351,7 +351,7 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
         });
         connect(iconButton, &QPushButton::clicked, [=]() {
             QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio",
-                                                        config.getString(ConfigItem::DefaultIconPath),
+                                                        config.getString(ConfigItem::DefaultProjectPath),
                                                         "Images (*.ico *.png *.jpg *.jpeg);;All files(*)");
             iconEdit->setText(path);
             PCM.set(PCE::IconPath, path);

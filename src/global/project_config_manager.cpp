@@ -3,7 +3,7 @@
 //
 
 #include "project_config_manager.h"
-#include "simname.h"
+#include "../types/simname.h"
 
 ProjectConfigManager::ProjectConfigManager() {
     this->configList = new QList<ProjectConfigType *>();

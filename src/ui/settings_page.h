@@ -12,6 +12,9 @@ class SettingsPage : public QWidget {
 
 public:
     explicit SettingsPage(QWidget *parent = nullptr);
+
+protected:
+    bool eventFilter(QObject *watch, QEvent *event) override;
 };
 
 

@@ -66,8 +66,8 @@ set(SOURCES
         src/utils/utils.cpp
         src/utils/utils.h
         src/types/project_config_type.h
-        src/types/project_config_manager.cpp
-        src/types/project_config_manager.h
+        src/global/project_config_manager.cpp
+        src/global/project_config_manager.h
         src/utils/compress.cpp
         src/utils/compress.h
         src/types/simname.h
@@ -83,8 +83,10 @@ set(SOURCES
         src/ui/pack_page.h
         src/ui/settings_page.cpp
         src/ui/settings_page.h
-        src/application.cpp
-        src/application.h
+        src/global/application.cpp
+        src/global/application.h
+        src/global/update_clock.cpp
+        src/global/update_clock.h
 )
 set(RESOURCES
         resource.qrc

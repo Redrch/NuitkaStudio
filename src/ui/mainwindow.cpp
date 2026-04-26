@@ -3,8 +3,6 @@
 //
 
 #include "mainwindow.h"
-
-#include "settings_page.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWindow) {
@@ -62,12 +60,12 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
 
     // Init UI
     this->packPage = new PackPage(this);
+    this->settingsPage = new SettingsPage(this);
     this->initUI();
 
     // Connect signal and slot
     this->connectStackedWidget();
     this->connectMenubar();
-    this->connectSettingsPage();
     this->connectPackLog();
     this->connectTrayMenu();
     this->connectOther();
@@ -419,42 +417,11 @@ void MainWindow::retranslateCustomUi() const {
 
 // Update UI functions
 void MainWindow::updateUI() {
-    this->updateSettingsUI();
     if (!GDM.getString(GDIN::npfFilePath).isEmpty()) {
         this->updatePackLogUI();
     }
 
     Logger::info("刷新UI");
-}
-
-void MainWindow::updateSettingsUI() const {
-    ui->defaultPyPathEdit->setText(config.getString(ConfigItem::DefaultPythonPath));
-    ui->defaultMainPathEdit->setText(config.getString(ConfigItem::DefaultMainFilePath));
-    ui->defaultOutputPathEdit->setText(config.getString(ConfigItem::DefaultOutputPath));
-    ui->defaultIconPathEdit->setText(config.getString(ConfigItem::DefaultIconPath));
-    ui->defaultDataPathEdit->setText(config.getString(ConfigItem::DefaultDataPath));
-
-    ui->consoleInputEncodingCombo->setCurrentIndex(
-        Utils::enumToInt<EncodingEnum>(config.getEncodingEnum(ConfigItem::ConsoleInputEncoding)));
-    ui->consoleOutputEncodingCombo->setCurrentIndex(
-        Utils::enumToInt<EncodingEnum>(config.getEncodingEnum(ConfigItem::ConsoleOutputEncoding)));
-    ui->languageComboBox->setCurrentIndex(
-        Utils::enumToInt<Language>(config.getLanguage(ConfigItem::Language)));
-
-    ui->packTimerTriggerIntervalSpin->setValue(config.getInt(ConfigItem::PackTimerTriggerInterval));
-    ui->maxPackLogCountSpin->setValue(config.getInt(ConfigItem::MaxPackLogCount));
-
-    ui->showCloseWindowCheckbox->setChecked(config.getBool(ConfigItem::IsShowCloseWindow));
-    ui->hideOnCloseCheckbox->setChecked(config.getBool(ConfigItem::IsHideOnClose));
-    if (config.getBool(ConfigItem::IsShowCloseWindow)) {
-        ui->hideOnCloseCheckbox->setEnabled(false);
-    } else {
-        ui->hideOnCloseCheckbox->setEnabled(true);
-    }
-    ui->splashScreenCheckbox->setChecked(config.getBool(ConfigItem::IsSplashScreen));
-    ui->savePackLog->setChecked(config.getBool(ConfigItem::IsSavePackLog));
-
-    ui->tempPathEdit->setText(config.getString(ConfigItem::TempPath));
 }
 
 void MainWindow::updatePackLogUI() {
@@ -602,148 +569,6 @@ void MainWindow::connectMenubar() {
     });
 }
 
-void MainWindow::connectSettingsPage() {
-    // General Settings
-    // Console Input Encoding
-    connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                EncodingEnum encoding = Utils::intToEnum<EncodingEnum>(index);
-                config.setEncodingEnum(ConfigItem::ConsoleInputEncoding, encoding);
-            });
-    // Console Output Encoding
-    connect(ui->consoleOutputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                EncodingEnum encoding = Utils::intToEnum<EncodingEnum>(index);
-                config.setEncodingEnum(ConfigItem::ConsoleOutputEncoding, encoding);
-            });
-    // Language
-    connect(ui->languageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                Language language = Utils::intToEnum<Language>(index);
-                config.setLanguage(ConfigItem::Language, language);
-                if (GDM.get(GDIN::translator).value<QTranslator *>()->load(
-                    QString(":/lang/%1.qm").arg(Utils::enumToString(language)))) {
-                    QApplication::installTranslator(GDM.get(GDIN::translator).value<QTranslator *>());
-                    emit eventBus.languageChanged(language);
-                } else {
-                    Logger::error("无法加载语言文件");
-                }
-            });
-    // Pack Timer Trigger Interval
-    connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
-        config.set(ConfigItem::PackTimerTriggerInterval, value);
-    });
-    // Max Pack Log Count
-    connect(ui->maxPackLogCountSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
-        config.set(ConfigItem::MaxPackLogCount, value);
-    });
-    // Is Show Close Window
-    connect(ui->showCloseWindowCheckbox, QCheckBox::toggled, this, [=](bool checked) {
-        if (checked) {
-            config.setBool(ConfigItem::IsShowCloseWindow, true);
-        } else {
-            config.setBool(ConfigItem::IsShowCloseWindow, false);
-        }
-        // Is Enabled hideOnCloseCheckbox
-        if (config.getBool(ConfigItem::IsShowCloseWindow)) {
-            ui->hideOnCloseCheckbox->setEnabled(false);
-        } else {
-            ui->hideOnCloseCheckbox->setEnabled(true);
-        }
-    });
-    // Is Hide On Close
-    connect(ui->hideOnCloseCheckbox, QCheckBox::toggled, this, [=](bool checked) {
-        if (checked) {
-            config.setBool(ConfigItem::IsHideOnClose, true);
-        } else {
-            config.setBool(ConfigItem::IsHideOnClose, false);
-        }
-    });
-    // Is Splash Screen
-    connect(ui->splashScreenCheckbox, QCheckBox::toggled, this, [=](bool checked) {
-        config.setBool(ConfigItem::IsSplashScreen, checked);
-    });
-    // Is Save Pack log
-    connect(ui->savePackLog, &QCheckBox::toggled, this, [=](bool checked) {
-        config.setBool(ConfigItem::IsSavePackLog, checked);
-    });
-    // Temp Path
-    connect(ui->tempPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.set(ConfigItem::TempPath, text);
-    });
-
-
-    // Default Path Settings
-    // Browse Buttons
-    // Default Python Path Browse
-    connect(ui->defaultPyPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultPythonPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
-                                                     config.getString(ConfigItem::DefaultPythonPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultPyPathEdit->setText(config.getString(ConfigItem::DefaultPythonPath));
-    });
-    // Default Main File Path Browse
-    connect(ui->defaultMainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultMainFilePath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
-                                                     config.getString(ConfigItem::DefaultMainFilePath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultMainPathEdit->setText(config.getString(ConfigItem::DefaultMainFilePath));
-    });
-    // Default Output Path Browse
-    connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultOutputPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
-                                                     config.getString(ConfigItem::DefaultOutputPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultOutputPathEdit->setText(config.getString(ConfigItem::DefaultOutputPath));
-    });
-    // Default Icon Path Browse
-    connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultIconPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
-                                                     config.getString(ConfigItem::DefaultIconPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultIconPathEdit->setText(config.getString(ConfigItem::DefaultIconPath));
-    });
-    // Default Data Path Browse
-    connect(ui->defaultDataPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultDataPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认数据路径选择",
-                                                     config.getString(ConfigItem::DefaultDataPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultDataPathEdit->setText(config.getString(ConfigItem::DefaultDataPath));
-    });
-
-    // Line Edits
-    // Python Edit
-    connect(ui->defaultPyPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultPythonPath, text);
-    });
-    // Main file Edit
-    connect(ui->defaultMainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultMainFilePath, text);
-    });
-    // Output Edit
-    connect(ui->defaultOutputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultOutputPath, text);
-    });
-    // Icon Edit
-    connect(ui->defaultIconPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultIconPath, text);
-    });
-    // Data Edit
-    connect(ui->defaultDataPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultDataPath, text);
-    });
-
-    // Save button
-    connect(ui->saveSettingsBtn, &QPushButton::clicked, this, [=]() {
-        config.writeConfig();
-    });
-}
-
 void MainWindow::connectTrayMenu() {
     // tray icon
     connect(this->trayIcon, &QSystemTrayIcon::activated, this, [=](QSystemTrayIcon::ActivationReason reason) {
@@ -829,7 +654,9 @@ void MainWindow::connectPackLog() {
 void MainWindow::initUI() {
     // Stacked widget
     ui->stackedWidget->removeWidget(ui->packPage);
+    ui->stackedWidget->removeWidget(ui->settingsPage);
     ui->stackedWidget->insertWidget(0, this->packPage);
+    ui->stackedWidget->insertWidget(1, this->settingsPage);
     ui->stackedWidget->setCurrentIndex(0);
     // Pack log
     ui->packLogFileList->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -867,10 +694,6 @@ void MainWindow::initUI() {
     trayIcon->setContextMenu(trayMenu);
 
     trayIcon->show();
-
-    // Settings Page
-    ui->packTimerTriggerIntervalSpin->setButtonMode(ElaSpinBoxType::Compact);
-    ui->maxPackLogCountSpin->setButtonMode(ElaSpinBoxType::Compact);
 
     // init top text label
     this->topTextLabel = new QLabel("", this);

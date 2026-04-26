@@ -7,10 +7,10 @@
 #ifndef PROJECTCONFIGTYPEMANAGER_H
 #define PROJECTCONFIGTYPEMANAGER_H
 
-#include "project_config_type.h"
+#include "../types/project_config_type.h"
 #include "../utils/logger.h"
 #include "../utils/utils.h"
-#include "data_structs.h"
+#include "../types/data_structs.h"
 #include <QObject>
 #include <QTimer>
 

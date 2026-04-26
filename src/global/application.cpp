@@ -5,29 +5,43 @@
 #include "application.h"
 #include "types/simname.h"
 #include "ui/mainwindow.h"
+#include "update_clock.h"
 
 #include <QSplashScreen>
 #include <QApplication>
 #include <QThread>
 
 #include <ElaApplication.h>
+#include <spdlog/common.h>
 
 Application::Application() = default;
 
 void Application::init() {
-    // Register Type
+    // UI Init
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // 启动高DPI缩放
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    // Register Type
+    qRegisterMetaType<PackLog>("PackLog");
     qRegisterMetaType<LTOMode>("LTOMode");
+    qRegisterMetaType<Encoding>("ConfigEnumNS::Encoding");
+    qRegisterMetaType<Language>("ConfigEnumNS::Language");
+    qRegisterMetaTypeStreamOperators<Encoding>("ConfigEnumNS::Encoding");
+    qRegisterMetaTypeStreamOperators<Language>("ConfigEnumNS::Language");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
 
-    qRegisterMetaType<EncodingEnum>("ConfigEnumNS::EncodingEnum");
-    qRegisterMetaType<Language>("ConfigEnumNS::Language");
-    qRegisterMetaTypeStreamOperators<Language>("ConfigEnumNS::Language");
-
-    qRegisterMetaType<PackLog>("PackLog");
+    // Init logger
+    Logger::Config cfg;
+    cfg.file_path = "app.log";
+#ifndef QT_DEBUG
+    cfg.level = spdlog::level::info;
+#endif
+    this->logger = new Logger(cfg);
+#ifndef QT_DEBUG
+    Logger::installQtMessageHandler();
+#endif
 
     // Init PCM
+#pragma region InitPCMSection
     // path data
     PCM.addItem(new ProjectConfigType("pythonPath", QVariant("")));                  // 0
     PCM.addItem(new ProjectConfigType("mainFilePath", QVariant("")));                // 1
@@ -54,15 +68,20 @@ void Application::init() {
     PCM.addItem(new ProjectConfigType("legalTrademarks", QVariant("")));             // 18
     // custom commands
     PCM.addItem(new ProjectConfigType("customCommand", QVariant("")));               // 19
+#pragma endregion
 
-    // Read config
+    // Init config
+    config.init();
     if (!QFile::exists(config.getConfigPath())) {
         config.writeConfig();
     }
     config.readConfig();
+    Logger::info("配置载入完成");
 }
 
 void Application::run() {
+    // Start update clock
+    UpdateClock::instance().start();
     // Splash screen
     QPixmap pixmap(":/logo");
     this->splash = new QSplashScreen(pixmap);
@@ -70,14 +89,6 @@ void Application::run() {
         splash->show();
         qApp->processEvents();
     }
-
-    // Init logger
-    Logger::Config cfg;
-    cfg.file_path = "app.log";
-    this->logger = new Logger(cfg);
-#ifndef QT_DEBUG
-    Logger::installQtMessageHandler();
-#endif
 
     // Init GDM
     GDM.setString(GDIN::npfFilePath, "");
@@ -110,10 +121,20 @@ void Application::exit() const {
 #endif
     this->logger->shutdown();
     // delete translator object
-    GDM.get(GDIN::translator).value<QTranslator*>()->deleteLater();
+    QTranslator* translator = GDM.get(GDIN::translator).value<QTranslator*>();
+    delete translator;
+    qApp->quit();
 }
 
 void Application::restart() const {
-    QProcess::startDetached(qApp->applicationFilePath(), qApp->arguments());
     this->exit();
+    QProcess::execute("cmd /c \"ping 127.0.0.1 -n 2 > nul && start NuitkaStudio.exe\"");
+}
+
+void Application::changeLanguage(const Language &language, bool isRestart) const {
+    config.setLanguage(ConfigItem::Language, language);
+    config.writeConfig();
+    if (isRestart) {
+        QTimer::singleShot(0, [this]() { this->restart(); });
+    }
 }

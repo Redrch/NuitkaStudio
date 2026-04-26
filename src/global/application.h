@@ -8,8 +8,9 @@
 #include <QObject>
 #include <QSplashScreen>
 
-#include "ui/mainwindow.h"
-#include "utils/logger.h"
+#include "../ui/mainwindow.h"
+#include "../utils/logger.h"
+#include "../utils/config.h"
 
 // Singleton
 class Application : public QObject {
@@ -24,9 +25,12 @@ public:
     Application& operator=(const Application&) = delete;
 
     void init();
-    void exit() const;
     void run();
+
+public slots:
+    void exit() const;
     void restart() const;
+    void changeLanguage(const Language& language, bool isRestart = true) const;
 
 private:
     Application();
