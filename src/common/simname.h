@@ -24,9 +24,9 @@
 #ifndef SIMNAME_H
 #define SIMNAME_H
 
-#include "global_data.h"
+#include "../global/global_data.h"
 #include "../utils/config.h"
-#include "../global/project_config_manager.h"
+#include "project_config_manager.h"
 #include "../utils/event_bus.h"
 
 inline ProjectConfigManager &PCM = ProjectConfigManager::instance();

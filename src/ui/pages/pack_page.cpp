@@ -3,8 +3,8 @@
 //
 
 #include "pack_page.h"
-#include "../utils/utils.h"
-#include "../types/simname.h"
+#include "../../utils/utils.h"
+#include "../../common/simname.h"
 
 #include <QHBoxLayout>
 #include <QFileDialog>

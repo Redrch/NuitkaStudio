@@ -50,43 +50,54 @@ set_target_properties(ElaWidgetTools::ElaWidgetTools PROPERTIES
 )
 
 set(SOURCES
+        # main file
         src/main.cpp
+        # ui
         src/ui/mainwindow.cpp
         src/ui/mainwindow.h
+        src/ui/about_window.cpp
+        src/ui/about_window.h
+        src/ui/float_button.cpp
+        src/ui/float_button.h
+        src/ui/pages/pack_page.cpp
+        src/ui/pages/pack_page.h
+        src/ui/pages/settings_page.cpp
+        src/ui/pages/settings_page.h
+        src/ui/pages/pack_log_page.cpp
+        src/ui/pages/pack_log_page.h
+        # utils
         src/utils/config.cpp
         src/utils/config.h
         src/utils/logger.cpp
         src/utils/logger.h
-        src/ui/about_window.cpp
-        src/ui/about_window.h
-        src/app_config.h.in
-        src/utils/project_config.cpp
-        src/utils/project_config.h
-        src/types/data_structs.h
         src/utils/utils.cpp
         src/utils/utils.h
-        src/types/project_config_type.h
-        src/global/project_config_manager.cpp
-        src/global/project_config_manager.h
+        src/utils/project_config.cpp
+        src/utils/project_config.h
         src/utils/compress.cpp
         src/utils/compress.h
-        src/types/simname.h
-        src/types/global_data.cpp
-        src/types/global_data.h
-        src/types/constants.h
-        src/types/color.h
-        src/ui/float_button.cpp
-        src/ui/float_button.h
         src/utils/event_bus.cpp
         src/utils/event_bus.h
-        src/ui/pack_page.cpp
-        src/ui/pack_page.h
-        src/ui/settings_page.cpp
-        src/ui/settings_page.h
+        # types
+        src/types/data_structs.h
+        src/types/project_config_type.h
+        src/types/constants.h
+        src/types/color.h
+        # global
         src/global/application.cpp
         src/global/application.h
         src/global/update_clock.cpp
         src/global/update_clock.h
+        src/global/global_data.cpp
+        src/global/global_data.h
+        # common
+        src/common/pack_log.cpp
+        src/common/pack_log.h
+        src/common/project_config_manager.cpp
+        src/common/project_config_manager.h
+        src/common/simname.h
+        # app config
+        src/app_config.h.in
 )
 set(RESOURCES
         resource.qrc

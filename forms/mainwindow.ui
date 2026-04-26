@@ -29,7 +29,7 @@
        <string notr="true">QWidget {background: transparent;}</string>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="packPage">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -60,7 +60,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-436</y>
+             <y>0</y>
              <width>969</width>
              <height>1026</height>
             </rect>

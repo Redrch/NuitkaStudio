@@ -4,8 +4,8 @@
 
 #include "update_clock.h"
 #include "utils/logger.h"
-#include "project_config_manager.h"
-#include "types/simname.h"
+#include "../common/project_config_manager.h"
+#include "../common/simname.h"
 
 UpdateClock::UpdateClock() = default;
 

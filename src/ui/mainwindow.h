@@ -47,8 +47,8 @@
 #include "float_button.h"
 
 #include "../types/data_structs.h"
-#include "../global/project_config_manager.h"
-#include "../types/simname.h"
+#include "../common/project_config_manager.h"
+#include "../common/simname.h"
 
 #include "../utils/utils.h"
 #include "../utils/config.h"
@@ -56,9 +56,11 @@
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
 #include "../types/color.h"
+#include "common/pack_log.h"
 
-#include "pack_page.h"
-#include "settings_page.h"
+#include "pages/pack_page.h"
+#include "pages/settings_page.h"
+#include "pages/pack_log_page.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -112,6 +114,7 @@ private:
     QFile *noteFile;
     QJsonObject noteObject;
 
+
     // bar
     ElaTabBar *topTabBar;
     ElaMenuBar *menuBar;
@@ -141,7 +144,8 @@ private:
     QAction *quitAction;
 
     // pack log
-    QList<PackLog*> *packLog;
+    QList<PackLogStruct*> *packLog;
+    PackLog* log;
 
     // models
     QStringListModel *packLogModel;
@@ -150,13 +154,13 @@ private:
     // pages
     PackPage *packPage;
     SettingsPage *settingsPage;
+    PackLogPage *packLogPage;
 
     int currentPageIndex;
     int currentPackLogIndex;
 
     // functions
     // Update UI functions
-    void updatePackLogUI();
     void updateUI();
 
     // Connect signals and slots functions
@@ -164,11 +168,19 @@ private:
     void connectMenubar();
     void connectTrayMenu();
     void connectOther();
-    void connectPackLog();
 
     // Init functions
     void initUI();
     void initMenuBar();
+
+    // Gen path functions
+    void genData(bool isUpdateUI = true);
+    static void genPythonPath();
+    static void genMainfilePath();
+    static void genOutputPath();
+    static void genOutputName();
+    // Gen file info functions
+    static void genFileInfo();
 
     // ui util functions
     /**
@@ -183,35 +195,16 @@ private:
     void showText(const QString &text, int showTime = -1, const QColor &color = Qt::black,
                   TextPos position = TextPos::TopLabel, const QString &title = "Nuitka Studio") const;
     void clearText(TextPos position = TextPos::TopLabel) const;
-    void enabledInput() const;
-    void noEnableInput() const;
 
     // util functions
-    void readPackLog();
     bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);
-    void saveNote() const;
 
 private slots:
-    void onAddDataFileItemClicked();
-    void onAddDataDirItemClicked();
-    void onRemoveItemClicked() const;
-
     void startPack();
     void stopPack();
 
     void importProject();
     void exportProject();
-
-    // Gen path functions
-    void genData(bool isUpdateUI = true);
-    static void genPythonPath();
-    static void genMainfilePath();
-    static void genOutputPath();
-    static void genOutputName();
-    // Gen file info functions
-    static void genFileInfo();
-
-    void retranslateCustomUi() const;
 protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;

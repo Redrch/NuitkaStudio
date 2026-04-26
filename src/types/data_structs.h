@@ -59,27 +59,27 @@ enum class ProjectConfigEnum {
 
 using PCE = ProjectConfigEnum;
 
-struct PackLog {
+struct PackLogStruct {
     QString logFileName;
     QString logContent;
     QString logNote;
 
-    PackLog() = default;
+    PackLogStruct() = default;
 
-    PackLog(const QString &logFileName, const QString &logContent, const QString &logNote) {
+    PackLogStruct(const QString &logFileName, const QString &logContent, const QString &logNote) {
         this->logFileName = logFileName;
         this->logContent = logContent;
         this->logNote = logNote;
     }
-    PackLog(const QString &logFileName, const QString &logContent) {
+    PackLogStruct(const QString &logFileName, const QString &logContent) {
         this->logFileName = logFileName;
         this->logContent = logContent;
     }
 };
 
-using PackLogList = QList<PackLog>;
-Q_DECLARE_METATYPE(PackLog)
-Q_DECLARE_METATYPE(QList<PackLog>)
+using PackLogList = QList<PackLogStruct>;
+Q_DECLARE_METATYPE(PackLogStruct)
+Q_DECLARE_METATYPE(QList<PackLogStruct>)
 
 
 #endif //DATASTRUCTS_H

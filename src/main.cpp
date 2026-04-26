@@ -1,11 +1,11 @@
 #include <QApplication>
 #include "global/application.h"
-#include "ui/settings_page.h"
 
 int main(int argc, char *argv[]) {
     app.init();
     QApplication a(argc, argv);
     app.run();
+
     int ret = QApplication::exec();
     app.exit();
     return ret;

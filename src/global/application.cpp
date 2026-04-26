@@ -3,7 +3,7 @@
 //
 
 #include "application.h"
-#include "types/simname.h"
+#include "../common/simname.h"
 #include "ui/mainwindow.h"
 #include "update_clock.h"
 
@@ -21,7 +21,7 @@ void Application::init() {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // 启动高DPI缩放
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     // Register Type
-    qRegisterMetaType<PackLog>("PackLog");
+    qRegisterMetaType<PackLogStruct>("PackLog");
     qRegisterMetaType<LTOMode>("LTOMode");
     qRegisterMetaType<Encoding>("ConfigEnumNS::Encoding");
     qRegisterMetaType<Language>("ConfigEnumNS::Language");
