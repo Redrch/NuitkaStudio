@@ -40,6 +40,6 @@ private:
     MainWindow* mainWindow{};
 };
 
-#define app Application::instance()
+#define nApp Application::instance()
 
 #endif //APPLICATION_H

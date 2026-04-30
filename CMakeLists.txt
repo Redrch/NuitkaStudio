@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(NuitkaStudio VERSION 1.4.0.0)
+project(NuitkaStudio VERSION 1.4)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -26,7 +26,6 @@ find_package(Qt5 COMPONENTS
         Widgets
         REQUIRED)
 
-find_package(BZip2 REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 set(THIRD_PARTY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -40,6 +39,13 @@ set_target_properties(QuaZip::Quazip PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${THIRD_PARTY_INCLUDE_DIR}"
         IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/lib/libquazip1-qt5.dll"
         IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/libquazip1-qt5.dll"
+)
+# BZip2
+add_library(BZip2::BZip2 SHARED IMPORTED)
+set_target_properties(BZip2::BZip2 PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${THIRD_PARTY_INCLUDE_DIR}"
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/lib/bz2.dll"
+        IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/libbz2.dll.a"
 )
 # ElaWidgetTools
 add_library(ElaWidgetTools::ElaWidgetTools SHARED IMPORTED)
@@ -59,12 +65,16 @@ set(SOURCES
         src/ui/about_window.h
         src/ui/float_button.cpp
         src/ui/float_button.h
+        # ui pages
         src/ui/pages/pack_page.cpp
         src/ui/pages/pack_page.h
         src/ui/pages/settings_page.cpp
         src/ui/pages/settings_page.h
         src/ui/pages/pack_log_page.cpp
         src/ui/pages/pack_log_page.h
+        # ui styles
+        src/ui/styles/status_bar_style.cpp
+        src/ui/styles/status_bar_style.h
         # utils
         src/utils/config.cpp
         src/utils/config.h
@@ -103,7 +113,6 @@ set(RESOURCES
         resource.qrc
         translations.qrc
         logo.rc
-        forms/mainwindow.ui
 )
 
 add_executable(NuitkaStudio ${SOURCES} ${RESOURCES})
@@ -197,6 +206,23 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
 endif ()
+
+# copy file
+set(THIRD_PARTY_DLLS
+        "ElaWidgetTools.dll"
+        "zlib1.dll"
+        "bz2.dll"
+        "libquazip1-qt5.dll"
+)
+
+foreach(DLL ${THIRD_PARTY_DLLS})
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/lib/${DLL}"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${DLL}"
+            COMMENT "Copying ${DLL} to executable directory"
+    )
+endforeach()
 
 # install
 # clear install dir
