@@ -38,3 +38,7 @@ void UpdateClock::setInterval(const int interval) {
     this->timer->setInterval(interval);
 }
 
+void UpdateClock::update() {
+    emit this->updateUI();
+    emit PCM.updateUI();
+}

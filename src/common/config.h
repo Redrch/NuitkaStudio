@@ -18,8 +18,8 @@
 #include <QSettings>
 #include <QDir>
 
-#include "logger.h"
-#include "utils.h"
+#include "../utils/logger.h"
+#include "../utils/utils.h"
 
 namespace ConfigEnumNS {
     Q_NAMESPACE

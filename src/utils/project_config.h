@@ -16,7 +16,7 @@
 #include "../common/project_config_manager.h"
 #include "../common/simname.h"
 #include "compress.h"
-#include "config.h"
+#include "../common/config.h"
 #include "logger.h"
 #include "utils.h"
 

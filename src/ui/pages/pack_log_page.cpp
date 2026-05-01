@@ -12,7 +12,8 @@
 #include "common/pack_log.h"
 
 PackLogPage::PackLogPage(QWidget *parent) : QWidget(parent) {
-    this->setMinimumSize(950, 570);
+    this->setMinimumSize(600, 400);
+    this->setStyleSheet("background: transparent;");
 
     // main layout
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -38,6 +39,7 @@ PackLogPage::PackLogPage(QWidget *parent) : QWidget(parent) {
     QWidget *packLogWidget = new QWidget(this);
     QHBoxLayout *packLogLayout = new QHBoxLayout(packLogWidget);
     ElaListView *packLogListView = new ElaListView(packLogWidget);
+    packLogListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->logModel = new QStringListModel();
     packLogListView->setModel(this->logModel);
     ElaPlainTextEdit* logText = new ElaPlainTextEdit(packLogWidget);

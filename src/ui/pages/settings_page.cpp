@@ -17,13 +17,14 @@
 #include <ElaLineEdit.h>
 
 SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
-    this->setMinimumSize(950, 570);
+    this->setMinimumSize(600, 400);
+    this->setStyleSheet("background: transparent;");
     // main layout
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
     // scroll area
-    ElaScrollArea *scrollArea = new ElaScrollArea(this);
+    this->scrollArea = new ElaScrollArea(this);
     QWidget *scrollWidget = new QWidget();
     scrollWidget->setObjectName("centralWidget");
 
@@ -37,7 +38,7 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
     // General Settings
 #pragma region GeneralCardSection
     {
-        ElaScrollPageArea *generalCard = new ElaScrollPageArea(scrollWidget);
+        this->generalCard = new ElaScrollPageArea(scrollWidget);
         generalCard->setFixedHeight(QWIDGETSIZE_MAX);
         generalCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         QVBoxLayout *generalLayout = new QVBoxLayout(generalCard);
@@ -171,7 +172,7 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
         connect(languageComboBox, QOverload<int>::of(&QComboBox::activated), [=](int index) {
             Language language = Utils::intToEnum<Language>(index);
             if (language != config.getLanguage(ConfigItem::Language)) {
-                app.changeLanguage(language);
+                nApp.changeLanguage(language);
             }
         });
         // console
@@ -195,10 +196,23 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
             splashScreenCheckBox->setChecked(config.getBool(ConfigItem::IsSplashScreen));
             maxPackLogCountSpinBox->setValue(config.getInt(ConfigItem::MaxPackLogCount));
             savePackLogCheckBox->setChecked(config.getBool(ConfigItem::IsSavePackLog));
-            languageComboBox->setCurrentIndex(Utils::enumToInt<Language>(config.getLanguage(ConfigItem::Language)));
-            consoleInputEncodingComboBox->setCurrentIndex(Utils::enumToInt<Encoding>(config.getEncodingEnum(ConfigItem::ConsoleInputEncoding)));
-            consoleOutputEncodingComboBox->setCurrentIndex(Utils::enumToInt<Encoding>(config.getEncodingEnum(ConfigItem::ConsoleOutputEncoding)));
+            languageComboBox->setCurrentIndex(
+                Utils::enumToInt<Language>(config.getLanguage(ConfigItem::Language)));
+            consoleInputEncodingComboBox->setCurrentIndex(
+                Utils::enumToInt<Encoding>(config.getEncodingEnum(ConfigItem::ConsoleInputEncoding)));
+            consoleOutputEncodingComboBox->setCurrentIndex(
+                Utils::enumToInt<Encoding>(config.getEncodingEnum(ConfigItem::ConsoleOutputEncoding)));
             PTTISpinBox->setValue(config.getInt(ConfigItem::PackTimerTriggerInterval));
+        });
+        connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=](ElaThemeType::ThemeMode mode) {
+            const QColor &textColor = ElaThemeColor(mode, ThemeColor::BasicText);
+            QString textColorHex = textColor.name();
+            QString textStyleSheet = QString("color: %1;").arg(textColorHex);
+            Utils::addWidgetStyleSheet(showExitConfirmCheckBox, textStyleSheet);
+            Utils::addWidgetStyleSheet(hideOnExitCheckBox,
+                QString("color: %1;").arg(ElaThemeColor(mode, ThemeColor::BasicTextDisable).name()));
+            Utils::addWidgetStyleSheet(splashScreenCheckBox, textStyleSheet);
+            Utils::addWidgetStyleSheet(savePackLogCheckBox, textStyleSheet);
         });
     }
 #pragma endregion
@@ -206,7 +220,7 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
     // Default Path Settings
 #pragma region DefaultPathCardSection
 {
-    ElaScrollPageArea *defaultPathCard = new ElaScrollPageArea(scrollWidget);
+    this->defaultPathCard = new ElaScrollPageArea(scrollWidget);
     defaultPathCard->setFixedHeight(QWIDGETSIZE_MAX);
     defaultPathCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     QVBoxLayout *defaultPathLayout = new QVBoxLayout(defaultPathCard);
@@ -305,6 +319,20 @@ bool SettingsPage::eventFilter(QObject *watched, QEvent *event) {
         return true;
     }
     return QWidget::eventFilter(watched, event);
+}
+
+void SettingsPage::scrollTo(PageCard card) const {
+    switch (card) {
+        case PageCard::SettingsPageGeneralCard:
+            this->scrollArea->ensureWidgetVisible(this->generalCard);
+            break;
+        case PageCard::SettingsPageDefaultPathCard:
+            this->scrollArea->ensureWidgetVisible(this->defaultPathCard);
+            break;
+        default:
+            Logger::error("SettingsPage::scrollTo: invalid card");
+            break;
+    }
 }
 
 

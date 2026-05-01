@@ -10,7 +10,8 @@
 
 PackLog::PackLog(PackLogPage *packLog, bool isLoadLog) {
     this->noteFile = new QFile(
-        GDIN::packLogPath + "/" + QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName() + "/note.json");
+     GDM.getString(GDIN::packLogPath) + "/" +
+     QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName() + "/note.json");
     this->packLogPage = packLog;
     this->logList = new QList<std::shared_ptr<PackLogStruct>>();
 

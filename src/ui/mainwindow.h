@@ -42,6 +42,7 @@
 #include <ElaMenuBar.h>
 #include <ElaTheme.h>
 #include <ElaIconButton.h>
+#include <QStackedWidget>
 
 #include "about_window.h"
 #include "float_button.h"
@@ -51,7 +52,7 @@
 #include "../common/simname.h"
 
 #include "../utils/utils.h"
-#include "../utils/config.h"
+#include "../common/config.h"
 #include "../utils/logger.h"
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
@@ -62,14 +63,6 @@
 #include "pages/settings_page.h"
 #include "pages/pack_log_page.h"
 
-QT_BEGIN_NAMESPACE
-
-namespace Ui {
-    class MainWindow;
-}
-
-QT_END_NAMESPACE
-
 enum class TextPos {
     TopLabel,
     Statusbar,
@@ -79,23 +72,14 @@ enum class TextPos {
 class MainWindow : public ElaWindow {
     Q_OBJECT
 
-    struct ControlText {
-        QString menu_new = tr("新建(&N)");
-        QString menu_open = tr("打开(&O)");
-        QString menu_save = tr("保存(&S)");
-        QString menu_saveAs = tr("另存为(&A)");
-        QString menu_closeFile = tr("关闭文件(&C)");
-        QString menu_help = tr("帮助(&H)");
-        QString menu_about = tr("关于(&A)");
-
-        QString topbar_pack = tr("打包");
-        QString topbar_settings = tr("设置");
-        QString topbar_packLog = tr("打包日志");
-
-        QString exit_label = tr("您想要将软件关闭还是最小化至系统托盘");
-        QString exit_trayButton = tr("最小化至系统托盘");
-        QString exit_exitButton = tr("退出软件");
-        QString exit_hideButton = tr("不再显示该窗口（隐藏后行为可以在设置中看到）");
+    const QMap<QString, PageCard> navigationTitleEnumMap = {
+        {tr("基础配置"), PageCard::PackPageBaseCard},
+        {tr("打包配置"), PageCard::PackPagePackCard},
+        {tr("资源配置"), PageCard::PackPageAssetCard},
+        {tr("文件信息配置"), PageCard::PackPageFileInfoCard},
+        {tr("控制台"), PageCard::PackPageConsoleCard},
+        {tr("通用设置"), PageCard::SettingsPageGeneralCard},
+        {tr("默认路径设置"), PageCard::SettingsPageDefaultPathCard}
     };
 
 public:
@@ -105,19 +89,12 @@ public:
 
 private:
     // variants
-    Ui::MainWindow *ui;
-
     QDateTime startPackTime;
     QTimer *packTimer;
     QTimer *mainTimer;
     QProcess *packProcess;
     QFile *noteFile;
     QJsonObject noteObject;
-
-
-    // bar
-    ElaTabBar *topTabBar;
-    ElaMenuBar *menuBar;
 
     // controls
     QCheckBox *standaloneCheckbox;
@@ -127,7 +104,9 @@ private:
     QLabel *messageLabel;
     QLabel *topTextLabel;
     FloatButton* floatButton;
-    ControlText* controlText;
+    // status bar
+    ElaText *statusLabel;
+    ElaText *statusFileNameLabel;
 
     // actions
     QAction *packAction;
@@ -160,18 +139,11 @@ private:
     int currentPackLogIndex;
 
     // functions
-    // Update UI functions
-    void updateUI();
-
-    // Connect signals and slots functions
-    void connectStackedWidget();
-    void connectMenubar();
-    void connectTrayMenu();
+    // Connect signals and slots function
     void connectOther();
 
-    // Init functions
+    // Init function
     void initUI();
-    void initMenuBar();
 
     // Gen path functions
     void genData(bool isUpdateUI = true);
@@ -195,6 +167,8 @@ private:
     void showText(const QString &text, int showTime = -1, const QColor &color = Qt::black,
                   TextPos position = TextPos::TopLabel, const QString &title = "Nuitka Studio") const;
     void clearText(TextPos position = TextPos::TopLabel) const;
+    void disableUi() const;
+    void enableUi() const;
 
     // util functions
     bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);

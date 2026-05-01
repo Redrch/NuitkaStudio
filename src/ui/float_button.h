@@ -11,7 +11,7 @@
 #include <QApplication>
 #include <QDebug>
 
-#include "../utils/config.h"
+#include "../common/config.h"
 #include "../common/simname.h"
 
 struct PixmapGroup {

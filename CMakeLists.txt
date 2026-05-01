@@ -76,8 +76,6 @@ set(SOURCES
         src/ui/styles/status_bar_style.cpp
         src/ui/styles/status_bar_style.h
         # utils
-        src/utils/config.cpp
-        src/utils/config.h
         src/utils/logger.cpp
         src/utils/logger.h
         src/utils/utils.cpp
@@ -106,6 +104,8 @@ set(SOURCES
         src/common/project_config_manager.cpp
         src/common/project_config_manager.h
         src/common/simname.h
+        src/common/config.cpp
+        src/common/config.h
         # app config
         src/app_config.h.in
 )

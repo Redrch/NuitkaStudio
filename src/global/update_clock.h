@@ -25,6 +25,7 @@ public:
 
     [[nodiscard]] int getInterval() const;
     void setInterval(int interval);
+    void update();
 
 private:
     UpdateClock();

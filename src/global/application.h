@@ -10,7 +10,7 @@
 
 #include "../ui/mainwindow.h"
 #include "../utils/logger.h"
-#include "../utils/config.h"
+#include "../common/config.h"
 
 // Singleton
 class Application : public QObject {

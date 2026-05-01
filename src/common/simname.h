@@ -25,7 +25,7 @@
 #define SIMNAME_H
 
 #include "../global/global_data.h"
-#include "../utils/config.h"
+#include "config.h"
 #include "project_config_manager.h"
 #include "../utils/event_bus.h"
 

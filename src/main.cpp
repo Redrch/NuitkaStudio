@@ -2,12 +2,12 @@
 #include "global/application.h"
 
 int main(int argc, char *argv[]) {
-    app.init();
+    nApp.init();
     QApplication a(argc, argv);
-    app.run();
+    nApp.run();
 
     int ret = QApplication::exec();
-    app.exit();
+    nApp.exit();
     return ret;
 }
 

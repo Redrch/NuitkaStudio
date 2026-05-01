@@ -5,7 +5,9 @@
 #ifndef SETTINGS_PAGE_H
 #define SETTINGS_PAGE_H
 
-#include <QWidget>
+#include <ElaScrollArea.h>
+#include <ElaScrollPageArea.h>
+#include "types/data_structs.h"
 
 class SettingsPage : public QWidget {
     Q_OBJECT
@@ -13,8 +15,15 @@ class SettingsPage : public QWidget {
 public:
     explicit SettingsPage(QWidget *parent = nullptr);
 
+    void scrollTo(PageCard card) const;
+
 protected:
     bool eventFilter(QObject *watch, QEvent *event) override;
+
+private:
+    ElaScrollArea *scrollArea;
+    ElaScrollPageArea *generalCard;
+    ElaScrollPageArea *defaultPathCard;
 };
 
 

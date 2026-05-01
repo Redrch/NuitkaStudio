@@ -3,13 +3,11 @@
 //
 
 #include "pack_page.h"
-#include "../../utils/utils.h"
-#include "../../common/simname.h"
+#include "utils/utils.h"
+#include "common/simname.h"
 
 #include <QHBoxLayout>
 #include <QFileDialog>
-#include <ElaScrollArea.h>
-#include <ElaScrollPageArea.h>
 #include <ElaText.h>
 #include <ElaLineEdit.h>
 #include <ElaPushButton.h>
@@ -18,7 +16,8 @@
 #include <ElaTheme.h>
 
 PackPage::PackPage(QWidget *parent) : QWidget(parent) {
-    this->setMinimumSize(950, 570);
+    this->setMinimumSize(600, 400);
+    this->setStyleSheet("background: transparent;");
 
     this->assetListModel = new QStringListModel(this);
     this->isPacking = false;
@@ -28,7 +27,7 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
     // scroll area
-    ElaScrollArea *scrollArea = new ElaScrollArea(this);
+    this->scrollArea = new ElaScrollArea(this);
     QWidget *scrollWidget = new QWidget();
     scrollWidget->setObjectName("centralWidget");
 
@@ -58,7 +57,7 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
     // Base card
 #pragma region BaseCardSection
     {
-        ElaScrollPageArea *baseCard = new ElaScrollPageArea(scrollWidget);
+        this->baseCard = new ElaScrollPageArea(scrollWidget);
         baseCard->setFixedHeight(QWIDGETSIZE_MAX);
         baseCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         QVBoxLayout *baseLayout = new QVBoxLayout(baseCard);
@@ -166,7 +165,7 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
     // Pack card
 #pragma region PackCardSection
     {
-        ElaScrollPageArea *packCard = new ElaScrollPageArea(scrollWidget);
+        this->packCard = new ElaScrollPageArea(scrollWidget);
         packCard->setFixedHeight(QWIDGETSIZE_MAX);
         packCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         QVBoxLayout *packLayout = new QVBoxLayout(packCard);
@@ -294,7 +293,7 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
     // Asset card
 #pragma region AssetCardSection
     {
-        ElaScrollPageArea *assetCard = new ElaScrollPageArea(scrollWidget);
+        this->assetCard = new ElaScrollPageArea(scrollWidget);
         assetCard->setFixedHeight(QWIDGETSIZE_MAX);
         assetCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         QVBoxLayout *assetLayout = new QVBoxLayout(assetCard);
@@ -401,7 +400,7 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
     // File info card
 #pragma region FileInfoCardSection
     {
-        ElaScrollPageArea *fileInfoCard = new ElaScrollPageArea(scrollWidget);
+        this->fileInfoCard = new ElaScrollPageArea(scrollWidget);
         fileInfoCard->setFixedHeight(QWIDGETSIZE_MAX);
         fileInfoCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         QVBoxLayout *fileInfoLayout = new QVBoxLayout(fileInfoCard);
@@ -476,7 +475,7 @@ PackPage::PackPage(QWidget *parent) : QWidget(parent) {
     // Console Card
 #pragma region ConsoleCardSection
     {
-        ElaScrollPageArea *consoleCard = new ElaScrollPageArea(scrollWidget);
+        this->consoleCard = new ElaScrollPageArea(scrollWidget);
         consoleCard->setFixedHeight(QWIDGETSIZE_MAX);
         consoleCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         QVBoxLayout *consoleLayout = new QVBoxLayout(consoleCard);
@@ -556,3 +555,27 @@ void PackPage::packEnd() {
     stopPackButton->setEnabled(false);
     startPackButton->setEnabled(true);
 }
+
+void PackPage::scrollTo(const PageCard &card) const {
+    switch (card) {
+        case PageCard::PackPageBaseCard:
+            this->scrollArea->ensureWidgetVisible(this->baseCard);
+            break;
+        case PageCard::PackPagePackCard:
+            this->scrollArea->ensureWidgetVisible(this->packCard);
+            break;
+        case PageCard::PackPageAssetCard:
+            this->scrollArea->ensureWidgetVisible(this->assetCard);
+            break;
+        case PageCard::PackPageFileInfoCard:
+            this->scrollArea->ensureWidgetVisible(this->fileInfoCard);
+            break;
+        case PageCard::PackPageConsoleCard:
+            this->scrollArea->ensureWidgetVisible(this->consoleCard);
+            break;
+        default:
+            Logger::error("SettingsPage::scrollTo: invalid card");
+            break;
+    }
+}
+

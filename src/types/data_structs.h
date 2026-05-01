@@ -12,6 +12,7 @@
 #include <QMetaType>
 #include <QVariant>
 #include "constants.h"
+#include "ElaDef.h"
 
 enum class LTOMode {
     Auto,
@@ -81,5 +82,27 @@ using PackLogList = QList<PackLogStruct>;
 Q_DECLARE_METATYPE(PackLogStruct)
 Q_DECLARE_METATYPE(QList<PackLogStruct>)
 
+namespace PageNS {
+    Q_NAMESPACE
+
+    enum class PageCard {
+        PackPageBaseCard = 0x0000,
+        PackPagePackCard = 0x0001,
+        PackPageAssetCard = 0x0002,
+        PackPageFileInfoCard = 0x0003,
+        PackPageConsoleCard = 0x0004,
+
+        SettingsPageGeneralCard = 0x0100,
+        SettingsPageDefaultPathCard = 0x0101,
+
+        NONE = -0x01
+    };
+
+    Q_ENUM_NS(PageCard)
+}
+
+using namespace PageNS;
+
+Q_DECLARE_METATYPE(PageCard)
 
 #endif //DATASTRUCTS_H

@@ -3,10 +3,17 @@
 //
 
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "global/update_clock.h"
+#include "global/application.h"
+#include "styles/status_bar_style.h"
 
-MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWindow) {
-    ui->setupUi(this);
+#include <ElaStatusBar.h>
+#include <ElaMenuBar.h>
+#include <ElaMenu.h>
+#include <ElaCheckBox.h>
+#include <QStackedWidget>
+
+MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent) {
     this->setAcceptDrops(true);
     this->setFocusPolicy(Qt::StrongFocus);
     qApp->installEventFilter(this);
@@ -55,29 +62,15 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
         this->noteFile->close();
     }
 
-    // Init translator string
-    this->controlText = new ControlText();
-
     // Init UI
-    this->packPage = new PackPage(this);
-    this->settingsPage = new SettingsPage(this);
-    this->packLogPage = new PackLogPage(this);
-    this->log = new PackLog(this->packLogPage, true);
-    this->packLogPage->setPackLogObj(this->log);
-    this->log->updateLog();
     this->initUI();
 
     // Connect signal and slot
-    this->connectStackedWidget();
-    this->connectMenubar();
-    this->connectTrayMenu();
     this->connectOther();
 
     if (!GDM.getBool(GDIN::isOpenNPF)) {
         this->showText(tr("请先新建或打开一个NPF文件再进行操作"), -1, Qt::red);
     }
-
-    this->updateUI();
 
     Logger::info("初始化MainWindow类完成");
 }
@@ -91,13 +84,10 @@ MainWindow::~MainWindow() {
     }
     delete this->packLog;
     delete this->log;
-    delete ui;
 }
 
 void MainWindow::startPack() {
-    ui->startPackBtn->setEnabled(false);
     this->startPackAction->setEnabled(false);
-    ui->stopPackBtn->setEnabled(true);
     this->stopPackAction->setEnabled(true);
     QElapsedTimer timer;
 
@@ -131,6 +121,9 @@ void MainWindow::startPack() {
     // finished
     connect(this->packProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [=](int exitCode, QProcess::ExitStatus exitStatus) {
+                if (exitStatus != QProcess::NormalExit) {
+                    return;
+                }
                 qint64 time = timer.elapsed();
                 qint64 second = time / 1000;
                 qint64 ms = time % 1000;
@@ -169,35 +162,31 @@ void MainWindow::startPack() {
     });
 
     if (PCM.getString(PCE::PythonPath).isEmpty()) {
-        this->packPage->addConsoleContent("python解释器路径为必填项");
-        ui->startPackBtn->setEnabled(true);
+        this->packPage->addConsoleContent(tr("python解释器路径为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
     if (PCM.getString(PCE::MainfilePath).isEmpty()) {
-        this->packPage->addConsoleContent("主文件路径为必填项");
-        ui->startPackBtn->setEnabled(true);
+        this->packPage->addConsoleContent(tr("主文件路径为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
     if (PCM.getString(PCE::OutputPath).isEmpty()) {
-        this->packPage->addConsoleContent("输出目录为必填项");
-        ui->startPackBtn->setEnabled(true);
+        this->packPage->addConsoleContent(tr("输出目录为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
     if (PCM.getString(PCE::OutputFilename).isEmpty()) {
-        this->packPage->addConsoleContent("输出文件名为必填项");
-        ui->startPackBtn->setEnabled(true);
+        this->packPage->addConsoleContent(tr("输出文件名为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
 
@@ -290,27 +279,27 @@ void MainWindow::startPack() {
 
 void MainWindow::stopPack() {
     if (!this->packProcess) {
-        ui->consoleOutputEdit->appendPlainText("没有正在执行的打包任务");
+        this->packPage->addConsoleContent(tr("没有正在执行的打包任务"));
         return;
     }
     if (this->packProcess->state() == QProcess::NotRunning) {
-        ui->consoleOutputEdit->appendPlainText("打包任务已结束");
+        this->packPage->addConsoleContent(tr("打包任务已结束"));
         this->packProcess->deleteLater();
         this->packProcess = nullptr;
         return;
     }
 
-    ui->consoleOutputEdit->appendPlainText("正在停止打包任务");
+    this->packPage->addConsoleContent(tr("正在停止打包任务"));
     this->packProcess->terminate();
 
     QTimer::singleShot(5000, this, [=]() {
         if (this->packProcess->state() != QProcess::NotRunning) {
-            ui->consoleOutputEdit->appendPlainText("进程未响应，强制终止中...");
+            this->packPage->addConsoleContent(tr("进程未响应，强制终止中..."));
             this->packProcess->kill();
             this->packProcess->deleteLater();
         }
     });
-    this->showText("已停止打包任务", 5000, Qt::black, TextPos::SystemMessage, "打包通知");
+    this->showText(tr("已停止打包任务"), 5000, Qt::black, TextPos::SystemMessage, tr("打包通知"));
     this->packPage->packEnd();
 
     this->packTimer->stop();
@@ -352,38 +341,169 @@ void MainWindow::exportProject() {
     GDM.setBool(GDIN::isOpenNPF, true);
 }
 
-// Update UI functions
-void MainWindow::updateUI() {
-    if (!GDM.getString(GDIN::npfFilePath).isEmpty()) {
+void MainWindow::connectOther() {
+    connect(&GDM, &GlobalData::valueChanged, this, [=](const QString &valueName, const QVariant &newValue) {
+        if (valueName == GDIN::isOpenNPF) {
+            if (newValue.toBool()) {
+                this->enableUi();
+            } else {
+                this->disableUi();
+            }
+        }
+    });
 
-    }
+    connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
+    connect(this->floatButton, &FloatButton::stopPack, this, &MainWindow::stopPack);
+    connect(this->floatButton, &FloatButton::showMainWindow, this, [=]() {
+        this->floatButton->hide();
+        this->showNormal();
+        this->activateWindow();
+    });
 
-    Logger::info("刷新UI");
+    // Pack Timer
+    connect(this->packTimer, &QTimer::timeout, this, [=]() {
+        auto now = QDateTime::currentDateTime();
+        qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
+        QString timeString = Utils::formatMilliseconds(time);
+        this->messageLabel->setText(timeString);
+    });
 }
 
-// Connect functions
-void MainWindow::connectStackedWidget() {
-    connect(this->packAction, &QAction::triggered, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(0);
-        this->currentPageIndex = 0;
-    });
-    connect(this->settingsAction, &QAction::triggered, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(1);
-        this->currentPageIndex = 1;
-    });
-    connect(this->packLogAction, &QAction::triggered, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(2);
-        this->currentPageIndex = 2;
-    });
-    connect(this->floatButtonAction, &QAction::triggered, this, [=]() {
-        this->hide();
-        this->floatButton->show();
-    });
-}
+// Init functions
+void MainWindow::initUI() {
+    // Navigation
+#pragma region Navigation
+    this->packPage = new PackPage(this);
+    this->settingsPage = new SettingsPage(this);
+    this->packLogPage = new PackLogPage(this);
+    this->log = new PackLog(this->packLogPage, true);
+    this->packLogPage->setPackLogObj(this->log);
+    this->log->updateLog();
 
-void MainWindow::connectMenubar() {
-    // File Menu
-    connect(ui->newAction, &QAction::triggered, this, [=]() {
+    QString packPageKey{};
+    QString settingsPageKey{};
+    this->addExpanderNode(tr("打包"), packPageKey,ElaIconType::BoxesPacking);
+    this->addExpanderNode(tr("设置"), settingsPageKey, ElaIconType::Gear);
+
+    this->addPageNode(tr("基础配置"), this->packPage, packPageKey, ElaIconType::Database);
+    this->addPageNode(tr("打包配置"), this->packPage, packPageKey, ElaIconType::File);
+    this->addPageNode(tr("资源配置"), this->packPage, packPageKey, ElaIconType::LinkHorizontal);
+    this->addPageNode(tr("文件信息配置"), this->packPage, packPageKey, ElaIconType::FileCircleInfo);
+    this->addPageNode(tr("控制台"), this->packPage, packPageKey, ElaIconType::Command);
+    expandNavigationNode(packPageKey);
+
+    this->addPageNode(tr("通用设置"), this->settingsPage, settingsPageKey, ElaIconType::GripLines);
+    this->addPageNode(tr("默认路径设置"), this->settingsPage, settingsPageKey, ElaIconType::AtomSimple);
+    expandNavigationNode(settingsPageKey);
+
+    this->addPageNode(tr("打包日志"), this->packLogPage, ElaIconType::File);
+
+    this->setUserInfoCardPixmap(QPixmap(":/logo"));
+    this->setUserInfoCardTitle("Nuitka Studio");
+    this->setUserInfoCardSubTitle("Redrch");
+    this->setNavigationBarWidth(250);
+
+    connect(this, &ElaWindow::navigationNodeClicked, this,
+        [=](ElaNavigationType::NavigationNodeType nodeType, QString nodeKey) {
+            if (nodeKey == packPageKey) {
+                this->setCurrentStackIndex(0);
+                this->packPage->scrollTo(PageCard::PackPageBaseCard);
+                return;
+            }
+
+            if (nodeType == ElaNavigationType::PageNode) {
+                const QString title = this->getNavigationNodeTitle(nodeKey);
+                const PageCard card = this->navigationTitleEnumMap.value(title);
+                const int cardId = Utils::enumToInt(card);
+                if (cardId < 0x0100) {
+                    this->packPage->scrollTo(card);
+                    Logger::debug("Navigation: 点击 PackPage 的子节点");
+                } else if (cardId < 0x0200) {
+                    this->settingsPage->scrollTo(card);
+                    Logger::debug("Navigation: 点击 SettingsPage 的子节点");
+                }
+            }
+        });
+#pragma endregion
+
+    // Status bar
+#pragma region StatusBar
+    ElaStatusBar *statusBar = new ElaStatusBar();
+    statusBar->setStyle(new StatusBarStyle(statusBar->style()));
+    this->setStatusBar(statusBar);
+    this->messageLabel = new ElaText("", 9, this);
+    this->messageLabel->setAlignment(Qt::AlignCenter);
+    this->statusLabel = new ElaText("", 9, this);
+    this->statusLabel->setVisible(false);
+    this->statusFileNameLabel = new ElaText(QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName(), 9, this);
+    ElaText *appNameLabel = new ElaText(QString("Nuitka Studio v%1").arg(APP_VERSION), 9, this);
+    statusBar->addWidget(this->messageLabel);
+    statusBar->addPermanentWidget(this->statusFileNameLabel);
+    statusBar->addPermanentWidget(appNameLabel);
+    statusBar->addPermanentWidget(this->statusLabel);
+#pragma endregion
+
+    // Menubar
+#pragma region MenuBar
+    ElaMenuBar *menuBar = new ElaMenuBar(this);
+
+    // menus
+    ElaMenu *fileMenu = new ElaMenu(tr("文件"), this);
+    ElaMenu *packMenu = new ElaMenu(tr("打包"), this);
+    ElaMenu *helpMenu = new ElaMenu(tr("帮助"), this);
+
+    // actions
+    // file menu
+    QAction *newAction = new QAction(tr("新建"), this);
+    newAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+    fileMenu->addAction(newAction);
+    QAction *openAction = new QAction(tr("打开"), this);
+    openAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
+    fileMenu->addAction(openAction);
+    QAction *saveAction = new QAction(tr("保存"), this);
+    saveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    fileMenu->addAction(saveAction);
+    QAction *saveAsAction = new QAction(tr("另存为"), this);
+    saveAsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
+    fileMenu->addAction(saveAsAction);
+    QAction *closeAction = new QAction(tr("关闭文件"), this);
+    fileMenu->addAction(closeAction);
+
+    fileMenu->addSeparator();
+
+    QAction *hideAction = new QAction(tr("隐藏"), this);
+    hideAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_H));
+    fileMenu->addAction(hideAction);
+    QAction *floatAction = new QAction(tr("浮动按钮"), this);
+    floatAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F));
+    fileMenu->addAction(floatAction);
+    QAction *exitAction = new QAction(tr("退出"), this);
+    fileMenu->addAction(exitAction);
+
+    // pack menu
+    QAction *startPackAction = new QAction(tr("开始打包"), this);
+    startPackAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_S));
+    packMenu->addAction(startPackAction);
+    QAction *endPackAction = new QAction(tr("结束打包"), this);
+    endPackAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_E));
+    packMenu->addAction(endPackAction);
+
+    // help menu
+    QAction *aboutAction = new QAction(tr("关于"), this);
+    helpMenu->addAction(aboutAction);
+    QAction *helpAction = new QAction(tr("帮助"), this);
+    helpMenu->addAction(helpAction);
+
+    // add menus to menubar
+    menuBar->addMenu(fileMenu);
+    menuBar->addMenu(packMenu);
+    menuBar->addMenu(helpMenu);
+
+    this->setMenuBar(menuBar);
+
+    // connect signals and slots
+    // file menu
+    connect(newAction, &QAction::triggered, this, [=]() {
         QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio 新建NPF文件",
                                                     config.getString(ConfigItem::DefaultDataPath),
                                                     "Nuitka Project File(*.npf);;All files(*)");
@@ -412,20 +532,18 @@ void MainWindow::connectMenubar() {
 
         this->clearText();
     });
-    connect(ui->openAction, &QAction::triggered, this, [=]() {
+    connect(openAction, &QAction::triggered, this, [=]() {
         this->importProject();
         this->clearText();
     });
-    connect(ui->saveAction, &QAction::triggered, this, [=]() {
+    connect(saveAction, &QAction::triggered, this, [=]() {
         this->npfStatusTypeHandler(ProjectConfig::saveProject(GDM.getString(GDIN::npfFilePath),
                                                               config.getBool(ConfigItem::IsSavePackLog)),
                                    GDM.getString(GDIN::npfFilePath));
     });
-    connect(ui->saveAsAction, &QAction::triggered, this, [=]() {
-        this->exportProject();
-    });
-    connect(ui->closeFileAction, &QAction::triggered, this, [=]() {
-        int choose = QMessageBox::question(this, "Nuitka Studio", "关闭后未保存的数据将会丢失，是否确认关闭");
+    connect(saveAsAction, &QAction::triggered, this, &MainWindow::exportProject);
+    connect(closeAction, &QAction::triggered, this, [=]() {
+        int choose = QMessageBox::question(this, "Nuitka Studio", tr("关闭后未保存的数据将会丢失，是否确认关闭"));
         if (choose == QMessageBox::Yes) {
             PCM.setDefaultValue();
             GDM.setString(GDIN::npfFilePath, "");
@@ -434,57 +552,47 @@ void MainWindow::connectMenubar() {
             this->setWindowTitle("Nuitka Studio");
         }
     });
-
-    // Help Menu
-    connect(ui->helpAction, &QAction::triggered, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
+    connect(hideAction, &QAction::triggered, this, &MainWindow::hide);
+    connect(floatAction, &QAction::triggered, this, [=]() {
+        this->hide();
+        this->floatButton->show();
     });
-    connect(ui->aboutAction, &QAction::triggered, this, [=]() {
+    connect(exitAction, &QAction::triggered, this, [=]() {
+        nApp.exit();
+    });
+    // pack menu
+    connect(startPackAction, &QAction::triggered, this, &MainWindow::startPack);
+    connect(endPackAction, &QAction::triggered, this, &MainWindow::stopPack);
+    // help menu
+    connect(aboutAction, &QAction::triggered, this, [=]() {
         AboutWindow *aboutWindow = new AboutWindow(this);
         aboutWindow->setAttribute(Qt::WA_DeleteOnClose);
         aboutWindow->exec();
     });
+    connect(helpAction, &QAction::triggered, this, [=]() {
+        QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
+    });
 
-    // Window Menu
-    connect(ui->basicSettingsAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::BasicSettings)) {
-            ui->baseWidget->hide();
-            config.setBool(ConfigItem::BasicSettings, false);
-        } else {
-            ui->baseWidget->show();
-            config.setBool(ConfigItem::BasicSettings, true);
-        }
-    });
-    connect(ui->packAndDataAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::PackAndData)) {
-            ui->buildAndDataGroups->hide();
-            config.setBool(ConfigItem::PackAndData, false);
-        } else {
-            ui->buildAndDataGroups->show();
-            config.setBool(ConfigItem::PackAndData, true);
-        }
-    });
-    connect(ui->fileInfoAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::FileInfo)) {
-            ui->infoDataWidget->hide();
-            config.setBool(ConfigItem::FileInfo, false);
-        } else {
-            ui->infoDataWidget->show();
-            config.setBool(ConfigItem::FileInfo, true);
-        }
-    });
-    connect(ui->consoleAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::Console)) {
-            ui->outputWidget->hide();
-            config.setBool(ConfigItem::Console, false);
-        } else {
-            ui->outputWidget->show();
-            config.setBool(ConfigItem::Console, true);
-        }
-    });
-}
+#pragma endregion
 
-void MainWindow::connectTrayMenu() {
+    // Tray
+#pragma region Tray
+    this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
+    this->trayIcon->setToolTip("Nuitka Studio");
+
+    this->trayMenu = new QMenu(this);
+    this->startPackAction = new QAction(tr("开始打包项目"), this);
+    this->stopPackAction = new QAction(tr("停止打包项目"), this);
+    this->showAction = new QAction(tr("显示"), this);
+    this->quitAction = new QAction(tr("退出"), this);
+    this->stopPackAction->setEnabled(false);
+
+    this->trayMenu->addAction(startPackAction);
+    this->trayMenu->addAction(stopPackAction);
+    this->trayMenu->addAction(showAction);
+    this->trayMenu->addAction(quitAction);
+    this->trayIcon->setContextMenu(trayMenu);
+
     // tray icon
     connect(this->trayIcon, &QSystemTrayIcon::activated, this, [=](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::DoubleClick) {
@@ -510,96 +618,16 @@ void MainWindow::connectTrayMenu() {
     connect(this->quitAction, &QAction::triggered, this, [=]() {
         qApp->quit();
     });
-}
 
-void MainWindow::connectOther() {
-    connect(&GDM, &GlobalData::valueChanged, this, [=](const QString &valueName, const QVariant &newValue) {
-        if (valueName == GDIN::isOpenNPF) {
-            if (newValue.toBool()) {
-
-            } else {
-
-            }
-        }
-    });
-    // 手动变色
-    connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=](ElaThemeType::ThemeMode mode) {
-        const QColor &textColor = ElaThemeColor(mode, ThemeColor::BasicText);
-        QString textColorHex = textColor.name();
-        QString textStyleSheet = QString("color: %1;").arg(textColorHex);
-
-        ui->showCloseWindowCheckbox->setStyleSheet(ui->showCloseWindowCheckbox->styleSheet() += textStyleSheet);
-        ui->hideOnCloseCheckbox->setStyleSheet(ui->hideOnCloseCheckbox->styleSheet() += textStyleSheet);
-        ui->splashScreenCheckbox->setStyleSheet(ui->splashScreenCheckbox->styleSheet() += textStyleSheet);
-        ui->savePackLog->setStyleSheet(ui->savePackLog->styleSheet() += textStyleSheet);
-    });
-
-    connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
-    connect(this->floatButton, &FloatButton::stopPack, this, &MainWindow::stopPack);
-    connect(this->floatButton, &FloatButton::showMainWindow, this, [=]() {
-        this->floatButton->hide();
-        this->showNormal();
-        this->activateWindow();
-    });
-}
-
-// Init functions
-void MainWindow::initUI() {
-    // Stacked widget
-    ui->stackedWidget->removeWidget(ui->packPage);
-    ui->stackedWidget->removeWidget(ui->settingsPage);
-    ui->stackedWidget->removeWidget(ui->packLogPage);
-    ui->stackedWidget->addWidget(this->packPage);
-    ui->stackedWidget->addWidget(this->settingsPage);
-    ui->stackedWidget->addWidget(this->packLogPage);
-    ui->stackedWidget->setCurrentIndex(0);
-    // Pack log
-    ui->packLogFileList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-    // Status bar
-    this->messageLabel = new ElaText("", 9, this);
-    this->messageLabel->setAlignment(Qt::AlignCenter);
-    ui->statusbar->addWidget(this->messageLabel);
-    ui->statusbar->addPermanentWidget(this->messageLabel, 1);
-
-    this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
-    this->trayIcon->setToolTip("Nuitka Studio");
-
-    // Menubar
-    // file menu
-    ui->newAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
-    ui->openAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
-    ui->saveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
-    ui->saveAsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
-    // tool menu
-    ui->packLogAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
-
-    // Tray menu
-    this->trayMenu = new QMenu(this);
-    this->startPackAction = new QAction("开始打包项目", this);
-    this->stopPackAction = new QAction("停止打包项目", this);
-    this->showAction = new QAction("显示", this);
-    this->quitAction = new QAction("退出", this);
-    this->stopPackAction->setEnabled(false);
-
-    trayMenu->addAction(startPackAction);
-    trayMenu->addAction(stopPackAction);
-    trayMenu->addAction(showAction);
-    trayMenu->addAction(quitAction);
-    trayIcon->setContextMenu(trayMenu);
-
-    trayIcon->show();
+    this->trayIcon->show();
+#pragma endregion
 
     // init top text label
     this->topTextLabel = new QLabel("", this);
 
-    // set models
-    ui->dataListWidget->setModel(this->dataListModel);
-    ui->packLogFileList->setModel(packLogModel);
-
     // lock pack ui
     if (!GDM.getBool(GDIN::isOpenNPF)) {
-
+        this->disableUi();
     }
 
     // controls
@@ -615,40 +643,8 @@ void MainWindow::initUI() {
     this->floatButton->setAttribute(Qt::WA_TranslucentBackground);
     this->floatButton->hide();
 
-    // Window
-    if (config.getBool(ConfigItem::BasicSettings)) ui->baseWidget->show();
-    else ui->baseWidget->hide();
-    if (config.getBool(ConfigItem::PackAndData)) ui->buildAndDataGroups->show();
-    else ui->buildAndDataGroups->hide();
-    if (config.getBool(ConfigItem::FileInfo)) ui->infoDataWidget->show();
-    else ui->infoDataWidget->hide();
-    if (config.getBool(ConfigItem::Console)) ui->outputWidget->show();
-    else ui->outputWidget->hide();
-
-    this->initMenuBar();
-
-#pragma region InitUIConnectSection
     connect(this->packPage, &PackPage::startPack, this, &MainWindow::startPack);
     connect(this->packPage, &PackPage::stopPack, this, &MainWindow::stopPack);
-#pragma endregion
-}
-
-void MainWindow::initMenuBar() {
-    this->menuBar = new ElaMenuBar(this);
-    menuBar->setFixedHeight(30);
-    QWidget *customWidget = new QWidget(this);
-    customWidget->setFixedWidth(300);
-    QVBoxLayout *customLayout = new QVBoxLayout(customWidget);
-    customLayout->setContentsMargins(0, 0, 0, 0);
-
-    customLayout->addWidget(this->menuBar);
-    customLayout->addStretch();
-    this->setCustomWidget(ElaAppBarType::MiddleArea, customWidget);
-
-    this->packAction = this->menuBar->addElaIconAction(ElaIconType::BoxesPacking, this->controlText->topbar_pack);
-    this->settingsAction = this->menuBar->addElaIconAction(ElaIconType::Gear, this->controlText->topbar_settings);
-    this->packLogAction = this->menuBar->addElaIconAction(ElaIconType::File, this->controlText->topbar_packLog);
-    this->floatButtonAction = this->menuBar->addElaIconAction(ElaIconType::SquareXmark, "");
 }
 
 // gen path functions
@@ -673,7 +669,7 @@ void MainWindow::genData(bool isUpdateUI) {
     genOutputName();
     genFileInfo();
     if (isUpdateUI) {
-        this->updateUI();
+        UpdateClock::instance().update();
     }
     Logger::info("生成数据");
 }
@@ -745,16 +741,16 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         QVBoxLayout mainLayout;
         dialog.setLayout(&mainLayout);
         // label
-        QLabel label(this->controlText->exit_label);
+        QLabel label(tr("您想要将软件关闭还是最小化至系统托盘"));
         label.setAlignment(Qt::AlignCenter);
         mainLayout.addWidget(&label);
         // buttons
-        QPushButton trayBtn(this->controlText->exit_trayButton);
+        QPushButton trayBtn(tr("最小化至系统托盘"));
         mainLayout.addWidget(&trayBtn);
-        QPushButton exitBtn(this->controlText->exit_exitButton);
+        QPushButton exitBtn(tr("退出软件"));
         mainLayout.addWidget(&exitBtn);
         // hide
-        QCheckBox hideCheckbox(this->controlText->exit_hideButton);
+        QCheckBox hideCheckbox(tr("不再显示该窗口（隐藏后行为可以在设置中看到）"));
         mainLayout.addWidget(&hideCheckbox);
 
         bool shouldHide = false;
@@ -792,7 +788,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         } else {
             event->ignore();
         }
-    } else {
+    }
+    else {
         if (config.getBool(ConfigItem::IsHideOnClose)) {
             this->hide();
             event->ignore();
@@ -855,28 +852,6 @@ void MainWindow::dropEvent(QDropEvent *event) {
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-
-        if (keyEvent->key() == Qt::Key_Tab) {
-            // 按Tab键切换页面
-            switch (this->currentPageIndex) {
-                case 0:
-                    ui->stackedWidget->setCurrentIndex(1);
-                    this->currentPageIndex = 1;
-                    break;
-                case 1:
-                    ui->stackedWidget->setCurrentIndex(2);
-                    this->currentPageIndex = 2;
-                    break;
-                case 2:
-                    ui->stackedWidget->setCurrentIndex(0);
-                    this->currentPageIndex = 0;
-                    break;
-                default:
-                    break;
-            }
-
-            return true;
-        }
     }
     return QMainWindow::eventFilter(watched, event);
 }
@@ -927,6 +902,16 @@ void MainWindow::clearText(TextPos position) const {
     }
 }
 
+void MainWindow::disableUi() const {
+    this->packPage->setEnabled(false);
+    this->packLogPage->setEnabled(false);
+}
+
+void MainWindow::enableUi() const {
+    this->packPage->setEnabled(true);
+    this->packLogPage->setEnabled(true);
+}
+
 // util functions
 bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path, bool isTip) {
     switch (status) {
@@ -948,4 +933,3 @@ bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path,
     }
     return true;
 }
-

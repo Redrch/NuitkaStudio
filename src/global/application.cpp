@@ -25,6 +25,7 @@ void Application::init() {
     qRegisterMetaType<LTOMode>("LTOMode");
     qRegisterMetaType<Encoding>("ConfigEnumNS::Encoding");
     qRegisterMetaType<Language>("ConfigEnumNS::Language");
+    qRegisterMetaType<PageCard>("PackCardNS::PageCard");
     qRegisterMetaTypeStreamOperators<Encoding>("ConfigEnumNS::Encoding");
     qRegisterMetaTypeStreamOperators<Language>("ConfigEnumNS::Language");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
