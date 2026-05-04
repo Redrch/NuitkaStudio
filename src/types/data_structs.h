@@ -93,7 +93,8 @@ namespace PageNS {
         PackPageConsoleCard = 0x0004,
 
         SettingsPageGeneralCard = 0x0100,
-        SettingsPageDefaultPathCard = 0x0101,
+        SettingsPageAppearanceCard = 0x0101,
+        SettingsPageDefaultPathCard = 0x0102,
 
         NONE = -0x01
     };

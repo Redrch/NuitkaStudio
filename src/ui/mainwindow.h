@@ -45,6 +45,7 @@
 #include <QStackedWidget>
 
 #include "about_window.h"
+#include "ElaContentDialog.h"
 #include "float_button.h"
 
 #include "../types/data_structs.h"
@@ -79,6 +80,7 @@ class MainWindow : public ElaWindow {
         {tr("文件信息配置"), PageCard::PackPageFileInfoCard},
         {tr("控制台"), PageCard::PackPageConsoleCard},
         {tr("通用设置"), PageCard::SettingsPageGeneralCard},
+        {tr("外观设置"), PageCard::SettingsPageAppearanceCard},
         {tr("默认路径设置"), PageCard::SettingsPageDefaultPathCard}
     };
 
@@ -104,6 +106,7 @@ private:
     QLabel *messageLabel;
     QLabel *topTextLabel;
     FloatButton* floatButton;
+    ElaContentDialog *closeDialog;
     // status bar
     ElaText *statusLabel;
     ElaText *statusFileNameLabel;
@@ -139,20 +142,9 @@ private:
     int currentPackLogIndex;
 
     // functions
-    // Connect signals and slots function
     void connectOther();
-
-    // Init function
     void initUI();
-
-    // Gen path functions
-    void genData(bool isUpdateUI = true);
-    static void genPythonPath();
-    static void genMainfilePath();
-    static void genOutputPath();
-    static void genOutputName();
-    // Gen file info functions
-    static void genFileInfo();
+    void updateUI();
 
     // ui util functions
     /**
@@ -169,6 +161,7 @@ private:
     void clearText(TextPos position = TextPos::TopLabel) const;
     void disableUi() const;
     void enableUi() const;
+    void closeWindow();
 
     // util functions
     bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);
@@ -179,8 +172,17 @@ private slots:
 
     void importProject();
     void exportProject();
+
+    // Gen path functions
+    void genData(bool isUpdateUI = true);
+    static void genPythonPath();
+    static void genMainfilePath();
+    static void genOutputPath();
+    static void genOutputName();
+    // Gen file info functions
+    static void genFileInfo();
+
 protected:
-    void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;

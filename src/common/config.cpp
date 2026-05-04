@@ -127,6 +127,18 @@ QPoint Config::getPoint(const ConfigItem configValue, const ConfigGroup& group) 
     return this->get(configValue, group).toPoint();
 }
 
+Theme Config::getTheme(const ConfigItem configValue, const ConfigGroup& group) const {
+    return this->get(configValue, group).value<Theme>();
+}
+
+WindowDisplayMode Config::getWindowDisplayMode(const ConfigItem configValue, const ConfigGroup& group) const {
+    return this->get(configValue, group).value<WindowDisplayMode>();
+}
+
+WindowBackground Config::getWindowBackground(const ConfigItem configValue, const ConfigGroup& group) const {
+    return this->get(configValue, group).value<WindowBackground>();
+}
+
 void Config::set(const QString &configValue, const QVariant &value, const ConfigGroup& group) const {
     if (group == ConfigGroup::NONE) {
         bool found = false;
@@ -185,3 +197,16 @@ void Config::setSize(const ConfigItem configValue, const QSize &size, const Conf
 void Config::setPoint(const ConfigItem configValue, const QPoint &point, const ConfigGroup& group) const {
     this->set(configValue, QVariant(point), group);
 }
+
+void Config::setTheme(ConfigItem configValue, const Theme &theme, const ConfigGroup &group) const {
+    this->set(configValue, QVariant::fromValue<Theme>(theme), group);
+}
+
+void Config::setWindowDisplayMode(ConfigItem configValue, const WindowDisplayMode &displayMode, const ConfigGroup &group) const {
+    this->set(configValue, QVariant::fromValue<WindowDisplayMode>(displayMode), group);
+}
+
+void Config::setWindowBackground(ConfigItem configValue, const WindowBackground &background, const ConfigGroup &group) const {
+    this->set(configValue, QVariant::fromValue<WindowBackground>(background), group);
+}
+

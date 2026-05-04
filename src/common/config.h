@@ -41,21 +41,22 @@ namespace ConfigEnumNS {
         IsSplashScreen,
         IsSavePackLog,
 
-        BasicSettings,
-        PackAndData,
-        FileInfo,
-        Console,
-
         DefaultPythonPath,
         DefaultProjectPath,
         DefaultDataPath,
         TempPath,
+
+        Theme,
+        WindowDisplayMode,
+        WindowBackground,
+        PixmapPath,
+        MoviePath,
         NONE = -1
     };
 
     enum class ConfigGroup {
         General,
-        Window,
+        Appearance,
         DefaultPath,
         NONE = -1
     };
@@ -70,6 +71,29 @@ namespace ConfigEnumNS {
     enum class Language {
         zh_CN,
         en_US,
+        NONE = -1
+    };
+
+    enum class Theme {
+        Light,
+        Dark,
+        NONE = -1
+    };
+
+    enum class WindowDisplayMode {
+        Normal,
+        ElaMica,
+        Mica,
+        MicaAlt,
+        Acrylic,
+        DwmBlurnormal,
+        NONE = -1
+    };
+
+    enum class WindowBackground {
+        Normal,
+        Pixmap,
+        Movie,
         NONE = -1
     };
 
@@ -98,10 +122,49 @@ namespace ConfigEnumNS {
         return in;
     }
 
+    // Theme
+    inline QDataStream &operator<<(QDataStream &out, const Theme &theme) {
+        out << static_cast<int>(theme);
+        return out;
+    }
+    inline QDataStream &operator>>(QDataStream &in, Theme &theme) {
+        int val;
+        in >> val;
+        theme = static_cast<Theme>(val);
+        return in;
+    }
+
+    // Window Display Mode
+    inline QDataStream &operator<<(QDataStream &out, const WindowDisplayMode &displayMode) {
+        out << static_cast<int>(displayMode);
+        return out;
+    }
+    inline QDataStream &operator>>(QDataStream &in, WindowDisplayMode &displayMode) {
+        int val;
+        in >> val;
+        displayMode = static_cast<WindowDisplayMode>(val);
+        return in;
+    }
+
+    // window background
+    inline QDataStream &operator<<(QDataStream &out, const WindowBackground &encoding) {
+        out << static_cast<int>(encoding);
+        return out;
+    }
+    inline QDataStream &operator>>(QDataStream &in, WindowBackground &encoding) {
+        int val;
+        in >> val;
+        encoding = static_cast<WindowBackground>(val);
+        return in;
+    }
+
     Q_ENUM_NS(ConfigItem)
     Q_ENUM_NS(Language)
     Q_ENUM_NS(Encoding)
     Q_ENUM_NS(ConfigGroup)
+    Q_ENUM_NS(Theme)
+    Q_ENUM_NS(WindowDisplayMode)
+    Q_ENUM_NS(WindowBackground)
 }
 
 using namespace ConfigEnumNS;
@@ -111,6 +174,9 @@ using ConfigMap = QMap<QString, ConfigGroupMap>;
 
 Q_DECLARE_METATYPE(Language)
 Q_DECLARE_METATYPE(Encoding)
+Q_DECLARE_METATYPE(Theme)
+Q_DECLARE_METATYPE(WindowDisplayMode)
+Q_DECLARE_METATYPE(WindowBackground)
 
 // Singleton class
 class Config {
@@ -145,6 +211,9 @@ public:
     Language getLanguage(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     QSize getSize(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     QPoint getPoint(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
+    Theme getTheme(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
+    WindowDisplayMode getWindowDisplayMode(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
+    WindowBackground getWindowBackground(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
 
     void set(ConfigItem configValue, const QVariant &value, const ConfigGroup& group = ConfigGroup::NONE) const;
     void set(const QString &configValue, const QVariant &value, const ConfigGroup& group = ConfigGroup::NONE) const;
@@ -155,6 +224,9 @@ public:
     void setLanguage(ConfigItem configValue, Language language, const ConfigGroup& group = ConfigGroup::NONE) const;
     void setSize(ConfigItem configValue, const QSize &size, const ConfigGroup& group = ConfigGroup::NONE) const;
     void setPoint(ConfigItem configValue, const QPoint &point, const ConfigGroup& group = ConfigGroup::NONE) const;
+    void setTheme(ConfigItem configValue, const Theme &theme, const ConfigGroup& group = ConfigGroup::NONE) const;
+    void setWindowDisplayMode(ConfigItem configValue, const WindowDisplayMode &displayMode, const ConfigGroup& group = ConfigGroup::NONE) const;
+    void setWindowBackground(ConfigItem configValue, const WindowBackground &background, const ConfigGroup& group) const;
 
     [[nodiscard]] const QString &getConfigPath() const {
         return this->configPath;

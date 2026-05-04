@@ -10,12 +10,15 @@
 #include <ElaStatusBar.h>
 #include <ElaMenuBar.h>
 #include <ElaMenu.h>
-#include <ElaCheckBox.h>
-#include <QStackedWidget>
+#include <ElaContentDialog.h>
+#include <ElaApplication.h>
 
 MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent) {
     this->setAcceptDrops(true);
     this->setFocusPolicy(Qt::StrongFocus);
+    this->setWindowTitle("Nuitka Studio");
+    this->setWindowIcon(QIcon(":/logo"));
+    this->moveToCenter();
     qApp->installEventFilter(this);
     this->currentPageIndex = 0;
     this->currentPackLogIndex = 0;
@@ -64,6 +67,19 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent) {
 
     // Init UI
     this->initUI();
+    this->updateUI();
+
+    // Close Window Event
+    this->closeDialog = new ElaContentDialog(this);
+    connect(closeDialog, &ElaContentDialog::rightButtonClicked, this, &MainWindow::close);
+    connect(closeDialog, &ElaContentDialog::middleButtonClicked, this, [=]() {
+        closeDialog->close();
+        showMinimized();
+    });
+    this->setIsDefaultClosed(false);
+    connect(this, &MainWindow::closeButtonClicked, this, [=]() {
+        closeDialog->exec();
+    });
 
     // Connect signal and slot
     this->connectOther();
@@ -369,7 +385,6 @@ void MainWindow::connectOther() {
     });
 }
 
-// Init functions
 void MainWindow::initUI() {
     // Navigation
 #pragma region Navigation
@@ -393,6 +408,7 @@ void MainWindow::initUI() {
     expandNavigationNode(packPageKey);
 
     this->addPageNode(tr("通用设置"), this->settingsPage, settingsPageKey, ElaIconType::GripLines);
+    this->addPageNode(tr("外观设置"), this->settingsPage, settingsPageKey, ElaIconType::Airplay);
     this->addPageNode(tr("默认路径设置"), this->settingsPage, settingsPageKey, ElaIconType::AtomSimple);
     expandNavigationNode(settingsPageKey);
 
@@ -405,12 +421,6 @@ void MainWindow::initUI() {
 
     connect(this, &ElaWindow::navigationNodeClicked, this,
         [=](ElaNavigationType::NavigationNodeType nodeType, QString nodeKey) {
-            if (nodeKey == packPageKey) {
-                this->setCurrentStackIndex(0);
-                this->packPage->scrollTo(PageCard::PackPageBaseCard);
-                return;
-            }
-
             if (nodeType == ElaNavigationType::PageNode) {
                 const QString title = this->getNavigationNodeTitle(nodeKey);
                 const PageCard card = this->navigationTitleEnumMap.value(title);
@@ -466,6 +476,9 @@ void MainWindow::initUI() {
     QAction *saveAsAction = new QAction(tr("另存为"), this);
     saveAsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
     fileMenu->addAction(saveAsAction);
+    QAction *saveConfigAction = new QAction(tr("保存配置"), this);
+    saveConfigAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+    fileMenu->addAction(saveConfigAction);
     QAction *closeAction = new QAction(tr("关闭文件"), this);
     fileMenu->addAction(closeAction);
 
@@ -535,6 +548,7 @@ void MainWindow::initUI() {
     connect(openAction, &QAction::triggered, this, [=]() {
         this->importProject();
         this->clearText();
+        this->updateUI();
     });
     connect(saveAction, &QAction::triggered, this, [=]() {
         this->npfStatusTypeHandler(ProjectConfig::saveProject(GDM.getString(GDIN::npfFilePath),
@@ -542,6 +556,9 @@ void MainWindow::initUI() {
                                    GDM.getString(GDIN::npfFilePath));
     });
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::exportProject);
+    connect(saveConfigAction, &QAction::triggered, this, [=]() {
+        config.writeConfig();
+    });
     connect(closeAction, &QAction::triggered, this, [=]() {
         int choose = QMessageBox::question(this, "Nuitka Studio", tr("关闭后未保存的数据将会丢失，是否确认关闭"));
         if (choose == QMessageBox::Yes) {
@@ -549,7 +566,7 @@ void MainWindow::initUI() {
             GDM.setString(GDIN::npfFilePath, "");
             GDM.setBool(GDIN::isOpenNPF, false);
             config.setString(ConfigItem::NpfPath, "");
-            this->setWindowTitle("Nuitka Studio");
+            this->updateUI();
         }
     });
     connect(hideAction, &QAction::triggered, this, &MainWindow::hide);
@@ -580,7 +597,7 @@ void MainWindow::initUI() {
     this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
     this->trayIcon->setToolTip("Nuitka Studio");
 
-    this->trayMenu = new QMenu(this);
+    this->trayMenu = new ElaMenu(this);
     this->startPackAction = new QAction(tr("开始打包项目"), this);
     this->stopPackAction = new QAction(tr("停止打包项目"), this);
     this->showAction = new QAction(tr("显示"), this);
@@ -643,8 +660,29 @@ void MainWindow::initUI() {
     this->floatButton->setAttribute(Qt::WA_TranslucentBackground);
     this->floatButton->hide();
 
+    // window background
+    this->setWindowPixmap(ElaThemeType::Light, config.getString(ConfigItem::PixmapPath, ConfigGroup::Appearance));
+    this->setWindowPixmap(ElaThemeType::Dark, config.getString(ConfigItem::PixmapPath, ConfigGroup::Appearance));
+    this->setWindowMoviePath(ElaThemeType::Light, config.getString(ConfigItem::MoviePath, ConfigGroup::Appearance));
+    this->setWindowMoviePath(ElaThemeType::Dark, config.getString(ConfigItem::MoviePath, ConfigGroup::Appearance));
+    this->setWindowPaintMode(static_cast<ElaWindowType::PaintMode>
+        (Utils::enumToInt(config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance))));
+
     connect(this->packPage, &PackPage::startPack, this, &MainWindow::startPack);
     connect(this->packPage, &PackPage::stopPack, this, &MainWindow::stopPack);
+}
+
+void MainWindow::updateUI() {
+    this->statusFileNameLabel->setText(QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName());
+    if (GDM.getBool(GDIN::isOpenNPF)) {
+        this->setWindowTitle(QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName() + " - Nuitka Studio");
+    }
+    Theme theme = config.getTheme(ConfigItem::Theme, ConfigGroup::Appearance);
+    if (theme == Theme::Light) {
+        eTheme->setThemeMode(ElaThemeType::Light);
+    } else if (theme == Theme::Dark) {
+        eTheme->setThemeMode(ElaThemeType::Dark);
+    }
 }
 
 // gen path functions
@@ -732,72 +770,6 @@ void MainWindow::genFileInfo() {
     PCM.set(PCE::ProductName,
                 PCM.getString(
                     PCE::ProjectName));
-}
-
-// events
-void MainWindow::closeEvent(QCloseEvent *event) {
-    if (config.getBool(ConfigItem::IsShowCloseWindow)) {
-        QDialog dialog(this);
-        QVBoxLayout mainLayout;
-        dialog.setLayout(&mainLayout);
-        // label
-        QLabel label(tr("您想要将软件关闭还是最小化至系统托盘"));
-        label.setAlignment(Qt::AlignCenter);
-        mainLayout.addWidget(&label);
-        // buttons
-        QPushButton trayBtn(tr("最小化至系统托盘"));
-        mainLayout.addWidget(&trayBtn);
-        QPushButton exitBtn(tr("退出软件"));
-        mainLayout.addWidget(&exitBtn);
-        // hide
-        QCheckBox hideCheckbox(tr("不再显示该窗口（隐藏后行为可以在设置中看到）"));
-        mainLayout.addWidget(&hideCheckbox);
-
-        bool shouldHide = false;
-        bool shouldQuit = false;
-        // connect
-        connect(&trayBtn, &QPushButton::clicked, [&] {
-            shouldHide = true;
-            dialog.accept();
-        });
-        connect(&exitBtn, &QPushButton::clicked, [&] {
-            shouldQuit = true;
-            dialog.accept();
-        });
-        connect(&hideCheckbox, &QCheckBox::stateChanged, [=](int state) {
-            if (state == Qt::Checked) {
-                config.setBool(ConfigItem::IsShowCloseWindow, false);
-            } else if (state == Qt::Unchecked) {
-                config.setBool(ConfigItem::IsShowCloseWindow, true);
-            }
-            config.writeConfig();
-        });
-
-        dialog.exec();
-
-        if (shouldQuit) {
-            config.setBool(ConfigItem::IsHideOnClose, false);
-            event->accept();
-            config.writeConfig();
-            qApp->quit();
-        } else if (shouldHide) {
-            config.setBool(ConfigItem::IsHideOnClose, true);
-            this->hide();
-            event->ignore();
-            config.writeConfig();
-        } else {
-            event->ignore();
-        }
-    }
-    else {
-        if (config.getBool(ConfigItem::IsHideOnClose)) {
-            this->hide();
-            event->ignore();
-        } else {
-            event->accept();
-            qApp->quit();
-        }
-    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {

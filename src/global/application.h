@@ -38,6 +38,7 @@ private:
     Logger* logger{};
     QSplashScreen* splash{};
     MainWindow* mainWindow{};
+    QTimer* configTimer{};
 };
 
 #define nApp Application::instance()

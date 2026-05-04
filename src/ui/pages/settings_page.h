@@ -22,8 +22,9 @@ protected:
 
 private:
     ElaScrollArea *scrollArea;
-    ElaScrollPageArea *generalCard;
-    ElaScrollPageArea *defaultPathCard;
+    QWidget *generalCard;
+    QWidget *appearanceCard;
+    QWidget *defaultPathCard;
 };
 
 

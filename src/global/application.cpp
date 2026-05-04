@@ -18,16 +18,24 @@ Application::Application() = default;
 
 void Application::init() {
     // UI Init
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // 启动高DPI缩放
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
     // Register Type
     qRegisterMetaType<PackLogStruct>("PackLog");
     qRegisterMetaType<LTOMode>("LTOMode");
+    qRegisterMetaType<PageCard>("PackCardNS::PageCard");
     qRegisterMetaType<Encoding>("ConfigEnumNS::Encoding");
     qRegisterMetaType<Language>("ConfigEnumNS::Language");
-    qRegisterMetaType<PageCard>("PackCardNS::PageCard");
+    qRegisterMetaType<Theme>("ConfigEnumNS::Theme");
+    qRegisterMetaType<WindowDisplayMode>("ConfigEnumNS::WindowDisplayMode");
+    qRegisterMetaType<WindowBackground>("ConfigEnumNS::WindowBackground");
     qRegisterMetaTypeStreamOperators<Encoding>("ConfigEnumNS::Encoding");
     qRegisterMetaTypeStreamOperators<Language>("ConfigEnumNS::Language");
+    qRegisterMetaTypeStreamOperators<Theme>("ConfigEnumNS::Theme");
+    qRegisterMetaTypeStreamOperators<WindowDisplayMode>("ConfigEnumNS::WindowDisplayMode");
+    qRegisterMetaTypeStreamOperators<WindowBackground>("ConfigEnumNS::WindowBackground");
     qRegisterMetaTypeStreamOperators<LTOMode>("LTOMode");
 
     // Init logger
@@ -85,7 +93,9 @@ void Application::run() {
     UpdateClock::instance().start();
     // Splash screen
     QPixmap pixmap(":/logo");
-    this->splash = new QSplashScreen(pixmap);
+    QPixmap scaledPixmap = pixmap.scaled(200, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    this->splash = new QSplashScreen(scaledPixmap);
+    this->splash->setFixedSize(scaledPixmap.size());
     if (config.getBool(ConfigItem::IsSplashScreen)) {
         splash->show();
         qApp->processEvents();
@@ -108,6 +118,15 @@ void Application::run() {
 
     // Init ElaWidgetTools library
     ElaApplication::getInstance()->init();
+
+    // window display mode
+    WindowDisplayMode mode = config.getWindowDisplayMode(ConfigItem::WindowDisplayMode, ConfigGroup::Appearance);
+    eApp->setWindowDisplayMode(static_cast<ElaApplicationType::WindowDisplayMode>(Utils::enumToInt(mode)));
+
+    // auto save config
+    this->configTimer = new QTimer(this);
+    configTimer->start(2000);
+    connect(configTimer, &QTimer::timeout, [=]() {config.writeConfig();});
 
     this->mainWindow = new MainWindow();
     QThread::msleep(500); // 仅用于让开屏动画可以正常显示，不至于一闪而过
