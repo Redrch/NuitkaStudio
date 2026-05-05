@@ -11,8 +11,8 @@
 #include <QApplication>
 #include <QDebug>
 
-#include "../utils/config.h"
-#include "../types/simname.h"
+#include "../common/config.h"
+#include "../common/simname.h"
 
 struct PixmapGroup {
     QPixmap startLight;

@@ -13,10 +13,10 @@
 #include <QJsonArray>
 
 #include "../types/data_structs.h"
-#include "../types/project_config_manager.h"
-#include "../types/simname.h"
+#include "../common/project_config_manager.h"
+#include "../common/simname.h"
 #include "compress.h"
-#include "config.h"
+#include "../common/config.h"
 #include "logger.h"
 #include "utils.h"
 

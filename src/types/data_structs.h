@@ -12,6 +12,7 @@
 #include <QMetaType>
 #include <QVariant>
 #include "constants.h"
+#include "ElaDef.h"
 
 enum class LTOMode {
     Auto,
@@ -33,51 +34,6 @@ inline QDataStream &operator>>(QDataStream &in, LTOMode &mode) {
     mode = static_cast<LTOMode>(v.toInt());
     return in;
 }
-
-// inline QMap<int, int> configListAndUiListMap = {
-//     {0, 0},
-//     {1, 1},
-//     {2, 2},
-//     {3, 3},
-//     {4, 10},
-//     {5, 11},
-//     {6, 4},
-//     {7, 5},
-//     {8, 6},
-//     {9, 7},
-//     {10, 9},
-//     {11, 8},
-//     {12, 12},
-//     {13, 13},
-//     {14, 14},
-//     {15, 15},
-//     {16, 16},
-//     {17, 17},
-//     {18, 18},
-//
-// };
-//
-// inline QMap<int, int> configListAndUiListInverseMap = {
-//     {0, 0},
-//     {1, 1},
-//     {2, 2},
-//     {3, 3},
-//     {4, 6},
-//     {5, 7},
-//     {6, 8},
-//     {7, 9},
-//     {8, 11},
-//     {9, 10},
-//     {10, 4},
-//     {11, 5},
-//     {12, 12},
-//     {13, 13},
-//     {14, 14},
-//     {15, 15},
-//     {16, 16},
-//     {17, 17},
-//     {18, 18},
-// };
 
 enum class ProjectConfigEnum {
     PythonPath,
@@ -104,27 +60,50 @@ enum class ProjectConfigEnum {
 
 using PCE = ProjectConfigEnum;
 
-struct PackLog {
+struct PackLogStruct {
     QString logFileName;
     QString logContent;
     QString logNote;
 
-    PackLog() = default;
+    PackLogStruct() = default;
 
-    PackLog(const QString &logFileName, const QString &logContent, const QString &logNote) {
+    PackLogStruct(const QString &logFileName, const QString &logContent, const QString &logNote) {
         this->logFileName = logFileName;
         this->logContent = logContent;
         this->logNote = logNote;
     }
-    PackLog(const QString &logFileName, const QString &logContent) {
+    PackLogStruct(const QString &logFileName, const QString &logContent) {
         this->logFileName = logFileName;
         this->logContent = logContent;
     }
 };
 
-using PackLogList = QList<PackLog>;
-Q_DECLARE_METATYPE(PackLog)
-Q_DECLARE_METATYPE(QList<PackLog>)
+using PackLogList = QList<PackLogStruct>;
+Q_DECLARE_METATYPE(PackLogStruct)
+Q_DECLARE_METATYPE(QList<PackLogStruct>)
 
+namespace PageNS {
+    Q_NAMESPACE
+
+    enum class PageCard {
+        PackPageBaseCard = 0x0000,
+        PackPagePackCard = 0x0001,
+        PackPageAssetCard = 0x0002,
+        PackPageFileInfoCard = 0x0003,
+        PackPageConsoleCard = 0x0004,
+
+        SettingsPageGeneralCard = 0x0100,
+        SettingsPageAppearanceCard = 0x0101,
+        SettingsPageDefaultPathCard = 0x0102,
+
+        NONE = -0x01
+    };
+
+    Q_ENUM_NS(PageCard)
+}
+
+using namespace PageNS;
+
+Q_DECLARE_METATYPE(PageCard)
 
 #endif //DATASTRUCTS_H

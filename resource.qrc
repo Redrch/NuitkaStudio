@@ -6,5 +6,6 @@
     <file>assets/start-dark.png</file>
     <file alias="logo.ico">assets/NuitkaStudioLogo.ico</file>
     <file alias="logo">assets/NuitkaStudioLogo.png</file>
+    <file alias="default_config">assets/default_config.ini</file>
   </qresource>
 </RCC>

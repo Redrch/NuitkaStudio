@@ -6,7 +6,7 @@
 #define EVENT_BUS_H
 
 #include <QObject>
-#include "config.h"
+#include "../common/config.h"
 
 class EventBus : public QObject {
     Q_OBJECT

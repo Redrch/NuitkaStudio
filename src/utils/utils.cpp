@@ -3,8 +3,10 @@
 //
 
 #include "utils.h"
-
 #include "logger.h"
+#include <QFont>
+#include <QWidget>
+#include <QPainter>
 
 
 QString Utils::boolToString(bool v) {
@@ -58,5 +60,31 @@ QList<QVariant> Utils::StringListToListVariant(const QList<QString> &list) {
         result.append(QVariant(item));
     }
     return result;
+}
+
+void Utils::setWidgetPixelSize(QWidget *widget, int pixelSize) {
+    QFont font = widget->font();
+    font.setPixelSize(pixelSize);
+    widget->setFont(font);
+}
+
+void Utils::addWidgetStyleSheet(QWidget *widget, const QString &styleSheet) {
+    widget->setStyleSheet(widget->styleSheet() += styleSheet);
+}
+
+QPixmap Utils::applyOpacity(const QPixmap &pixmap, const qreal opacity) {
+    if (pixmap.isNull()) {
+        return QPixmap();
+    }
+    QPixmap temp(pixmap.size());
+    temp.fill(Qt::transparent);
+    QPainter painter(&temp);
+    if (!painter.isActive()) {
+        return pixmap;
+    }
+    painter.setOpacity(opacity);
+    painter.drawPixmap(0, 0, pixmap);
+    painter.end();
+    return temp;
 }
 

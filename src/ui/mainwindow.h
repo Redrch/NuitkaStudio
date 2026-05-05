@@ -15,7 +15,6 @@
 #include <QString>
 #include <QList>
 #include <QStringListModel>
-#include <QPointer>
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -42,28 +41,28 @@
 #include <ElaMenuBar.h>
 #include <ElaTheme.h>
 #include <ElaIconButton.h>
+#include <QStackedWidget>
+#include <QMovie>
 
 #include "about_window.h"
+#include "ElaContentDialog.h"
 #include "float_button.h"
 
 #include "../types/data_structs.h"
-#include "../types/project_config_manager.h"
-#include "../types/simname.h"
+#include "../common/project_config_manager.h"
+#include "../common/simname.h"
 
 #include "../utils/utils.h"
-#include "../utils/config.h"
+#include "../common/config.h"
 #include "../utils/logger.h"
 #include "../utils/project_config.h"
 #include "../utils/compress.h"
 #include "../types/color.h"
+#include "common/pack_log.h"
 
-QT_BEGIN_NAMESPACE
-
-namespace Ui {
-    class MainWindow;
-}
-
-QT_END_NAMESPACE
+#include "pages/pack_page.h"
+#include "pages/settings_page.h"
+#include "pages/pack_log_page.h"
 
 enum class TextPos {
     TopLabel,
@@ -74,23 +73,15 @@ enum class TextPos {
 class MainWindow : public ElaWindow {
     Q_OBJECT
 
-    struct ControlText {
-        QString menu_new = tr("新建(&N)");
-        QString menu_open = tr("打开(&O)");
-        QString menu_save = tr("保存(&S)");
-        QString menu_saveAs = tr("另存为(&A)");
-        QString menu_closeFile = tr("关闭文件(&C)");
-        QString menu_help = tr("帮助(&H)");
-        QString menu_about = tr("关于(&A)");
-
-        QString topbar_pack = tr("打包");
-        QString topbar_settings = tr("设置");
-        QString topbar_packLog = tr("打包日志");
-
-        QString exit_label = tr("您想要将软件关闭还是最小化至系统托盘");
-        QString exit_trayButton = tr("最小化至系统托盘");
-        QString exit_exitButton = tr("退出软件");
-        QString exit_hideButton = tr("不再显示该窗口（隐藏后行为可以在设置中看到）");
+    const QMap<QString, PageCard> navigationTitleEnumMap = {
+        {tr("基础配置"), PageCard::PackPageBaseCard},
+        {tr("打包配置"), PageCard::PackPagePackCard},
+        {tr("资源配置"), PageCard::PackPageAssetCard},
+        {tr("文件信息配置"), PageCard::PackPageFileInfoCard},
+        {tr("控制台"), PageCard::PackPageConsoleCard},
+        {tr("通用设置"), PageCard::SettingsPageGeneralCard},
+        {tr("外观设置"), PageCard::SettingsPageAppearanceCard},
+        {tr("默认路径设置"), PageCard::SettingsPageDefaultPathCard}
     };
 
 public:
@@ -100,8 +91,6 @@ public:
 
 private:
     // variants
-    Ui::MainWindow *ui;
-
     QDateTime startPackTime;
     QTimer *packTimer;
     QTimer *mainTimer;
@@ -109,9 +98,13 @@ private:
     QFile *noteFile;
     QJsonObject noteObject;
 
-    // bar
-    ElaTabBar *topTabBar;
-    ElaMenuBar *menuBar;
+    // background
+    QPixmap lightPixmap;
+    QPixmap darkPixmap;
+    QPixmap cachedBg;
+    QMovie *lightMovie;
+    QMovie *darkMovie;
+    QPixmap currentProcessedFrame;
 
     // controls
     QCheckBox *standaloneCheckbox;
@@ -121,7 +114,10 @@ private:
     QLabel *messageLabel;
     QLabel *topTextLabel;
     FloatButton* floatButton;
-    ControlText* controlText;
+    ElaContentDialog *closeDialog;
+    // status bar
+    ElaText *statusLabel;
+    ElaText *statusFileNameLabel;
 
     // actions
     QAction *packAction;
@@ -138,34 +134,24 @@ private:
     QAction *quitAction;
 
     // pack log
-    QList<PackLog*> *packLog;
+    QList<PackLogStruct*> *packLog;
+    PackLog* log;
 
     // models
     QStringListModel *packLogModel;
     QStringListModel *dataListModel;
 
+    // pages
+    PackPage *packPage;
+    SettingsPage *settingsPage;
+    PackLogPage *packLogPage;
+
     int currentPageIndex;
     int currentPackLogIndex;
 
     // functions
-    // Update UI functions
-    void updatePackUI() const;
-    void updateSettingsUI() const;
-    void updatePackLogUI();
-    void updateUI();
-
-    // Connect signals and slots functions
-    void connectStackedWidget();
-    void connectMenubar();
-    void connectPackPage();
-    void connectSettingsPage();
-    void connectTrayMenu();
-    void connectOther();
-    void connectPackLog();
-
-    // Init functions
     void initUI();
-    void initMenuBar();
+    void updateUI();
 
     // ui util functions
     /**
@@ -180,19 +166,13 @@ private:
     void showText(const QString &text, int showTime = -1, const QColor &color = Qt::black,
                   TextPos position = TextPos::TopLabel, const QString &title = "Nuitka Studio") const;
     void clearText(TextPos position = TextPos::TopLabel) const;
-    void enabledInput() const;
-    void noEnableInput() const;
+    void disableUi() const;
+    void enableUi() const;
 
     // util functions
-    void readPackLog();
     bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);
-    void saveNote() const;
 
 private slots:
-    void onAddDataFileItemClicked();
-    void onAddDataDirItemClicked();
-    void onRemoveItemClicked() const;
-
     void startPack();
     void stopPack();
 
@@ -208,13 +188,15 @@ private slots:
     // Gen file info functions
     static void genFileInfo();
 
-    void retranslateCustomUi() const;
+    void updateBackground();
+    void processMovie();
+
 protected:
-    void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 };
 
 

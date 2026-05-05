@@ -3,12 +3,28 @@
 //
 
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "global/update_clock.h"
+#include "global/application.h"
+#include "styles/status_bar_style.h"
+#include "utils/image_processor.h"
 
-MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWindow) {
-    ui->setupUi(this);
+#include <ElaStatusBar.h>
+#include <ElaMenuBar.h>
+#include <ElaMenu.h>
+#include <ElaContentDialog.h>
+#include <ElaApplication.h>
+#include <QPainter>
+
+#include "ElaAppBar.h"
+#include "ElaMessageBar.h"
+
+MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent) {
     this->setAcceptDrops(true);
     this->setFocusPolicy(Qt::StrongFocus);
+    this->setWindowTitle("Nuitka Studio");
+    this->setWindowIcon(QIcon(":/logo"));
+    this->setAttribute(Qt::WA_TranslucentBackground);
+    this->moveToCenter();
     qApp->installEventFilter(this);
     this->currentPageIndex = 0;
     this->currentPackLogIndex = 0;
@@ -20,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
 
     // init objects
     this->packTimer = new QTimer(this);
-    this->packLog = new QList<PackLog *>();
+    this->packLog = new QList<PackLogStruct *>();
     this->mainTimer = new QTimer(this);
     this->mainTimer->start(1);
 
@@ -55,44 +71,42 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent), ui(new Ui::MainWind
         this->noteFile->close();
     }
 
-    // Init translator string
-    this->controlText = new ControlText();
-
     // Init UI
     this->initUI();
+    this->updateUI();
 
-    // Connect signal and slot
-    this->connectStackedWidget();
-    this->connectMenubar();
-    this->connectPackPage();
-    this->connectSettingsPage();
-    this->connectPackLog();
-    this->connectTrayMenu();
-    this->connectOther();
+    // Close Window Event
+    this->closeDialog = new ElaContentDialog(this);
+    connect(closeDialog, &ElaContentDialog::rightButtonClicked, this, &MainWindow::close);
+    connect(closeDialog, &ElaContentDialog::middleButtonClicked, this, [=]() {
+        closeDialog->close();
+        showMinimized();
+    });
+    this->setIsDefaultClosed(false);
+    connect(this, &MainWindow::closeButtonClicked, this, [=]() {
+        closeDialog->exec();
+    });
 
     if (!GDM.getBool(GDIN::isOpenNPF)) {
         this->showText(tr("请先新建或打开一个NPF文件再进行操作"), -1, Qt::red);
     }
-
-    this->updateUI();
 
     Logger::info("初始化MainWindow类完成");
 }
 
 MainWindow::~MainWindow() {
     config.writeConfig();
+    this->log->saveNote();
     delete this->floatButton;
-    for (PackLog *log: *this->packLog) {
+    for (PackLogStruct *log: *this->packLog) {
         delete log;
     }
     delete this->packLog;
-    delete ui;
+    delete this->log;
 }
 
 void MainWindow::startPack() {
-    ui->startPackBtn->setEnabled(false);
     this->startPackAction->setEnabled(false);
-    ui->stopPackBtn->setEnabled(true);
     this->stopPackAction->setEnabled(true);
     QElapsedTimer timer;
 
@@ -119,13 +133,16 @@ void MainWindow::startPack() {
     // output
     connect(this->packProcess, &QProcess::readyReadStandardOutput, this, [=]() {
         QString out = QString::fromLocal8Bit(this->packProcess->readAllStandardOutput());
-        ui->consoleOutputEdit->appendPlainText(out);
+        this->packPage->addConsoleContent(out);
         logFile->write(out.toUtf8());
         Logger::info(out);
     });
     // finished
     connect(this->packProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [=](int exitCode, QProcess::ExitStatus exitStatus) {
+                if (exitStatus != QProcess::NormalExit) {
+                    return;
+                }
                 qint64 time = timer.elapsed();
                 qint64 second = time / 1000;
                 qint64 ms = time % 1000;
@@ -138,17 +155,14 @@ void MainWindow::startPack() {
                 }
 
                 QString endOutString = QString("----------- 打包结束 耗时: %1 ----------").arg(timeString);
-                ui->consoleOutputEdit->appendPlainText(endOutString);
+                this->packPage->addConsoleContent(endOutString);
                 Logger::info(QString("----------- 打包结束 耗时: %1 ----------").arg(timeString));
                 this->showText(QString("打包结束 耗时: %1").arg(timeString), 5000, Qt::black,
                                TextPos::SystemMessage, "打包通知");
                 this->floatButton->packFinished();
                 this->packProcess->deleteLater();
                 this->packTimer->stop();
-                ui->startPackBtn->setEnabled(true);
-                this->startPackAction->setEnabled(true);
-                ui->stopPackBtn->setEnabled(false);
-                this->stopPackAction->setEnabled(false);
+                this->packPage->packEnd();
 
                 if (logFile) {
                     logFile->flush();
@@ -156,59 +170,55 @@ void MainWindow::startPack() {
                     logFile->deleteLater();
                 }
 
-                this->saveNote();
+                this->log->saveNote();
             });
     // error occurred
     connect(this->packProcess, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error) {
         qWarning() << "command error: " << error;
-        ui->consoleOutputEdit->appendPlainText("Error: " + Utils::processErrorToString(error));
+        this->packPage->addConsoleContent("Error: " + Utils::processErrorToString(error));
         logFile->write(QString("Error: " + Utils::processErrorToString(error)).toUtf8());
         Logger::error("Error: " + Utils::processErrorToString(error));
     });
 
-    if (PCM.getItemValueToString(PCE::PythonPath).isEmpty()) {
-        ui->consoleOutputEdit->appendPlainText("python解释器路径为必填项");
-        ui->startPackBtn->setEnabled(true);
+    if (PCM.getString(PCE::PythonPath).isEmpty()) {
+        this->packPage->addConsoleContent(tr("python解释器路径为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
-    if (PCM.getItemValueToString(PCE::MainfilePath).isEmpty()) {
-        ui->consoleOutputEdit->appendPlainText("主文件路径为必填项");
-        ui->startPackBtn->setEnabled(true);
+    if (PCM.getString(PCE::MainfilePath).isEmpty()) {
+        this->packPage->addConsoleContent(tr("主文件路径为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
-    if (PCM.getItemValueToString(PCE::OutputPath).isEmpty()) {
-        ui->consoleOutputEdit->appendPlainText("输出目录为必填项");
-        ui->startPackBtn->setEnabled(true);
+    if (PCM.getString(PCE::OutputPath).isEmpty()) {
+        this->packPage->addConsoleContent(tr("输出目录为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
-    if (PCM.getItemValueToString(PCE::OutputFilename).isEmpty()) {
-        ui->consoleOutputEdit->appendPlainText("输出文件名为必填项");
-        ui->startPackBtn->setEnabled(true);
+    if (PCM.getString(PCE::OutputFilename).isEmpty()) {
+        this->packPage->addConsoleContent(tr("输出文件名为必填项"));
         this->startPackAction->setEnabled(true);
-        ui->stopPackBtn->setEnabled(false);
         this->stopPackAction->setEnabled(false);
+        this->packPage->packEnd();
         return;
     }
 
     // build args
     QStringList args = QStringList();
     args << "-m" << "nuitka";
-    if (PCM.getItemValueToBool(PCE::Standalone)) {
+    if (PCM.getBool(PCE::Standalone)) {
         args << "--standalone";
     }
-    if (PCM.getItemValueToBool(PCE::Onefile)) {
+    if (PCM.getBool(PCE::Onefile)) {
         args << "--onefile";
     }
-    if (PCM.getItemValueToBool(PCE::RemoveOutput)) {
+    if (PCM.getBool(PCE::RemoveOutput)) {
         args << "--remove-output";
     }
 
@@ -225,97 +235,93 @@ void MainWindow::startPack() {
             break;
     }
 
-    args << PCM.getItemValueToString(PCE::MainfilePath);
-    args << "--output-dir=" + PCM.getItemValueToString(PCE::OutputPath);
-    args << "--output-filename=" + PCM.getItemValueToString(
+    args << PCM.getString(PCE::MainfilePath);
+    args << "--output-dir=" + PCM.getString(PCE::OutputPath);
+    args << "--output-filename=" + PCM.getString(
         PCE::OutputFilename);
 
-    if (!PCM.getItemValueToString(PCE::IconPath).isEmpty()) {
-        args << "--windows-icon-from-ico=" + PCM.getItemValueToString(
+    if (!PCM.getString(PCE::IconPath).isEmpty()) {
+        args << "--windows-icon-from-ico=" + PCM.getString(
             PCE::IconPath);
     }
-    if (!PCM.getItemValueToString(PCE::FileVersion).isEmpty()) {
-        args << "--file-version=" + PCM.getItemValueToString(
+    if (!PCM.getString(PCE::FileVersion).isEmpty()) {
+        args << "--file-version=" + PCM.getString(
             PCE::FileVersion);
     }
-    if (!PCM.getItemValueToString(PCE::Company).isEmpty()) {
-        args << "--company-name=" + PCM.getItemValueToString(PCE::Company);
+    if (!PCM.getString(PCE::Company).isEmpty()) {
+        args << "--company-name=" + PCM.getString(PCE::Company);
     }
-    if (!PCM.getItemValueToString(PCE::ProductName).isEmpty()) {
-        args << "--product-name=" + PCM.getItemValueToString(
+    if (!PCM.getString(PCE::ProductName).isEmpty()) {
+        args << "--product-name=" + PCM.getString(
             PCE::ProductName);
     }
-    if (!PCM.getItemValueToString(PCE::ProductVersion).isEmpty()) {
-        args << "--product-version=" + PCM.getItemValueToString(
+    if (!PCM.getString(PCE::ProductVersion).isEmpty()) {
+        args << "--product-version=" + PCM.getString(
             PCE::ProductVersion);
     }
-    if (!PCM.getItemValueToString(PCE::FileDescription).isEmpty()) {
-        args << "--file-description=" + PCM.getItemValueToString(
+    if (!PCM.getString(PCE::FileDescription).isEmpty()) {
+        args << "--file-description=" + PCM.getString(
             PCE::FileDescription);
     }
-    if (!PCM.getItemValueToString(PCE::LegalCopyright).isEmpty()) {
-        args << "--copyright=" + PCM.getItemValueToString(
+    if (!PCM.getString(PCE::LegalCopyright).isEmpty()) {
+        args << "--copyright=" + PCM.getString(
             PCE::LegalCopyright);
     }
-    if (!PCM.getItemValueToString(PCE::LegalTrademarks).isEmpty()) {
-        args << "--trademarks=" + PCM.getItemValueToString(
+    if (!PCM.getString(PCE::LegalTrademarks).isEmpty()) {
+        args << "--trademarks=" + PCM.getString(
             PCE::LegalTrademarks);
     }
-    if (!PCM.getItemValueToString(PCE::CustomCommand).isEmpty()) {
-        QString command = PCM.getItemValueToString(PCE::CustomCommand);
+    if (!PCM.getString(PCE::CustomCommand).isEmpty()) {
+        QString command = PCM.getString(PCE::CustomCommand);
         QStringList commandArgs = command.split(" ");
         args << commandArgs;
     }
 
     this->packProcess->start(
-        PCM.getItemValueToString(PCE::PythonPath), args);
+        PCM.getString(PCE::PythonPath), args);
+    this->packPage->packStart();
 
     // console output
     QString outputString = QString("-------------- 开始打包 %1 -------------").arg(
         QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz"));
-    ui->consoleOutputEdit->appendPlainText(outputString);
+    this->packPage->addConsoleContent(outputString);
     // pack timer
     this->startPackTime = QDateTime::currentDateTime();
     this->packTimer->start(config.getInt(ConfigItem::PackTimerTriggerInterval));
     // console output
-    ui->consoleOutputEdit->appendPlainText(
-        PCM.getItemValueToString(PCE::PythonPath) + " " + args.
-        join(" "));
+    this->packPage->addConsoleContent(PCM.getString(PCE::PythonPath) + " " + args.join(" "));
     Logger::info(
         "开始打包  打包命令: " + QString(
-            PCM.getItemValueToString(PCE::PythonPath) + " " + args.
+            PCM.getString(PCE::PythonPath) + " " + args.
             join(" ")));
 }
 
 void MainWindow::stopPack() {
     if (!this->packProcess) {
-        ui->consoleOutputEdit->appendPlainText("没有正在执行的打包任务");
+        this->packPage->addConsoleContent(tr("没有正在执行的打包任务"));
         return;
     }
     if (this->packProcess->state() == QProcess::NotRunning) {
-        ui->consoleOutputEdit->appendPlainText("打包任务已结束");
+        this->packPage->addConsoleContent(tr("打包任务已结束"));
         this->packProcess->deleteLater();
         this->packProcess = nullptr;
         return;
     }
 
-    ui->consoleOutputEdit->appendPlainText("正在停止打包任务");
+    this->packPage->addConsoleContent(tr("正在停止打包任务"));
     this->packProcess->terminate();
 
     QTimer::singleShot(5000, this, [=]() {
         if (this->packProcess->state() != QProcess::NotRunning) {
-            ui->consoleOutputEdit->appendPlainText("进程未响应，强制终止中...");
+            this->packPage->addConsoleContent(tr("进程未响应，强制终止中..."));
             this->packProcess->kill();
             this->packProcess->deleteLater();
         }
     });
-    this->showText("已停止打包任务", 5000, Qt::black, TextPos::SystemMessage, "打包通知");
+    this->showText(tr("已停止打包任务"), 5000, Qt::black, TextPos::SystemMessage, tr("打包通知"));
+    this->packPage->packEnd();
 
     this->packTimer->stop();
-    ui->startPackBtn->setEnabled(true);
-    this->startPackAction->setEnabled(true);
-    ui->stopPackBtn->setEnabled(false);
-    this->stopPackAction->setEnabled(false);
 }
 
 void MainWindow::importProject() {
@@ -330,7 +336,6 @@ void MainWindow::importProject() {
         return;
     }
     // Update UI
-    this->updateUI();
     if (!path.isEmpty()) {
         this->setWindowTitle(path.split("/").last() + " - Nuitka Studio");
     }
@@ -349,217 +354,164 @@ void MainWindow::exportProject() {
     if (this->npfStatusTypeHandler(status, path)) {
         return;
     }
-    this->updateUI();
     if (!path.isEmpty()) {
         this->setWindowTitle(path.split("/").last() + " - Nuitka Studio");
     }
     GDM.setBool(GDIN::isOpenNPF, true);
 }
 
-// Slots
-void MainWindow::onAddDataFileItemClicked() {
-    QString filePath = QFileDialog::getOpenFileName(this, "Nuitka Studio  数据文件",
-                                                    config.getString(ConfigItem::DefaultDataPath));
-    if (filePath.isEmpty()) {
-        return;
-    }
-    QStringList dataList = this->dataListModel->stringList();
-    dataList << filePath;
-    this->dataListModel->setStringList(dataList);
-    PCM.appendItemToStringList(PCE::DataList, filePath);
-}
+void MainWindow::initUI() {
+    setWindowPaintMode(ElaWindowType::PaintMode::Pixmap);
+    // Background
+#pragma region Background
+    this->setWindowPaintMode(static_cast<ElaWindowType::PaintMode>
+        (Utils::enumToInt(config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance))));
 
-void MainWindow::onAddDataDirItemClicked() {
-    QString dirPath = QFileDialog::getExistingDirectory(this, "Nuitka Studio  数据目录",
-                                                        config.getString(ConfigItem::DefaultDataPath),
-                                                        QFileDialog::ShowDirsOnly);
-    if (dirPath.isEmpty()) {
-        return;
-    }
+    // Pixmap
+    this->lightPixmap = QPixmap(config.getString(ConfigItem::LightPixmapPath, ConfigGroup::Appearance));
+    this->darkPixmap = QPixmap(config.getString(ConfigItem::DarkPixmapPath, ConfigGroup::Appearance));
 
-    QStringList dataList = this->dataListModel->stringList();
-    dataList << dirPath;
-    this->dataListModel->setStringList(dataList);
-    PCM.appendItemToStringList(PCE::DataList, dirPath);
-}
+    // Movie
+    this->lightMovie = new QMovie(config.getString(ConfigItem::LightMoviePath, ConfigGroup::Appearance));
+    this->darkMovie = new QMovie(config.getString(ConfigItem::DarkMoviePath, ConfigGroup::Appearance));
+    connect(this->lightMovie, &QMovie::frameChanged, this, &MainWindow::processMovie);
+    connect(this->darkMovie, &QMovie::frameChanged, this, &MainWindow::processMovie);
+#pragma endregion
 
-void MainWindow::onRemoveItemClicked() const {
-    QModelIndex index = ui->dataListWidget->currentIndex();
-    if (index.isValid() && this->dataListModel) {
-        const QString &text = this->dataListModel->stringList().at(index.row());
+    // Navigation
+#pragma region Navigation
+    this->packPage = new PackPage(this);
+    this->settingsPage = new SettingsPage(this);
+    this->packLogPage = new PackLogPage(this);
+    this->log = new PackLog(this->packLogPage, true);
+    this->packLogPage->setPackLogObj(this->log);
+    this->log->updateLog();
 
-        this->dataListModel->removeRow(index.row());
-        PCM.removeItemFromStringList(PCE::DataList, text);
-    }
-}
+    QString packPageKey{};
+    QString settingsPageKey{};
+    this->addExpanderNode(tr("打包"), packPageKey,ElaIconType::BoxesPacking);
+    this->addExpanderNode(tr("设置"), settingsPageKey, ElaIconType::Gear);
 
-void MainWindow::retranslateCustomUi() const {
-    this->controlText->menu_new = tr("新建(&N)");
-    this->controlText->menu_open = tr("打开(&O)");
-    this->controlText->menu_save = tr("保存(&S)");
-    this->controlText->menu_saveAs = tr("另存为(&A)");
-    this->controlText->menu_closeFile = tr("关闭文件(&C)");
-    this->controlText->menu_help = tr("帮助(&H)");
-    this->controlText->menu_about = tr("关于(&A)");
+    this->addPageNode(tr("基础配置"), this->packPage, packPageKey, ElaIconType::Database);
+    this->addPageNode(tr("打包配置"), this->packPage, packPageKey, ElaIconType::File);
+    this->addPageNode(tr("资源配置"), this->packPage, packPageKey, ElaIconType::LinkHorizontal);
+    this->addPageNode(tr("文件信息配置"), this->packPage, packPageKey, ElaIconType::FileCircleInfo);
+    this->addPageNode(tr("控制台"), this->packPage, packPageKey, ElaIconType::Command);
+    expandNavigationNode(packPageKey);
 
-    this->controlText->topbar_pack = tr("打包");
-    this->controlText->topbar_settings = tr("设置");
-    this->controlText->topbar_packLog = tr("打包日志");
+    this->addPageNode(tr("通用设置"), this->settingsPage, settingsPageKey, ElaIconType::GripLines);
+    this->addPageNode(tr("外观设置"), this->settingsPage, settingsPageKey, ElaIconType::Airplay);
+    this->addPageNode(tr("默认路径设置"), this->settingsPage, settingsPageKey, ElaIconType::AtomSimple);
+    expandNavigationNode(settingsPageKey);
 
-    this->controlText->exit_label = tr("您想要将软件关闭还是最小化至系统托盘");
-    this->controlText->exit_trayButton = tr("最小化至系统托盘");
-    this->controlText->exit_exitButton = tr("退出软件");
-    this->controlText->exit_hideButton = tr("不再显示该窗口（隐藏后行为可以在设置中看到）");
+    this->addPageNode(tr("打包日志"), this->packLogPage, ElaIconType::File);
 
-    ui->newAction->setText(this->controlText->menu_new);
-    ui->openAction->setText(this->controlText->menu_open);
-    ui->saveAction->setText(this->controlText->menu_save);
-    ui->saveAsAction->setText(this->controlText->menu_saveAs);
-    ui->closeFileAction->setText(this->controlText->menu_closeFile);
-    ui->helpAction->setText(this->controlText->menu_help);
-    ui->aboutAction->setText(this->controlText->menu_about);
+    this->setUserInfoCardPixmap(QPixmap(":/logo"));
+    this->setUserInfoCardTitle("Nuitka Studio");
+    this->setUserInfoCardSubTitle("Redrch");
+    this->setNavigationBarWidth(250);
 
-    this->packAction->setText(this->controlText->topbar_pack);
-    this->settingsAction->setText(this->controlText->topbar_settings);
-    this->packLogAction->setText(this->controlText->topbar_packLog);
-}
+    connect(this, &ElaWindow::navigationNodeClicked, this,
+        [=](ElaNavigationType::NavigationNodeType nodeType, QString nodeKey) {
+            if (nodeType == ElaNavigationType::PageNode) {
+                const QString title = this->getNavigationNodeTitle(nodeKey);
+                const PageCard card = this->navigationTitleEnumMap.value(title);
+                const int cardId = Utils::enumToInt(card);
+                if (cardId < 0x0100) {
+                    this->packPage->scrollTo(card);
+                    Logger::debug("Navigation: 点击 PackPage 的子节点");
+                } else if (cardId < 0x0200) {
+                    this->settingsPage->scrollTo(card);
+                    Logger::debug("Navigation: 点击 SettingsPage 的子节点");
+                }
+            }
+        });
+#pragma endregion
 
-// Update UI functions
-void MainWindow::updateUI() {
-    this->updatePackUI();
-    this->updateSettingsUI();
-    if (!GDM.getString(GDIN::npfFilePath).isEmpty()) {
-        this->updatePackLogUI();
-    }
+    // Status bar
+#pragma region StatusBar
+    ElaStatusBar *statusBar = new ElaStatusBar();
+    statusBar->setStyle(new StatusBarStyle(statusBar->style()));
+    this->setStatusBar(statusBar);
+    this->messageLabel = new ElaText("", 9, this);
+    this->messageLabel->setAlignment(Qt::AlignCenter);
+    this->statusLabel = new ElaText("", 9, this);
+    this->statusLabel->setVisible(false);
+    this->statusFileNameLabel = new ElaText(QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName(), 9, this);
+    ElaText *appNameLabel = new ElaText(QString("Nuitka Studio v%1").arg(APP_VERSION), 9, this);
+    statusBar->addWidget(this->messageLabel);
+    statusBar->addPermanentWidget(this->statusFileNameLabel);
+    statusBar->addPermanentWidget(appNameLabel);
+    statusBar->addPermanentWidget(this->statusLabel);
+#pragma endregion
 
-    Logger::info("刷新UI");
-}
+    // Menubar
+#pragma region MenuBar
+    ElaMenuBar *menuBar = new ElaMenuBar(this);
 
-void MainWindow::updatePackUI() const {
-    ui->pythonFileEdit->setText(PCM.getItemValueToString(PCE::PythonPath));
-    ui->mainPathEdit->setText(PCM.getItemValueToString(PCE::MainfilePath));
-    ui->outputPathEdit->setText(PCM.getItemValueToString(PCE::OutputPath));
-    ui->outputFileEdit->setText(PCM.getItemValueToString(PCE::OutputFilename));
-    ui->iconFileEdit->setText(PCM.getItemValueToString(PCE::IconPath));
-    ui->projectPathEdit->setText(PCM.getItemValueToString(PCE::ProjectPath));
-    ui->projectNameEdit->setText(PCM.getItemValueToString(PCE::ProjectName));
-    ui->customCommandEdit->setText(PCM.getItemValueToString(PCE::CustomCommand));
+    // menus
+    ElaMenu *fileMenu = new ElaMenu(tr("文件"), this);
+    ElaMenu *packMenu = new ElaMenu(tr("打包"), this);
+    ElaMenu *helpMenu = new ElaMenu(tr("帮助"), this);
 
-    ui->standaloneCheckbox->setCheckState(
-        PCM.getItemValueToBool(PCE::Standalone)
-            ? Qt::CheckState::Checked
-            : Qt::CheckState::Unchecked);
-    ui->onefileCheckbox->setCheckState(PCM.getItemValueToBool(PCE::Onefile)
-                                           ? Qt::CheckState::Checked
-                                           : Qt::CheckState::Unchecked);
-    ui->removeOutputCheckbox->setCheckState(
-        PCM.getItemValueToBool(PCE::RemoveOutput)
-            ? Qt::CheckState::Checked
-            : Qt::CheckState::Unchecked);
-    // LTO
-    switch (PCM.getItemValue(PCE::LtoMode).value<LTOMode>()) {
-        case LTOMode::Yes:
-            ui->ltoYes->setCheckState(Qt::CheckState::Checked);
-            break;
-        case LTOMode::No:
-            ui->ltoNo->setCheckState(Qt::CheckState::Checked);
-            break;
-        case LTOMode::Auto:
-            ui->ltoAuto->setCheckState(Qt::CheckState::Checked);
-            break;
-    }
-    // Data list
-    QStringList dataList = PCM.getItemValueToStringList(PCE::DataList);
-    this->dataListModel->setStringList(dataList);
+    // actions
+    // file menu
+    QAction *newAction = new QAction(tr("新建"), this);
+    newAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+    fileMenu->addAction(newAction);
+    QAction *openAction = new QAction(tr("打开"), this);
+    openAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
+    fileMenu->addAction(openAction);
+    QAction *saveAction = new QAction(tr("保存"), this);
+    saveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    fileMenu->addAction(saveAction);
+    QAction *saveAsAction = new QAction(tr("另存为"), this);
+    saveAsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
+    fileMenu->addAction(saveAsAction);
+    QAction *genInfoAction = new QAction(tr("生成信息"), this);
+    genInfoAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    fileMenu->addAction(genInfoAction);
+    QAction *saveConfigAction = new QAction(tr("保存配置"), this);
+    saveConfigAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+    fileMenu->addAction(saveConfigAction);
+    QAction *closeAction = new QAction(tr("关闭文件"), this);
+    fileMenu->addAction(closeAction);
 
-    // File info
-    ui->fileVersionEdit->setText(PCM.getItemValueToString(PCE::FileVersion));
-    ui->companyEdit->setText(PCM.getItemValueToString(PCE::Company));
-    ui->productNameEdit->setText(PCM.getItemValueToString(PCE::ProductName));
-    ui->productVersionEdit->setText(PCM.getItemValueToString(PCE::ProductVersion));
+    fileMenu->addSeparator();
 
-    ui->fileDescriptitonEdit->setText(
-        PCM.getItemValueToString(PCE::FileDescription));
-    ui->legalCopyrightEdit->setText(PCM.getItemValueToString(PCE::LegalCopyright));
-    ui->legalTrademarksEdit->setText(
-        PCM.getItemValueToString(PCE::LegalTrademarks));
-}
+    QAction *hideAction = new QAction(tr("隐藏"), this);
+    hideAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_H));
+    fileMenu->addAction(hideAction);
+    QAction *floatAction = new QAction(tr("浮动按钮"), this);
+    floatAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_F));
+    fileMenu->addAction(floatAction);
+    QAction *exitAction = new QAction(tr("退出"), this);
+    fileMenu->addAction(exitAction);
 
-void MainWindow::updateSettingsUI() const {
-    ui->defaultPyPathEdit->setText(config.getString(ConfigItem::DefaultPythonPath));
-    ui->defaultMainPathEdit->setText(config.getString(ConfigItem::DefaultMainFilePath));
-    ui->defaultOutputPathEdit->setText(config.getString(ConfigItem::DefaultOutputPath));
-    ui->defaultIconPathEdit->setText(config.getString(ConfigItem::DefaultIconPath));
-    ui->defaultDataPathEdit->setText(config.getString(ConfigItem::DefaultDataPath));
+    // pack menu
+    QAction *startPackAction = new QAction(tr("开始打包"), this);
+    startPackAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_S));
+    packMenu->addAction(startPackAction);
+    QAction *endPackAction = new QAction(tr("结束打包"), this);
+    endPackAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_E));
+    packMenu->addAction(endPackAction);
 
-    ui->consoleInputEncodingCombo->setCurrentIndex(
-        Utils::enumToInt<EncodingEnum>(config.getEncodingEnum(ConfigItem::ConsoleInputEncoding)));
-    ui->consoleOutputEncodingCombo->setCurrentIndex(
-        Utils::enumToInt<EncodingEnum>(config.getEncodingEnum(ConfigItem::ConsoleOutputEncoding)));
-    ui->languageComboBox->setCurrentIndex(
-        Utils::enumToInt<Language>(config.getLanguage(ConfigItem::Language)));
+    // help menu
+    QAction *aboutAction = new QAction(tr("关于"), this);
+    helpMenu->addAction(aboutAction);
+    QAction *helpAction = new QAction(tr("帮助"), this);
+    helpMenu->addAction(helpAction);
 
-    ui->packTimerTriggerIntervalSpin->setValue(config.getInt(ConfigItem::PackTimerTriggerInterval));
-    ui->maxPackLogCountSpin->setValue(config.getInt(ConfigItem::MaxPackLogCount));
+    // add menus to menubar
+    menuBar->addMenu(fileMenu);
+    menuBar->addMenu(packMenu);
+    menuBar->addMenu(helpMenu);
 
-    ui->showCloseWindowCheckbox->setChecked(config.getBool(ConfigItem::IsShowCloseWindow));
-    ui->hideOnCloseCheckbox->setChecked(config.getBool(ConfigItem::IsHideOnClose));
-    if (config.getBool(ConfigItem::IsShowCloseWindow)) {
-        ui->hideOnCloseCheckbox->setEnabled(false);
-    } else {
-        ui->hideOnCloseCheckbox->setEnabled(true);
-    }
-    ui->splashScreenCheckbox->setChecked(config.getBool(ConfigItem::IsSplashScreen));
-    ui->savePackLog->setChecked(config.getBool(ConfigItem::IsSavePackLog));
+    this->setMenuBar(menuBar);
 
-    ui->tempPathEdit->setText(config.getString(ConfigItem::TempPath));
-}
-
-void MainWindow::updatePackLogUI() {
-    this->readPackLog();
-    QStringList logStringList;
-    for (PackLog *log: *this->packLog) {
-        logStringList.append(log->logFileName);
-    }
-    this->packLogModel->setStringList(logStringList);
-
-    if (this->packLog->isEmpty()) {
-        ui->packLogContent->clear();
-        ui->noteEdit->clear();
-        this->currentPackLogIndex = 0;
-        return;
-    }
-
-    if (this->currentPackLogIndex < 0 || this->currentPackLogIndex >= this->packLog->count()) {
-        this->currentPackLogIndex = 0;
-    }
-    ui->packLogContent->setPlainText(this->packLog->at(0)->logContent);
-    ui->noteEdit->setText(this->packLog->at(this->currentPackLogIndex)->logNote);
-}
-
-// Connect functions
-void MainWindow::connectStackedWidget() {
-    connect(this->packAction, &QAction::triggered, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(0);
-        this->currentPageIndex = 0;
-    });
-    connect(this->settingsAction, &QAction::triggered, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(1);
-        this->currentPageIndex = 1;
-    });
-    connect(this->packLogAction, &QAction::triggered, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(2);
-        this->currentPageIndex = 2;
-    });
-    connect(this->floatButtonAction, &QAction::triggered, this, [=]() {
-        this->hide();
-        this->floatButton->show();
-    });
-}
-
-void MainWindow::connectMenubar() {
-    // File Menu
-    connect(ui->newAction, &QAction::triggered, this, [=]() {
+    // connect signals and slots
+    // file menu
+    connect(newAction, &QAction::triggered, this, [=]() {
         QString path = QFileDialog::getSaveFileName(this, "Nuitka Studio 新建NPF文件",
                                                     config.getString(ConfigItem::DefaultDataPath),
                                                     "Nuitka Project File(*.npf);;All files(*)");
@@ -581,446 +533,81 @@ void MainWindow::connectMenubar() {
             int choose = QMessageBox::question(this, "Nuitka Studio",
                                                "检测到此目录是一个项目目录，是否自动填写参数（此判断有时会误判）");
             if (choose == QMessageBox::Yes) {
-                PCM.setItem(PCE::ProjectPath, dirPath);
+                PCM.set(PCE::ProjectPath, dirPath);
                 this->genData();
             }
         }
 
         this->clearText();
     });
-    connect(ui->openAction, &QAction::triggered, this, [=]() {
+    connect(openAction, &QAction::triggered, this, [=]() {
         this->importProject();
         this->clearText();
+        this->updateUI();
     });
-    connect(ui->saveAction, &QAction::triggered, this, [=]() {
+    connect(saveAction, &QAction::triggered, this, [=]() {
         this->npfStatusTypeHandler(ProjectConfig::saveProject(GDM.getString(GDIN::npfFilePath),
                                                               config.getBool(ConfigItem::IsSavePackLog)),
                                    GDM.getString(GDIN::npfFilePath));
     });
-    connect(ui->saveAsAction, &QAction::triggered, this, [=]() {
-        this->exportProject();
+    connect(saveAsAction, &QAction::triggered, this, &MainWindow::exportProject);
+    connect(genInfoAction, &QAction::triggered, this, [=]() {
+        this->genData();
     });
-    connect(ui->closeFileAction, &QAction::triggered, this, [=]() {
-        int choose = QMessageBox::question(this, "Nuitka Studio", "关闭后未保存的数据将会丢失，是否确认关闭");
+    connect(saveConfigAction, &QAction::triggered, this, [=]() {
+        config.writeConfig();
+    });
+    connect(closeAction, &QAction::triggered, this, [=]() {
+        int choose = QMessageBox::question(this, "Nuitka Studio", tr("关闭后未保存的数据将会丢失，是否确认关闭"));
         if (choose == QMessageBox::Yes) {
             PCM.setDefaultValue();
             GDM.setString(GDIN::npfFilePath, "");
             GDM.setBool(GDIN::isOpenNPF, false);
             config.setString(ConfigItem::NpfPath, "");
-            this->setWindowTitle("Nuitka Studio");
             this->updateUI();
         }
     });
-
-    // Help Menu
-    connect(ui->helpAction, &QAction::triggered, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
+    connect(hideAction, &QAction::triggered, this, &MainWindow::hide);
+    connect(floatAction, &QAction::triggered, this, [=]() {
+        this->hide();
+        this->floatButton->show();
     });
-    connect(ui->aboutAction, &QAction::triggered, this, [=]() {
+    connect(exitAction, &QAction::triggered, this, [=]() {
+        nApp.exit();
+    });
+    // pack menu
+    connect(startPackAction, &QAction::triggered, this, &MainWindow::startPack);
+    connect(endPackAction, &QAction::triggered, this, &MainWindow::stopPack);
+    // help menu
+    connect(aboutAction, &QAction::triggered, this, [=]() {
         AboutWindow *aboutWindow = new AboutWindow(this);
         aboutWindow->setAttribute(Qt::WA_DeleteOnClose);
         aboutWindow->exec();
     });
-
-    // Window Menu
-    connect(ui->basicSettingsAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::BasicSettings)) {
-            ui->baseWidget->hide();
-            config.setBool(ConfigItem::BasicSettings, false);
-        } else {
-            ui->baseWidget->show();
-            config.setBool(ConfigItem::BasicSettings, true);
-        }
-    });
-    connect(ui->packAndDataAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::PackAndData)) {
-            ui->buildAndDataGroups->hide();
-            config.setBool(ConfigItem::PackAndData, false);
-        } else {
-            ui->buildAndDataGroups->show();
-            config.setBool(ConfigItem::PackAndData, true);
-        }
-    });
-    connect(ui->fileInfoAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::FileInfo)) {
-            ui->infoDataWidget->hide();
-            config.setBool(ConfigItem::FileInfo, false);
-        } else {
-            ui->infoDataWidget->show();
-            config.setBool(ConfigItem::FileInfo, true);
-        }
-    });
-    connect(ui->consoleAction, &QAction::triggered, this, [=]() {
-        if (config.getBool(ConfigItem::Console)) {
-            ui->outputWidget->hide();
-            config.setBool(ConfigItem::Console, false);
-        } else {
-            ui->outputWidget->show();
-            config.setBool(ConfigItem::Console, true);
-        }
-    });
-}
-
-void MainWindow::connectPackPage() {
-    // Browse buttons
-    // Python file browse button
-    connect(ui->pythonFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        PCM.setItem(PCE::PythonPath, QFileDialog::getOpenFileName(
-                        this, "Nuitka Studio  Python解释器选择",
-                        config.getString(ConfigItem::DefaultPythonPath), "exe(*.exe)"));
-        ui->pythonFileEdit->setText(PCM.getItemValueToString(PCE::PythonPath));
+    connect(helpAction, &QAction::triggered, this, [=]() {
+        QDesktopServices::openUrl(QUrl("https://github.com/Redrch/NuitkaStudio"));
     });
 
-    // Main file path browse button
-    connect(ui->mainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        PCM.setItem(PCE::MainfilePath, QFileDialog::getOpenFileName(
-                        this, "Nuitka Studio  主文件选择",
-                        config.getString(ConfigItem::DefaultMainFilePath),
-                        "Python file(*.py)"));
-        ui->mainPathEdit->setText(PCM.getItemValueToString(PCE::MainfilePath));
-    });
+#pragma endregion
 
-    // Output file path browse button
-    connect(ui->outputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        PCM.setItem(PCE::OutputPath, QFileDialog::getExistingDirectory(
-                        this, "Nuitka Studio  输出路径",
-                        config.getString(ConfigItem::DefaultOutputPath),
-                        QFileDialog::ShowDirsOnly));
-        ui->outputPathEdit->setText(PCM.getItemValueToString(PCE::OutputPath));
-    });
+    // Tray
+#pragma region Tray
+    this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
+    this->trayIcon->setToolTip("Nuitka Studio");
 
-    // Project path browse button
-    connect(ui->projectPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        PCM.setItem(PCE::ProjectPath, QFileDialog::getExistingDirectory(
-                        this, "Nuitka Studio  项目路径",
-                        config.getString(ConfigItem::DefaultMainFilePath),
-                        QFileDialog::ShowDirsOnly));
-        ui->projectPathEdit->setText(
-            PCM.getItemValueToString(PCE::ProjectPath));
+    this->trayMenu = new ElaMenu(this);
+    this->startPackAction = new QAction(tr("开始打包项目"), this);
+    this->stopPackAction = new QAction(tr("停止打包项目"), this);
+    this->showAction = new QAction(tr("显示"), this);
+    this->quitAction = new QAction(tr("退出"), this);
+    this->stopPackAction->setEnabled(false);
 
-        PCM.setItem(PCE::ProjectName,
-                    PCM.getItemValueToString(
-                        PCE::ProjectPath).split("/").last());
-        ui->projectNameEdit->setText(
-            PCM.getItemValueToString(PCE::ProjectName));
-        if (PCM.getItemValueToString(PCE::ProjectPath).isEmpty()) return;
+    this->trayMenu->addAction(startPackAction);
+    this->trayMenu->addAction(stopPackAction);
+    this->trayMenu->addAction(showAction);
+    this->trayMenu->addAction(quitAction);
+    this->trayIcon->setContextMenu(trayMenu);
 
-        this->genData();
-    });
-
-    // Edits
-    // Python file edit
-    connect(ui->pythonFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::PythonPath, text);
-    });
-
-    // Main file path edit
-    connect(ui->mainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::MainfilePath, text);
-    });
-
-    // Output file path edit
-    connect(ui->outputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::OutputPath, text);
-    });
-
-    // Output file name edit
-    connect(ui->outputFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::OutputFilename, text);
-    });
-
-    // Project path edit
-    connect(ui->projectPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::ProjectPath, text);
-    });
-
-    // Project name edit
-    connect(ui->projectNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::ProjectName, text);
-    });
-
-    // Icon edit
-    connect(ui->iconFileEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::IconPath, text);
-    });
-
-    // Build Settings
-    // Standalone
-    connect(ui->standaloneCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        if (state == Qt::Unchecked) {
-            PCM.setItem(PCE::Standalone, false);
-        } else if (state == Qt::Checked) {
-            PCM.setItem(PCE::Standalone, true);
-        }
-    });
-    // Onefile
-    connect(ui->onefileCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        if (state == Qt::Unchecked) {
-            PCM.setItem(PCE::Onefile, false);
-        } else if (state == Qt::Checked) {
-            PCM.setItem(PCE::Onefile, true);
-        }
-    });
-    // Remove Output
-    connect(ui->removeOutputCheckbox, &QCheckBox::stateChanged, this, [=](int state) {
-        if (state == Qt::Unchecked) {
-            PCM.setItem(PCE::RemoveOutput, false);
-        } else if (state == Qt::Checked) {
-            PCM.setItem(PCE::RemoveOutput, true);
-        }
-    });
-    // Custom Command
-    connect(ui->customCommandEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::CustomCommand, text);
-    });
-
-    // LTO Mode Checkbox
-    // No
-    connect(ui->ltoNo, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoNo->checkState() == Qt::CheckState::Checked) {
-            PCM.setItem(PCE::LtoMode,
-                        QVariant::fromValue<LTOMode>(LTOMode::No));
-        }
-    });
-    // Yes
-    connect(ui->ltoYes, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoYes->checkState() == Qt::CheckState::Checked) {
-            PCM.setItem(PCE::LtoMode,
-                        QVariant::fromValue<LTOMode>(LTOMode::Yes));
-        }
-    });
-    // Auto
-    connect(ui->ltoAuto, &QCheckBox::stateChanged, this, [=]() {
-        if (ui->ltoAuto->checkState() == Qt::CheckState::Checked) {
-            PCM.setItem(PCE::LtoMode,
-                        QVariant::fromValue<LTOMode>(LTOMode::Auto));
-        }
-    });
-
-    // Modify Data List
-    // Add file button
-    connect(ui->addFileBtn, &QPushButton::clicked, this, &MainWindow::onAddDataFileItemClicked);
-    // Add dir button
-    connect(ui->addDirBtn, &QPushButton::clicked, this, &MainWindow::onAddDataDirItemClicked);
-    // Remove item button
-    connect(ui->removeItemBtn, &QPushButton::clicked, this, &MainWindow::onRemoveItemClicked);
-
-    // Icon browse
-    connect(ui->iconFileBrowseBtn, &QPushButton::clicked, this, [=]() {
-        PCM.setItem(PCE::IconPath, QFileDialog::getOpenFileName(
-                        this, "Nuitka Studio  图标路径", "C:\\",
-                        "Icon file(*.jpg *.jpeg *.png *.ico);;All files(*)"));
-        ui->iconFileEdit->setText(PCM.getItemValueToString(PCE::IconPath));
-    });
-
-    // Start pack
-    connect(ui->startPackBtn, &QPushButton::clicked, this, &MainWindow::startPack);
-    // Stop pack
-    connect(ui->stopPackBtn, &QPushButton::clicked, this, &MainWindow::stopPack);
-    // Clear Console Edit
-    connect(ui->clearConsoleBtn, &QPushButton::clicked, this, [=]() {
-        ui->consoleOutputEdit->clear();
-    });
-    // Import button
-    connect(ui->importBtn, &QPushButton::clicked, this, &MainWindow::importProject);
-
-    // Pack Timer
-    connect(this->packTimer, &QTimer::timeout, this, [=]() {
-        auto now = QDateTime::currentDateTime();
-        qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
-        QString timeString = Utils::formatMilliseconds(time);
-        this->messageLabel->setText(timeString);
-    });
-
-    // Gen paths button
-    connect(ui->genPathsButton, &QPushButton::clicked, this, [=] {
-        this->genData();
-    });
-
-    // file info
-    connect(ui->fileVersionEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::FileVersion, text);
-    });
-    // add version button
-    connect(ui->addVersionButton, &QPushButton::clicked, this, [=]() {
-        QString version = PCM.getItemValueToString(PCE::FileVersion);
-        QStringList versionList = version.split(".");
-        const QString& oriLastVersion = versionList.last();
-        int versionInt = oriLastVersion.toInt();
-        versionInt += 1;
-        QString lastVersion = QString::number(versionInt);
-        versionList.removeLast();
-        versionList.append(lastVersion);
-        version = versionList.join(".");
-        Logger::debug(version);
-        PCM.setItem(PCE::FileVersion, version);
-        PCM.setItem(PCE::ProductVersion, version);
-        this->updateUI();
-    });
-
-    connect(ui->companyEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::Company, text);
-    });
-    connect(ui->productNameEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::ProductName, text);
-    });
-    connect(ui->productVersionEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::ProductVersion, text);
-    });
-    connect(ui->fileDescriptitonEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::FileDescription, text);
-    });
-    connect(ui->legalCopyrightEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::LegalCopyright, text);
-    });
-    connect(ui->legalTrademarksEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PCM.setItem(PCE::LegalTrademarks, text);
-    });
-}
-
-void MainWindow::connectSettingsPage() {
-    // General Settings
-    // Console Input Encoding
-    connect(ui->consoleInputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                EncodingEnum encoding = Utils::intToEnum<EncodingEnum>(index);
-                config.setEncodingEnum(ConfigItem::ConsoleInputEncoding, encoding);
-            });
-    // Console Output Encoding
-    connect(ui->consoleOutputEncodingCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                EncodingEnum encoding = Utils::intToEnum<EncodingEnum>(index);
-                config.setEncodingEnum(ConfigItem::ConsoleOutputEncoding, encoding);
-            });
-    // Language
-    connect(ui->languageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [=](int index) {
-                Language language = Utils::intToEnum<Language>(index);
-                config.setLanguage(ConfigItem::Language, language);
-                if (GDM.get(GDIN::translator).value<QTranslator *>()->load(
-                    QString(":/lang/%1.qm").arg(Utils::enumToString(language)))) {
-                    QApplication::installTranslator(GDM.get(GDIN::translator).value<QTranslator *>());
-                    emit eventBus.languageChanged(language);
-                } else {
-                    Logger::error("无法加载语言文件");
-                }
-            });
-    // Pack Timer Trigger Interval
-    connect(ui->packTimerTriggerIntervalSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
-        config.set(ConfigItem::PackTimerTriggerInterval, value);
-    });
-    // Max Pack Log Count
-    connect(ui->maxPackLogCountSpin, QOverload<int>::of(&ElaSpinBox::valueChanged), this, [=](int value) {
-        config.set(ConfigItem::MaxPackLogCount, value);
-    });
-    // Is Show Close Window
-    connect(ui->showCloseWindowCheckbox, QCheckBox::toggled, this, [=](bool checked) {
-        if (checked) {
-            config.setBool(ConfigItem::IsShowCloseWindow, true);
-        } else {
-            config.setBool(ConfigItem::IsShowCloseWindow, false);
-        }
-        // Is Enabled hideOnCloseCheckbox
-        if (config.getBool(ConfigItem::IsShowCloseWindow)) {
-            ui->hideOnCloseCheckbox->setEnabled(false);
-        } else {
-            ui->hideOnCloseCheckbox->setEnabled(true);
-        }
-    });
-    // Is Hide On Close
-    connect(ui->hideOnCloseCheckbox, QCheckBox::toggled, this, [=](bool checked) {
-        if (checked) {
-            config.setBool(ConfigItem::IsHideOnClose, true);
-        } else {
-            config.setBool(ConfigItem::IsHideOnClose, false);
-        }
-    });
-    // Is Splash Screen
-    connect(ui->splashScreenCheckbox, QCheckBox::toggled, this, [=](bool checked) {
-        config.setBool(ConfigItem::IsSplashScreen, checked);
-    });
-    // Is Save Pack log
-    connect(ui->savePackLog, &QCheckBox::toggled, this, [=](bool checked) {
-        config.setBool(ConfigItem::IsSavePackLog, checked);
-    });
-    // Temp Path
-    connect(ui->tempPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.set(ConfigItem::TempPath, text);
-    });
-
-
-    // Default Path Settings
-    // Browse Buttons
-    // Default Python Path Browse
-    connect(ui->defaultPyPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultPythonPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认Python解释器路径选择",
-                                                     config.getString(ConfigItem::DefaultPythonPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultPyPathEdit->setText(config.getString(ConfigItem::DefaultPythonPath));
-    });
-    // Default Main File Path Browse
-    connect(ui->defaultMainPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultMainFilePath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认主文件路径选择",
-                                                     config.getString(ConfigItem::DefaultMainFilePath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultMainPathEdit->setText(config.getString(ConfigItem::DefaultMainFilePath));
-    });
-    // Default Output Path Browse
-    connect(ui->defaultOutputPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultOutputPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认输出路径选择",
-                                                     config.getString(ConfigItem::DefaultOutputPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultOutputPathEdit->setText(config.getString(ConfigItem::DefaultOutputPath));
-    });
-    // Default Icon Path Browse
-    connect(ui->defaultIconPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultIconPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认图标路径选择",
-                                                     config.getString(ConfigItem::DefaultIconPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultIconPathEdit->setText(config.getString(ConfigItem::DefaultIconPath));
-    });
-    // Default Data Path Browse
-    connect(ui->defaultDataPathBrowseBtn, &QPushButton::clicked, this, [=]() {
-        config.set(ConfigItem::DefaultDataPath,
-                   QFileDialog::getExistingDirectory(this, "Nuitka Studio  默认数据路径选择",
-                                                     config.getString(ConfigItem::DefaultDataPath),
-                                                     QFileDialog::ShowDirsOnly));
-        ui->defaultDataPathEdit->setText(config.getString(ConfigItem::DefaultDataPath));
-    });
-
-    // Line Edits
-    // Python Edit
-    connect(ui->defaultPyPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultPythonPath, text);
-    });
-    // Main file Edit
-    connect(ui->defaultMainPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultMainFilePath, text);
-    });
-    // Output Edit
-    connect(ui->defaultOutputPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultOutputPath, text);
-    });
-    // Icon Edit
-    connect(ui->defaultIconPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultIconPath, text);
-    });
-    // Data Edit
-    connect(ui->defaultDataPathEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        config.setString(ConfigItem::DefaultDataPath, text);
-    });
-
-    // Save button
-    connect(ui->saveSettingsBtn, &QPushButton::clicked, this, [=]() {
-        config.writeConfig();
-    });
-}
-
-void MainWindow::connectTrayMenu() {
     // tray icon
     connect(this->trayIcon, &QSystemTrayIcon::activated, this, [=](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::DoubleClick) {
@@ -1046,123 +633,16 @@ void MainWindow::connectTrayMenu() {
     connect(this->quitAction, &QAction::triggered, this, [=]() {
         qApp->quit();
     });
-}
 
-void MainWindow::connectOther() {
-    connect(&GDM, &GlobalData::valueChanged, this, [=](const QString &valueName, const QVariant &newValue) {
-        if (valueName == GDIN::isOpenNPF) {
-            if (newValue.toBool()) {
-                this->enabledInput();
-            } else {
-                this->noEnableInput();
-            }
-        }
-    });
-    // 手动变色
-    connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=](ElaThemeType::ThemeMode mode) {
-        const QColor &textColor = ElaThemeColor(mode, ThemeColor::BasicText);
-        QString textColorHex = textColor.name();
-        QString textStyleSheet = QString("color: %1;").arg(textColorHex);
-
-        ui->standaloneCheckbox->setStyleSheet(ui->standaloneCheckbox->styleSheet() += textStyleSheet);
-        ui->onefileCheckbox->setStyleSheet(ui->onefileCheckbox->styleSheet() += textStyleSheet);
-        ui->removeOutputCheckbox->setStyleSheet(ui->removeOutputCheckbox->styleSheet() += textStyleSheet);
-
-        ui->ltoNo->setStyleSheet(ui->ltoNo->styleSheet() += textStyleSheet);
-        ui->ltoYes->setStyleSheet(ui->ltoYes->styleSheet() += textStyleSheet);
-        ui->ltoAuto->setStyleSheet(ui->ltoAuto->styleSheet() += textStyleSheet);
-
-        ui->showCloseWindowCheckbox->setStyleSheet(ui->showCloseWindowCheckbox->styleSheet() += textStyleSheet);
-        ui->hideOnCloseCheckbox->setStyleSheet(ui->hideOnCloseCheckbox->styleSheet() += textStyleSheet);
-        ui->splashScreenCheckbox->setStyleSheet(ui->splashScreenCheckbox->styleSheet() += textStyleSheet);
-        ui->savePackLog->setStyleSheet(ui->savePackLog->styleSheet() += textStyleSheet);
-    });
-
-    connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
-    connect(this->floatButton, &FloatButton::stopPack, this, &MainWindow::stopPack);
-    connect(this->floatButton, &FloatButton::showMainWindow, this, [=]() {
-        this->floatButton->hide();
-        this->showNormal();
-        this->activateWindow();
-    });
-
-    connect(&eventBus, &EventBus::languageChanged, [=]() {
-        ui->retranslateUi(this);
-        this->retranslateCustomUi();
-        this->updateUI();
-    });
-}
-
-void MainWindow::connectPackLog() {
-    connect(ui->packLogFileList, &ElaListView::clicked, this, [=](const QModelIndex &index) {
-        int row = index.row();
-        this->currentPackLogIndex = row;
-        PackLog *packLog = this->packLog->at(row);
-        ui->packLogContent->setPlainText(packLog->logContent);
-        ui->noteEdit->setText(packLog->logNote);
-    });
-
-    connect(ui->noteEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-        PackLog *packLog = this->packLog->at(this->currentPackLogIndex);
-        packLog->logNote = text;
-        this->noteObject.insert(packLog->logFileName, text);
-        this->saveNote();
-    });
-}
-
-// Init functions
-void MainWindow::initUI() {
-    // Pack log
-    ui->packLogFileList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-    // Status bar
-    this->messageLabel = new ElaText("", 9, this);
-    this->messageLabel->setAlignment(Qt::AlignCenter);
-    ui->statusbar->addWidget(this->messageLabel);
-    ui->statusbar->addPermanentWidget(this->messageLabel, 1);
-
-    this->trayIcon = new QSystemTrayIcon(QIcon(":/logo"), this);
-    this->trayIcon->setToolTip("Nuitka Studio");
-
-    // Menubar
-    // file menu
-    ui->newAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
-    ui->openAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
-    ui->saveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
-    ui->saveAsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
-    // tool menu
-    ui->packLogAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
-
-    // Tray menu
-    this->trayMenu = new QMenu(this);
-    this->startPackAction = new QAction("开始打包项目", this);
-    this->stopPackAction = new QAction("停止打包项目", this);
-    this->showAction = new QAction("显示", this);
-    this->quitAction = new QAction("退出", this);
-    this->stopPackAction->setEnabled(false);
-
-    trayMenu->addAction(startPackAction);
-    trayMenu->addAction(stopPackAction);
-    trayMenu->addAction(showAction);
-    trayMenu->addAction(quitAction);
-    trayIcon->setContextMenu(trayMenu);
-
-    trayIcon->show();
-
-    // Settings Page
-    ui->packTimerTriggerIntervalSpin->setButtonMode(ElaSpinBoxType::Compact);
-    ui->maxPackLogCountSpin->setButtonMode(ElaSpinBoxType::Compact);
+    this->trayIcon->show();
+#pragma endregion
 
     // init top text label
     this->topTextLabel = new QLabel("", this);
 
-    // set models
-    ui->dataListWidget->setModel(this->dataListModel);
-    ui->packLogFileList->setModel(packLogModel);
-
     // lock pack ui
     if (!GDM.getBool(GDIN::isOpenNPF)) {
-        this->noEnableInput();
+        this->disableUi();
     }
 
     // controls
@@ -1178,49 +658,98 @@ void MainWindow::initUI() {
     this->floatButton->setAttribute(Qt::WA_TranslucentBackground);
     this->floatButton->hide();
 
-    // Window
-    if (config.getBool(ConfigItem::BasicSettings)) ui->baseWidget->show();
-    else ui->baseWidget->hide();
-    if (config.getBool(ConfigItem::PackAndData)) ui->buildAndDataGroups->show();
-    else ui->buildAndDataGroups->hide();
-    if (config.getBool(ConfigItem::FileInfo)) ui->infoDataWidget->show();
-    else ui->infoDataWidget->hide();
-    if (config.getBool(ConfigItem::Console)) ui->outputWidget->show();
-    else ui->outputWidget->hide();
+    // Connect
+#pragma region Connect
+    connect(this->packPage, &PackPage::startPack, this, &MainWindow::startPack);
+    connect(this->packPage, &PackPage::stopPack, this, &MainWindow::stopPack);
+    connect(&GDM, &GlobalData::valueChanged, this, [=](const QString &valueName, const QVariant &newValue) {
+        if (valueName == GDIN::isOpenNPF) {
+            if (newValue.toBool()) {
+                this->enableUi();
+            } else {
+                this->disableUi();
+            }
+        }
+    });
 
-    this->initMenuBar();
+    connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
+    connect(this->floatButton, &FloatButton::stopPack, this, &MainWindow::stopPack);
+    connect(this->floatButton, &FloatButton::showMainWindow, this, [=]() {
+        this->floatButton->hide();
+        this->showNormal();
+        this->activateWindow();
+    });
+
+    // Pack Timer
+    connect(this->packTimer, &QTimer::timeout, this, [=]() {
+        auto now = QDateTime::currentDateTime();
+        qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
+        QString timeString = Utils::formatMilliseconds(time);
+        this->messageLabel->setText(timeString);
+    });
+
+    // window background opacity and blur changed
+    connect(this->settingsPage, &SettingsPage::opacityChanged, this, &MainWindow::updateBackground);
+    connect(this->settingsPage, &SettingsPage::blurChanged, this, &MainWindow::updateBackground);
+    connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=]() {
+        auto mode = config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance);
+        if (mode == WindowBackground::Pixmap) {
+            this->updateBackground();
+        }
+        if (mode == WindowBackground::Movie) {
+            if (ElaTheme::getInstance()->getThemeMode() == ElaThemeType::Light) {
+                this->lightMovie->start();
+            } else {
+                this->darkMovie->start();
+            }
+        }
+    });
+    // background changed
+    connect(this->settingsPage, &SettingsPage::bgModeChanged, this, [=]() {
+        auto mode = config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance);
+        if (mode != WindowBackground::Movie) {
+            if (this->lightMovie->state() == QMovie::Running) this->lightMovie->stop();
+            if (this->darkMovie->state() == QMovie::Running) this->darkMovie->stop();
+        }
+        if (mode == WindowBackground::Movie) {
+            if (ElaTheme::getInstance()->getThemeMode() == ElaThemeType::Light) {
+                this->lightMovie->start();
+            } else {
+                this->darkMovie->start();
+            }
+        }
+        if (mode == WindowBackground::Pixmap) {
+            this->updateBackground();
+        }
+    });
+#pragma endregion
 }
 
-void MainWindow::initMenuBar() {
-    this->menuBar = new ElaMenuBar(this);
-    menuBar->setFixedHeight(30);
-    QWidget *customWidget = new QWidget(this);
-    customWidget->setFixedWidth(300);
-    QVBoxLayout *customLayout = new QVBoxLayout(customWidget);
-    customLayout->setContentsMargins(0, 0, 0, 0);
-
-    customLayout->addWidget(this->menuBar);
-    customLayout->addStretch();
-    this->setCustomWidget(ElaAppBarType::MiddleArea, customWidget);
-
-    this->packAction = this->menuBar->addElaIconAction(ElaIconType::BoxesPacking, this->controlText->topbar_pack);
-    this->settingsAction = this->menuBar->addElaIconAction(ElaIconType::Gear, this->controlText->topbar_settings);
-    this->packLogAction = this->menuBar->addElaIconAction(ElaIconType::File, this->controlText->topbar_packLog);
-    this->floatButtonAction = this->menuBar->addElaIconAction(ElaIconType::SquareXmark, "");
+void MainWindow::updateUI() {
+    this->statusFileNameLabel->setText(QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName());
+    if (GDM.getBool(GDIN::isOpenNPF)) {
+        this->setWindowTitle(QFileInfo(GDM.getString(GDIN::npfFilePath)).fileName() + " - Nuitka Studio");
+    }
+    Theme theme = config.getTheme(ConfigItem::Theme, ConfigGroup::Appearance);
+    if (theme == Theme::Light) {
+        eTheme->setThemeMode(ElaThemeType::Light);
+    } else if (theme == Theme::Dark) {
+        eTheme->setThemeMode(ElaThemeType::Dark);
+    }
 }
 
 // gen path functions
 void MainWindow::genData(bool isUpdateUI) {
-    if (PCM.getItemValueToString(PCE::ProjectPath).isEmpty()) {
-        QMessageBox::warning(this, "Nuitka Studio Warning", "请填写项目路径");
+    if (PCM.getString(PCE::ProjectPath).isEmpty()) {
+        ElaMessageBar::warning(ElaMessageBarType::Top, tr("警告"), tr("请填写项目路径"), 2000);
         return;
     }
-    if (PCM.getItemValueToString(PCE::ProjectName).isEmpty()) {
-        PCM.setItem(PCE::ProjectName,
-                    PCM.getItemValueToString(
+    if (PCM.getString(PCE::ProjectName).isEmpty()) {
+        PCM.set(PCE::ProjectName,
+                    PCM.getString(
                         PCE::ProjectPath).split("/").last());
-        if (PCM.getItemValueToString(PCE::ProjectName).isEmpty()) {
-            QMessageBox::warning(this, "Nuitka Studio Warning", "项目名为空且无法自动填写项目名");
+        if (PCM.getString(PCE::ProjectName).isEmpty()) {
+            ElaMessageBar::warning(ElaMessageBarType::Top, tr("警告"), tr("项目名为空且无法自动填写项目名"), 2000);
             return;
         }
     }
@@ -1231,17 +760,17 @@ void MainWindow::genData(bool isUpdateUI) {
     genOutputName();
     genFileInfo();
     if (isUpdateUI) {
-        this->updateUI();
+        UpdateClock::instance().update();
     }
     Logger::info("生成数据");
 }
 
 void MainWindow::genPythonPath() {
-    QDir projectDir(PCM.getItemValueToString(PCE::ProjectPath));
+    QDir projectDir(PCM.getString(PCE::ProjectPath));
     if (projectDir.exists(
-        PCM.getItemValueToString(PCE::ProjectPath) + "/.venv")) {
-        PCM.setItem(PCE::PythonPath,
-                    PCM.getItemValueToString(
+        PCM.getString(PCE::ProjectPath) + "/.venv")) {
+        PCM.set(PCE::PythonPath,
+                    PCM.getString(
                         PCE::ProjectPath) + "/.venv" + "/Scripts" +
                     "/python.exe");
     } else {
@@ -1253,7 +782,7 @@ void MainWindow::genPythonPath() {
                 QDir dir(part);
                 QFileInfo fi(dir.filePath("python.exe"));
                 if (fi.exists() && fi.isFile()) {
-                    PCM.setItem(PCE::PythonPath, fi.filePath());
+                    PCM.set(PCE::PythonPath, fi.filePath());
                 }
             }
         }
@@ -1261,104 +790,39 @@ void MainWindow::genPythonPath() {
 }
 
 void MainWindow::genMainfilePath() {
-    QDir projectDir(PCM.getItemValueToString(PCE::ProjectPath));
-    if (projectDir.exists(PCM.getItemValueToString(PCE::ProjectPath) + "/src")
+    QDir projectDir(PCM.getString(PCE::ProjectPath));
+    if (projectDir.exists(PCM.getString(PCE::ProjectPath) + "/src")
         || projectDir.exists(
-            PCM.getItemValueToString(PCE::ProjectPath) + "/source")) {
-        PCM.setItem(PCE::MainfilePath,
-                    PCM.getItemValueToString(
+            PCM.getString(PCE::ProjectPath) + "/source")) {
+        PCM.set(PCE::MainfilePath,
+                    PCM.getString(
                         PCE::ProjectPath) + "/src/main.py");
     } else {
-        PCM.setItem(PCE::MainfilePath,
-                    PCM.getItemValueToString(
+        PCM.set(PCE::MainfilePath,
+                    PCM.getString(
                         PCE::ProjectPath) +
                     "/main.py");
     }
 }
 
 void MainWindow::genOutputPath() {
-    PCM.setItem(PCE::OutputPath,
-                PCM.getItemValueToString(
+    PCM.set(PCE::OutputPath,
+                PCM.getString(
                     PCE::ProjectPath) +
                 "/output");
 }
 
 void MainWindow::genOutputName() {
-    PCM.setItem(PCE::OutputFilename,
-                PCM.getItemValueToString(
+    PCM.set(PCE::OutputFilename,
+                PCM.getString(
                     PCE::ProjectName) +
                 ".exe");
 }
 
 void MainWindow::genFileInfo() {
-    PCM.setItem(PCE::ProductName,
-                PCM.getItemValueToString(
+    PCM.set(PCE::ProductName,
+                PCM.getString(
                     PCE::ProjectName));
-}
-
-// events
-void MainWindow::closeEvent(QCloseEvent *event) {
-    if (config.getBool(ConfigItem::IsShowCloseWindow)) {
-        QDialog dialog(this);
-        QVBoxLayout mainLayout;
-        dialog.setLayout(&mainLayout);
-        // label
-        QLabel label(this->controlText->exit_label);
-        label.setAlignment(Qt::AlignCenter);
-        mainLayout.addWidget(&label);
-        // buttons
-        QPushButton trayBtn(this->controlText->exit_trayButton);
-        mainLayout.addWidget(&trayBtn);
-        QPushButton exitBtn(this->controlText->exit_exitButton);
-        mainLayout.addWidget(&exitBtn);
-        // hide
-        QCheckBox hideCheckbox(this->controlText->exit_hideButton);
-        mainLayout.addWidget(&hideCheckbox);
-
-        bool shouldHide = false;
-        bool shouldQuit = false;
-        // connect
-        connect(&trayBtn, &QPushButton::clicked, [&] {
-            shouldHide = true;
-            dialog.accept();
-        });
-        connect(&exitBtn, &QPushButton::clicked, [&] {
-            shouldQuit = true;
-            dialog.accept();
-        });
-        connect(&hideCheckbox, &QCheckBox::stateChanged, [=](int state) {
-            if (state == Qt::Checked) {
-                config.setBool(ConfigItem::IsShowCloseWindow, false);
-            } else if (state == Qt::Unchecked) {
-                config.setBool(ConfigItem::IsShowCloseWindow, true);
-            }
-            config.writeConfig();
-        });
-
-        dialog.exec();
-
-        if (shouldQuit) {
-            config.setBool(ConfigItem::IsHideOnClose, false);
-            event->accept();
-            config.writeConfig();
-            qApp->quit();
-        } else if (shouldHide) {
-            config.setBool(ConfigItem::IsHideOnClose, true);
-            this->hide();
-            event->ignore();
-            config.writeConfig();
-        } else {
-            event->ignore();
-        }
-    } else {
-        if (config.getBool(ConfigItem::IsHideOnClose)) {
-            this->hide();
-            event->ignore();
-        } else {
-            event->accept();
-            qApp->quit();
-        }
-    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -1394,17 +858,15 @@ void MainWindow::dropEvent(QDropEvent *event) {
                     if (!this->npfStatusTypeHandler(ProjectConfig::loadProject(filePath), filePath)) {
                         this->genData();
                         this->clearText(TextPos::TopLabel);
-                        this->enabledInput();
                         this->setWindowTitle(pathInfo.fileName() + " - Nuitka Studio");
                     }
                 } else if (suffix == "py") {
                     if (filePath.split("/").contains("src") || filePath.split("/").contains("source") ||
                         pathInfo.fileName() == "main.py") {
                         QString projectPath = pathInfo.absolutePath();
-                        PCM.setItem(PCE::ProjectPath, projectPath);
+                        PCM.set(PCE::ProjectPath, projectPath);
                         this->genData();
                         this->clearText(TextPos::TopLabel);
-                        this->enabledInput();
                     }
                 }
             }
@@ -1415,31 +877,40 @@ void MainWindow::dropEvent(QDropEvent *event) {
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-
-        if (keyEvent->key() == Qt::Key_Tab) {
-            // 按Tab键切换页面
-            switch (this->currentPageIndex) {
-                case 0:
-                    ui->stackedWidget->setCurrentIndex(1);
-                    this->currentPageIndex = 1;
-                    break;
-                case 1:
-                    ui->stackedWidget->setCurrentIndex(2);
-                    this->currentPageIndex = 2;
-                    break;
-                case 2:
-                    ui->stackedWidget->setCurrentIndex(0);
-                    this->currentPageIndex = 0;
-                    break;
-                default:
-                    break;
-            }
-
-            return true;
-        }
     }
     return QMainWindow::eventFilter(watched, event);
 }
+
+void MainWindow::paintEvent(QPaintEvent *event) {
+    auto bgMode = config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance);
+    // Normal
+    if (bgMode == WindowBackground::Normal) {
+        ElaWindow::paintEvent(event);
+        return;
+    }
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QColor baseColor;
+    if (ElaTheme::getInstance()->getThemeMode() == ElaThemeType::Light) {
+        baseColor = ElaTheme::getInstance()->getThemeColor(ElaThemeType::Light, ElaThemeType::WindowBase);
+    } else {
+        baseColor = ElaTheme::getInstance()->getThemeColor(ElaThemeType::Dark, ElaThemeType::WindowBase);
+    }
+    painter.fillRect(this->rect(), baseColor);
+
+    // Pixmap
+    if (bgMode == WindowBackground::Pixmap && !this->cachedBg.isNull()) {
+        painter.drawPixmap(this->rect(), this->cachedBg);
+    }
+    // Movie
+    else if (bgMode == WindowBackground::Movie) {
+        if (!this->currentProcessedFrame.isNull()) {
+            painter.drawPixmap(this->rect(), this->currentProcessedFrame);
+        }
+    }
+}
+
 
 // ui utils functions
 void MainWindow::showText(const QString &text, int showTime, const QColor &color, const TextPos position,
@@ -1487,125 +958,45 @@ void MainWindow::clearText(TextPos position) const {
     }
 }
 
-void MainWindow::noEnableInput() const {
-    ui->projectPathEdit->setEnabled(false);
-    ui->projectPathBrowseBtn->setEnabled(false);
-    ui->projectNameEdit->setEnabled(false);
-    ui->mainPathEdit->setEnabled(false);
-    ui->mainPathBrowseBtn->setEnabled(false);
-    ui->pythonFileEdit->setEnabled(false);
-    ui->pythonFileBrowseBtn->setEnabled(false);
-    ui->outputPathEdit->setEnabled(false);
-    ui->outputPathBrowseBtn->setEnabled(false);
-    ui->outputFileEdit->setEnabled(false);
-    ui->genPathsButton->setEnabled(false);
-
-    ui->standaloneCheckbox->setEnabled(false);
-    ui->onefileCheckbox->setEnabled(false);
-    ui->removeOutputCheckbox->setEnabled(false);
-    ui->ltoAuto->setEnabled(false);
-    ui->ltoYes->setEnabled(false);
-    ui->ltoNo->setEnabled(false);
-
-    ui->dataListWidget->setEnabled(false);
-    ui->addFileBtn->setEnabled(false);
-    ui->addDirBtn->setEnabled(false);
-    ui->removeItemBtn->setEnabled(false);
-    ui->iconFileEdit->setEnabled(false);
-    ui->iconFileBrowseBtn->setEnabled(false);
-
-    ui->fileVersionEdit->setEnabled(false);
-    ui->companyEdit->setEnabled(false);
-    ui->productNameEdit->setEnabled(false);
-    ui->productVersionEdit->setEnabled(false);
-    ui->legalCopyrightEdit->setEnabled(false);
-    ui->legalTrademarksEdit->setEnabled(false);
-    ui->fileDescriptitonEdit->setEnabled(false);
-
-    this->startPackAction->setEnabled(false);
-    this->stopPackAction->setEnabled(false);
-
-    ui->packLogFileList->setEnabled(false);
-    ui->noteEdit->setEnabled(false);
-    ui->packLogContent->setEnabled(false);
+void MainWindow::disableUi() const {
+    this->packPage->setEnabled(false);
+    this->packLogPage->setEnabled(false);
 }
 
-void MainWindow::enabledInput() const {
-    ui->projectPathEdit->setEnabled(true);
-    ui->projectPathBrowseBtn->setEnabled(true);
-    ui->projectNameEdit->setEnabled(true);
-    ui->mainPathEdit->setEnabled(true);
-    ui->mainPathBrowseBtn->setEnabled(true);
-    ui->pythonFileEdit->setEnabled(true);
-    ui->pythonFileBrowseBtn->setEnabled(true);
-    ui->outputPathEdit->setEnabled(true);
-    ui->outputPathBrowseBtn->setEnabled(true);
-    ui->outputFileEdit->setEnabled(true);
-    ui->genPathsButton->setEnabled(true);
-
-    ui->standaloneCheckbox->setEnabled(true);
-    ui->onefileCheckbox->setEnabled(true);
-    ui->removeOutputCheckbox->setEnabled(true);
-    ui->ltoAuto->setEnabled(true);
-    ui->ltoYes->setEnabled(true);
-    ui->ltoNo->setEnabled(true);
-
-    ui->dataListWidget->setEnabled(true);
-    ui->addFileBtn->setEnabled(true);
-    ui->addDirBtn->setEnabled(true);
-    ui->removeItemBtn->setEnabled(true);
-    ui->iconFileEdit->setEnabled(true);
-    ui->iconFileBrowseBtn->setEnabled(true);
-
-    ui->fileVersionEdit->setEnabled(true);
-    ui->companyEdit->setEnabled(true);
-    ui->productNameEdit->setEnabled(true);
-    ui->productVersionEdit->setEnabled(true);
-    ui->legalCopyrightEdit->setEnabled(true);
-    ui->legalTrademarksEdit->setEnabled(true);
-    ui->fileDescriptitonEdit->setEnabled(true);
-
-    this->startPackAction->setEnabled(true);
-    this->stopPackAction->setEnabled(true);
-
-    ui->packLogFileList->setEnabled(true);
-    ui->noteEdit->setEnabled(true);
-    ui->packLogContent->setEnabled(true);
+void MainWindow::enableUi() const {
+    this->packPage->setEnabled(true);
+    this->packLogPage->setEnabled(true);
 }
+
+void MainWindow::updateBackground() {
+    ElaThemeType::ThemeMode currentMode = ElaTheme::getInstance()->getThemeMode();
+    if (currentMode == ElaThemeType::Light) {
+        this->cachedBg = ImageProcessor::processImage(this->lightPixmap,
+            config.getDouble(ConfigItem::BackgroundOpacity), config.getInt(ConfigItem::BackgroundBlur));
+    } else {
+        this->cachedBg = ImageProcessor::processImage(this->darkPixmap,
+            config.getDouble(ConfigItem::BackgroundOpacity), config.getInt(ConfigItem::BackgroundBlur));
+    }
+
+    update();
+}
+
+void MainWindow::processMovie() {
+    ElaThemeType::ThemeMode currentMode = ElaTheme::getInstance()->getThemeMode();
+    QPixmap rawFrame;
+    if (currentMode == ElaThemeType::Light) {
+        rawFrame = this->lightMovie->currentPixmap();
+    } else {
+        rawFrame = this->darkMovie->currentPixmap();
+    }
+    this->currentProcessedFrame = ImageProcessor::processImage(rawFrame,
+        config.getDouble(ConfigItem::BackgroundOpacity),
+        config.getInt(ConfigItem::BackgroundBlur));
+    update();
+}
+
 
 // util functions
-void MainWindow::readPackLog() {
-    this->packLog->clear();
-    if (GDM.getString(GDIN::npfFilePath).isEmpty()) {
-        Logger::warn("NPF文件路径为空，无法调用MainWindow::readPackLog函数");
-        return;
-    }
-    QString packLogRoot = GDM.getString(GDIN::packLogPath) + "/" + QFileInfo(GDM.getString(GDIN::npfFilePath)).
-                          fileName();
-
-    if (!QDir(packLogRoot).exists()) {
-        Logger::warn("MainWindow::readPackLog(): 打包日志目录不存在, " + packLogRoot);
-        return;
-    }
-    QStringList packLogFileList = QDir(packLogRoot).entryList(QDir::Files);
-    if (packLogFileList.contains("note.json")) {
-        packLogFileList.removeOne("note.json");
-    }
-
-    for (const QString &packLogFile: packLogFileList) {
-        QFile file(packLogRoot + "/" + packLogFile);
-        if (!file.open(QIODevice::ReadOnly)) {
-            QMessageBox::critical(this, "Nuitka Studio Error", "无法加载打包日志");
-            return;
-        }
-
-        QString packLog = QString::fromUtf8(file.readAll());
-        QString note = this->noteObject.value(packLogFile).toString();
-
-        this->packLog->append(new PackLog(packLogFile, packLog, note));
-    }
-}
-
 bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path, bool isTip) {
     switch (status) {
         case NPFStatusType::NPFDamage:
@@ -1625,10 +1016,4 @@ bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path,
             return false;
     }
     return true;
-}
-
-void MainWindow::saveNote() const {
-    this->noteFile->open(QIODevice::WriteOnly);
-    this->noteFile->write(QJsonDocument(this->noteObject).toJson());
-    this->noteFile->close();
 }
