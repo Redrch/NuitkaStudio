@@ -6,18 +6,24 @@
 #include "global/update_clock.h"
 #include "global/application.h"
 #include "styles/status_bar_style.h"
+#include "utils/image_processor.h"
 
 #include <ElaStatusBar.h>
 #include <ElaMenuBar.h>
 #include <ElaMenu.h>
 #include <ElaContentDialog.h>
 #include <ElaApplication.h>
+#include <QPainter>
+
+#include "ElaAppBar.h"
+#include "ElaMessageBar.h"
 
 MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent) {
     this->setAcceptDrops(true);
     this->setFocusPolicy(Qt::StrongFocus);
     this->setWindowTitle("Nuitka Studio");
     this->setWindowIcon(QIcon(":/logo"));
+    this->setAttribute(Qt::WA_TranslucentBackground);
     this->moveToCenter();
     qApp->installEventFilter(this);
     this->currentPageIndex = 0;
@@ -80,9 +86,6 @@ MainWindow::MainWindow(QWidget *parent) : ElaWindow(parent) {
     connect(this, &MainWindow::closeButtonClicked, this, [=]() {
         closeDialog->exec();
     });
-
-    // Connect signal and slot
-    this->connectOther();
 
     if (!GDM.getBool(GDIN::isOpenNPF)) {
         this->showText(tr("请先新建或打开一个NPF文件再进行操作"), -1, Qt::red);
@@ -357,35 +360,24 @@ void MainWindow::exportProject() {
     GDM.setBool(GDIN::isOpenNPF, true);
 }
 
-void MainWindow::connectOther() {
-    connect(&GDM, &GlobalData::valueChanged, this, [=](const QString &valueName, const QVariant &newValue) {
-        if (valueName == GDIN::isOpenNPF) {
-            if (newValue.toBool()) {
-                this->enableUi();
-            } else {
-                this->disableUi();
-            }
-        }
-    });
-
-    connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
-    connect(this->floatButton, &FloatButton::stopPack, this, &MainWindow::stopPack);
-    connect(this->floatButton, &FloatButton::showMainWindow, this, [=]() {
-        this->floatButton->hide();
-        this->showNormal();
-        this->activateWindow();
-    });
-
-    // Pack Timer
-    connect(this->packTimer, &QTimer::timeout, this, [=]() {
-        auto now = QDateTime::currentDateTime();
-        qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
-        QString timeString = Utils::formatMilliseconds(time);
-        this->messageLabel->setText(timeString);
-    });
-}
-
 void MainWindow::initUI() {
+    setWindowPaintMode(ElaWindowType::PaintMode::Pixmap);
+    // Background
+#pragma region Background
+    this->setWindowPaintMode(static_cast<ElaWindowType::PaintMode>
+        (Utils::enumToInt(config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance))));
+
+    // Pixmap
+    this->lightPixmap = QPixmap(config.getString(ConfigItem::LightPixmapPath, ConfigGroup::Appearance));
+    this->darkPixmap = QPixmap(config.getString(ConfigItem::DarkPixmapPath, ConfigGroup::Appearance));
+
+    // Movie
+    this->lightMovie = new QMovie(config.getString(ConfigItem::LightMoviePath, ConfigGroup::Appearance));
+    this->darkMovie = new QMovie(config.getString(ConfigItem::DarkMoviePath, ConfigGroup::Appearance));
+    connect(this->lightMovie, &QMovie::frameChanged, this, &MainWindow::processMovie);
+    connect(this->darkMovie, &QMovie::frameChanged, this, &MainWindow::processMovie);
+#pragma endregion
+
     // Navigation
 #pragma region Navigation
     this->packPage = new PackPage(this);
@@ -476,6 +468,9 @@ void MainWindow::initUI() {
     QAction *saveAsAction = new QAction(tr("另存为"), this);
     saveAsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
     fileMenu->addAction(saveAsAction);
+    QAction *genInfoAction = new QAction(tr("生成信息"), this);
+    genInfoAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    fileMenu->addAction(genInfoAction);
     QAction *saveConfigAction = new QAction(tr("保存配置"), this);
     saveConfigAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
     fileMenu->addAction(saveConfigAction);
@@ -556,6 +551,9 @@ void MainWindow::initUI() {
                                    GDM.getString(GDIN::npfFilePath));
     });
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::exportProject);
+    connect(genInfoAction, &QAction::triggered, this, [=]() {
+        this->genData();
+    });
     connect(saveConfigAction, &QAction::triggered, this, [=]() {
         config.writeConfig();
     });
@@ -660,16 +658,71 @@ void MainWindow::initUI() {
     this->floatButton->setAttribute(Qt::WA_TranslucentBackground);
     this->floatButton->hide();
 
-    // window background
-    this->setWindowPixmap(ElaThemeType::Light, config.getString(ConfigItem::PixmapPath, ConfigGroup::Appearance));
-    this->setWindowPixmap(ElaThemeType::Dark, config.getString(ConfigItem::PixmapPath, ConfigGroup::Appearance));
-    this->setWindowMoviePath(ElaThemeType::Light, config.getString(ConfigItem::MoviePath, ConfigGroup::Appearance));
-    this->setWindowMoviePath(ElaThemeType::Dark, config.getString(ConfigItem::MoviePath, ConfigGroup::Appearance));
-    this->setWindowPaintMode(static_cast<ElaWindowType::PaintMode>
-        (Utils::enumToInt(config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance))));
-
+    // Connect
+#pragma region Connect
     connect(this->packPage, &PackPage::startPack, this, &MainWindow::startPack);
     connect(this->packPage, &PackPage::stopPack, this, &MainWindow::stopPack);
+    connect(&GDM, &GlobalData::valueChanged, this, [=](const QString &valueName, const QVariant &newValue) {
+        if (valueName == GDIN::isOpenNPF) {
+            if (newValue.toBool()) {
+                this->enableUi();
+            } else {
+                this->disableUi();
+            }
+        }
+    });
+
+    connect(this->floatButton, &FloatButton::startPack, this, &MainWindow::startPack);
+    connect(this->floatButton, &FloatButton::stopPack, this, &MainWindow::stopPack);
+    connect(this->floatButton, &FloatButton::showMainWindow, this, [=]() {
+        this->floatButton->hide();
+        this->showNormal();
+        this->activateWindow();
+    });
+
+    // Pack Timer
+    connect(this->packTimer, &QTimer::timeout, this, [=]() {
+        auto now = QDateTime::currentDateTime();
+        qint64 time = now.toMSecsSinceEpoch() - this->startPackTime.toMSecsSinceEpoch();
+        QString timeString = Utils::formatMilliseconds(time);
+        this->messageLabel->setText(timeString);
+    });
+
+    // window background opacity and blur changed
+    connect(this->settingsPage, &SettingsPage::opacityChanged, this, &MainWindow::updateBackground);
+    connect(this->settingsPage, &SettingsPage::blurChanged, this, &MainWindow::updateBackground);
+    connect(ElaTheme::getInstance(), &ElaTheme::themeModeChanged, this, [=]() {
+        auto mode = config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance);
+        if (mode == WindowBackground::Pixmap) {
+            this->updateBackground();
+        }
+        if (mode == WindowBackground::Movie) {
+            if (ElaTheme::getInstance()->getThemeMode() == ElaThemeType::Light) {
+                this->lightMovie->start();
+            } else {
+                this->darkMovie->start();
+            }
+        }
+    });
+    // background changed
+    connect(this->settingsPage, &SettingsPage::bgModeChanged, this, [=]() {
+        auto mode = config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance);
+        if (mode != WindowBackground::Movie) {
+            if (this->lightMovie->state() == QMovie::Running) this->lightMovie->stop();
+            if (this->darkMovie->state() == QMovie::Running) this->darkMovie->stop();
+        }
+        if (mode == WindowBackground::Movie) {
+            if (ElaTheme::getInstance()->getThemeMode() == ElaThemeType::Light) {
+                this->lightMovie->start();
+            } else {
+                this->darkMovie->start();
+            }
+        }
+        if (mode == WindowBackground::Pixmap) {
+            this->updateBackground();
+        }
+    });
+#pragma endregion
 }
 
 void MainWindow::updateUI() {
@@ -688,7 +741,7 @@ void MainWindow::updateUI() {
 // gen path functions
 void MainWindow::genData(bool isUpdateUI) {
     if (PCM.getString(PCE::ProjectPath).isEmpty()) {
-        QMessageBox::warning(this, "Nuitka Studio Warning", "请填写项目路径");
+        ElaMessageBar::warning(ElaMessageBarType::Top, tr("警告"), tr("请填写项目路径"), 2000);
         return;
     }
     if (PCM.getString(PCE::ProjectName).isEmpty()) {
@@ -696,7 +749,7 @@ void MainWindow::genData(bool isUpdateUI) {
                     PCM.getString(
                         PCE::ProjectPath).split("/").last());
         if (PCM.getString(PCE::ProjectName).isEmpty()) {
-            QMessageBox::warning(this, "Nuitka Studio Warning", "项目名为空且无法自动填写项目名");
+            ElaMessageBar::warning(ElaMessageBarType::Top, tr("警告"), tr("项目名为空且无法自动填写项目名"), 2000);
             return;
         }
     }
@@ -828,6 +881,37 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     return QMainWindow::eventFilter(watched, event);
 }
 
+void MainWindow::paintEvent(QPaintEvent *event) {
+    auto bgMode = config.getWindowBackground(ConfigItem::WindowBackground, ConfigGroup::Appearance);
+    // Normal
+    if (bgMode == WindowBackground::Normal) {
+        ElaWindow::paintEvent(event);
+        return;
+    }
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QColor baseColor;
+    if (ElaTheme::getInstance()->getThemeMode() == ElaThemeType::Light) {
+        baseColor = ElaTheme::getInstance()->getThemeColor(ElaThemeType::Light, ElaThemeType::WindowBase);
+    } else {
+        baseColor = ElaTheme::getInstance()->getThemeColor(ElaThemeType::Dark, ElaThemeType::WindowBase);
+    }
+    painter.fillRect(this->rect(), baseColor);
+
+    // Pixmap
+    if (bgMode == WindowBackground::Pixmap && !this->cachedBg.isNull()) {
+        painter.drawPixmap(this->rect(), this->cachedBg);
+    }
+    // Movie
+    else if (bgMode == WindowBackground::Movie) {
+        if (!this->currentProcessedFrame.isNull()) {
+            painter.drawPixmap(this->rect(), this->currentProcessedFrame);
+        }
+    }
+}
+
+
 // ui utils functions
 void MainWindow::showText(const QString &text, int showTime, const QColor &color, const TextPos position,
                           const QString &title) const {
@@ -883,6 +967,34 @@ void MainWindow::enableUi() const {
     this->packPage->setEnabled(true);
     this->packLogPage->setEnabled(true);
 }
+
+void MainWindow::updateBackground() {
+    ElaThemeType::ThemeMode currentMode = ElaTheme::getInstance()->getThemeMode();
+    if (currentMode == ElaThemeType::Light) {
+        this->cachedBg = ImageProcessor::processImage(this->lightPixmap,
+            config.getDouble(ConfigItem::BackgroundOpacity), config.getInt(ConfigItem::BackgroundBlur));
+    } else {
+        this->cachedBg = ImageProcessor::processImage(this->darkPixmap,
+            config.getDouble(ConfigItem::BackgroundOpacity), config.getInt(ConfigItem::BackgroundBlur));
+    }
+
+    update();
+}
+
+void MainWindow::processMovie() {
+    ElaThemeType::ThemeMode currentMode = ElaTheme::getInstance()->getThemeMode();
+    QPixmap rawFrame;
+    if (currentMode == ElaThemeType::Light) {
+        rawFrame = this->lightMovie->currentPixmap();
+    } else {
+        rawFrame = this->darkMovie->currentPixmap();
+    }
+    this->currentProcessedFrame = ImageProcessor::processImage(rawFrame,
+        config.getDouble(ConfigItem::BackgroundOpacity),
+        config.getInt(ConfigItem::BackgroundBlur));
+    update();
+}
+
 
 // util functions
 bool MainWindow::npfStatusTypeHandler(NPFStatusType status, const QString &path, bool isTip) {

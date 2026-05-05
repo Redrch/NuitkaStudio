@@ -20,7 +20,8 @@
 #include <ElaToggleSwitch.h>
 #include <ElaRadioButton.h>
 #include <ElaApplication.h>
-#include <filesystem>
+#include <ElaSlider.h>
+#include <ElaMessageBar.h>
 
 SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
     this->setMinimumSize(600, 400);
@@ -252,7 +253,7 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
         QHBoxLayout *themeLayout = new QHBoxLayout(themeWidget);
         ElaText *themeText = new ElaText(tr("主题"), 12, themeWidget);
         ElaComboBox *themeComboBox = new ElaComboBox(themeWidget);
-        themeComboBox->addItems(QStringList() << "Light" << "Dark");
+        themeComboBox->addItems(QStringList() << tr("日间模式") << tr("夜间模式"));
         themeComboBox->installEventFilter(this);
         themeLayout->addWidget(themeText);
         themeLayout->addStretch();
@@ -319,29 +320,85 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
         windowBgButtonGroup->addButton(windowBgMovieButton, 2);
         appearanceLayout->addWidget(windowBackgroundWidget);
 
-        // pixmap path
-        ElaScrollPageArea *pixmapWidget = new ElaScrollPageArea(appearanceCard);
-        QHBoxLayout *pixmapLayout = new QHBoxLayout(pixmapWidget);
-        ElaText *pixmapText = new ElaText(tr("静态图片路径"), 12, pixmapWidget);
-        ElaLineEdit *pixmapEdit = new ElaLineEdit(pixmapWidget);
-        ElaPushButton *pixmapButton = new ElaPushButton(tr("浏览"), pixmapWidget);
-        Utils::setWidgetPixelSize(pixmapButton, 12);
-        pixmapLayout->addWidget(pixmapText);
-        pixmapLayout->addWidget(pixmapEdit);
-        pixmapLayout->addWidget(pixmapButton);
-        appearanceLayout->addWidget(pixmapWidget);
+        // opacity
+        ElaScrollPageArea *opacityWidget = new ElaScrollPageArea(appearanceCard);
+        QHBoxLayout *opacityLayout = new QHBoxLayout(opacityWidget);
+        ElaText *opacityText = new ElaText(tr("背景不透明度"), 12, opacityWidget);
+        ElaSlider *opacitySlider = new ElaSlider(opacityWidget);
+        opacitySlider->setMinimum(0);
+        opacitySlider->setMaximum(100);
+        ElaText *opacityValue = new ElaText("0.00", 12, opacityWidget);
+        opacityLayout->addWidget(opacityText);
+        opacityLayout->addStretch();
+        opacityLayout->addWidget(opacitySlider);
+        opacityLayout->addWidget(opacityValue);
+        appearanceLayout->addWidget(opacityWidget);
 
-        // movie path
-        ElaScrollPageArea *movieWidget = new ElaScrollPageArea(appearanceCard);
-        QHBoxLayout *movieLayout = new QHBoxLayout(movieWidget);
-        ElaText *movieText = new ElaText(tr("动态图片路径"), 12, movieWidget);
-        ElaLineEdit *movieEdit = new ElaLineEdit(movieWidget);
-        ElaPushButton *movieButton = new ElaPushButton(tr("浏览"), movieWidget);
-        Utils::setWidgetPixelSize(movieButton, 12);
-        movieLayout->addWidget(movieText);
-        movieLayout->addWidget(movieEdit);
-        movieLayout->addWidget(movieButton);
-        appearanceLayout->addWidget(movieWidget);
+        // blur
+        ElaScrollPageArea *blurWidget = new ElaScrollPageArea(appearanceCard);
+        QHBoxLayout *blurLayout = new QHBoxLayout(blurWidget);
+        ElaText *blurText = new ElaText(tr("背景模糊"), 12, blurWidget);
+        ElaSlider *blurSlider = new ElaSlider(blurWidget);
+        blurSlider->setMinimum(0);
+        blurSlider->setMaximum(50);
+        ElaText *blurValue = new ElaText("0", 12, blurWidget);
+        blurLayout->addWidget(blurText);
+        blurLayout->addStretch();
+        blurLayout->addWidget(blurSlider);
+        blurLayout->addWidget(blurValue);
+        appearanceLayout->addWidget(blurWidget);
+
+        // light pixmap path
+        ElaScrollPageArea *lightPixmapWidget = new ElaScrollPageArea(appearanceCard);
+        QHBoxLayout *lightPixmapLayout = new QHBoxLayout(lightPixmapWidget);
+        ElaText *lightPixmapText = new ElaText(tr("静态图片路径-日间模式"), 12, lightPixmapWidget);
+        lightPixmapText->setWordWrap(false);
+        ElaLineEdit *lightPixmapEdit = new ElaLineEdit(lightPixmapWidget);
+        ElaPushButton *lightPixmapButton = new ElaPushButton(tr("浏览"), lightPixmapWidget);
+        Utils::setWidgetPixelSize(lightPixmapButton, 12);
+        lightPixmapLayout->addWidget(lightPixmapText);
+        lightPixmapLayout->addWidget(lightPixmapEdit);
+        lightPixmapLayout->addWidget(lightPixmapButton);
+        appearanceLayout->addWidget(lightPixmapWidget);
+
+        // dark pixmap path
+        ElaScrollPageArea *darkPixmapWidget = new ElaScrollPageArea(appearanceCard);
+        QHBoxLayout *darkPixmapLayout = new QHBoxLayout(darkPixmapWidget);
+        ElaText *darkPixmapText = new ElaText(tr("静态图片路径-夜间模式"), 12, darkPixmapWidget);
+        darkPixmapText->setWordWrap(false);
+        ElaLineEdit *darkPixmapEdit = new ElaLineEdit(darkPixmapWidget);
+        ElaPushButton *darkPixmapButton = new ElaPushButton(tr("浏览"), darkPixmapWidget);
+        Utils::setWidgetPixelSize(darkPixmapButton, 12);
+        darkPixmapLayout->addWidget(darkPixmapText);
+        darkPixmapLayout->addWidget(darkPixmapEdit);
+        darkPixmapLayout->addWidget(darkPixmapButton);
+        appearanceLayout->addWidget(darkPixmapWidget);
+
+        // light movie path
+        ElaScrollPageArea *lightMovieWidget = new ElaScrollPageArea(appearanceCard);
+        QHBoxLayout *lightMovieLayout = new QHBoxLayout(lightMovieWidget);
+        ElaText *lightMovieText = new ElaText(tr("动态图片路径-日间模式"), 12, lightMovieWidget);
+        lightMovieText->setWordWrap(false);
+        ElaLineEdit *lightMovieEdit = new ElaLineEdit(lightMovieWidget);
+        ElaPushButton *lightMovieButton = new ElaPushButton(tr("浏览"), lightMovieWidget);
+        Utils::setWidgetPixelSize(lightMovieButton, 12);
+        lightMovieLayout->addWidget(lightMovieText);
+        lightMovieLayout->addWidget(lightMovieEdit);
+        lightMovieLayout->addWidget(lightMovieButton);
+        appearanceLayout->addWidget(lightMovieWidget);
+
+        // dark movie path
+        ElaScrollPageArea *darkMovieWidget = new ElaScrollPageArea(appearanceCard);
+        QHBoxLayout *darkMovieLayout = new QHBoxLayout(darkMovieWidget);
+        ElaText *darkMovieText = new ElaText(tr("动态图片模式-夜间模式"), 12, darkMovieWidget);
+        darkMovieText->setWordWrap(false);
+        ElaLineEdit *darkMovieEdit = new ElaLineEdit(darkMovieWidget);
+        ElaPushButton *darkMovieButton = new ElaPushButton(tr("浏览"), darkMovieWidget);
+        Utils::setWidgetPixelSize(darkMovieButton, 12);
+        darkMovieLayout->addWidget(darkMovieText);
+        darkMovieLayout->addWidget(darkMovieEdit);
+        darkMovieLayout->addWidget(darkMovieButton);
+        appearanceLayout->addWidget(darkMovieWidget);
 
         scrollLayout->addWidget(appearanceCard);
 
@@ -378,43 +435,97 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
         connect(windowBgButtonGroup, QOverload<QAbstractButton *, bool>::of(&QButtonGroup::buttonToggled), this, [=
                 ](QAbstractButton *button, bool isToggled) {
                     if (isToggled) {
-                        window->setWindowPaintMode(static_cast<ElaWindowType::PaintMode>(windowBgButtonGroup->id(button)));
+                        if (windowBgButtonGroup->id(button) != 0) {
+                            if (windowBgButtonGroup->id(button) == 1 && (
+                                    config.getString(ConfigItem::LightPixmapPath).isEmpty() &&
+                                    config.getString(ConfigItem::DarkPixmapPath).isEmpty())) {
+                                ElaMessageBar::error(ElaMessageBarType::Top, tr("错误"), tr("请先选择图片再选择此选项"),
+                                                     2000);
+                                return;
+                            }
+                            if (windowBgButtonGroup->id(button) == 2 &&
+                                       (config.getString(ConfigItem::LightMoviePath).isEmpty() &&
+                                        config.getString(ConfigItem::DarkMoviePath).isEmpty())) {
+                                ElaMessageBar::error(ElaMessageBarType::Top, tr("错误"), tr("请先选择图片再选择此选项"),
+                                                     2000);
+                                return;
+                            }
+                        }
+                        window->setWindowPaintMode(
+                            static_cast<ElaWindowType::PaintMode>(windowBgButtonGroup->id(button)));
                         config.setWindowBackground(ConfigItem::WindowBackground,
-                            static_cast<WindowBackground>(windowBgButtonGroup->id(button)), ConfigGroup::Appearance);
+                                                   static_cast<WindowBackground>(windowBgButtonGroup->id(button)),
+                                                   ConfigGroup::Appearance);
+                        emit this->bgModeChanged();
                     }
                 });
-        connect(window, &ElaWindow::pWindowPaintModeChanged, this, [=]() {
-
+        // background opacity
+        connect(opacitySlider, &ElaSlider::valueChanged, this, [=](int value) {
+            double opacity = value / 100.0;
+            opacityValue->setText(QString::number(opacity, 'f', 2));
+            config.setDouble(ConfigItem::BackgroundOpacity, opacity, ConfigGroup::Appearance);
+            emit this->opacityChanged(opacity);
         });
-
-        // pixmap path
-        connect(pixmapEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-            config.setString(ConfigItem::PixmapPath, text, ConfigGroup::Appearance);
+        // blur
+        connect(blurSlider, &ElaSlider::valueChanged, this, [=](int value) {
+            blurValue->setText(QString::number(value));
+            config.setInt(ConfigItem::BackgroundBlur, value, ConfigGroup::Appearance);
+            emit this->blurChanged(value);
+        });
+        // light pixmap path
+        connect(lightPixmapEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+            config.setString(ConfigItem::LightPixmapPath, text, ConfigGroup::Appearance);
             window->setWindowPixmap(ElaThemeType::Light, QPixmap(text));
+        });
+        // dark pixmap path
+        connect(darkPixmapEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+            config.setString(ConfigItem::DarkPixmapPath, text, ConfigGroup::Appearance);
             window->setWindowPixmap(ElaThemeType::Dark, QPixmap(text));
         });
-        // movie path
-        connect(movieEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
-            config.setString(ConfigItem::MoviePath, text, ConfigGroup::Appearance);
+        // light movie path
+        connect(lightMovieEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+            config.setString(ConfigItem::LightMoviePath, text, ConfigGroup::Appearance);
             window->setWindowMoviePath(ElaThemeType::Light, text);
+        });
+        // dark movie path
+        connect(darkMovieEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+            config.setString(ConfigItem::DarkMoviePath, text, ConfigGroup::Appearance);
             window->setWindowMoviePath(ElaThemeType::Dark, text);
         });
-        // pixmap button
-        connect(pixmapButton, &QPushButton::clicked, this, [=]() {
+        // light pixmap button
+        connect(lightPixmapButton, &QPushButton::clicked, this, [=]() {
             QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio",
-                config.getString(ConfigItem::DefaultDataPath), "Pixmap (*.png *.jpg *.jpeg);;All files(*)");
-            pixmapEdit->setText(path);
-            config.setString(ConfigItem::PixmapPath, path, ConfigGroup::Appearance);
+                                                        config.getString(ConfigItem::DefaultDataPath),
+                                                        "Pixmap (*.png *.jpg *.jpeg);;All files(*)");
+            lightPixmapEdit->setText(path);
+            config.setString(ConfigItem::LightPixmapPath, path, ConfigGroup::Appearance);
             window->setWindowPixmap(ElaThemeType::Light, QPixmap(path));
+        });
+        // dark pixmap button
+        connect(darkMovieButton, &QPushButton::clicked, this, [=]() {
+            QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio",
+                                                        config.getString(ConfigItem::DefaultDataPath),
+                                                        "Pixmap (*.png *.jpg *.jpeg);;All files(*)");
+            darkPixmapEdit->setText(path);
+            config.setString(ConfigItem::DarkPixmapPath, path, ConfigGroup::Appearance);
             window->setWindowPixmap(ElaThemeType::Dark, QPixmap(path));
         });
-        // movie button
-        connect(movieButton, &QPushButton::clicked, this, [=]() {
+        // light movie button
+        connect(lightMovieButton, &QPushButton::clicked, this, [=]() {
             QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio",
-                config.getString(ConfigItem::DefaultDataPath), "Movie file (*.gif *.apng *.png);;All files(*)");
-            movieEdit->setText(path);
-            config.setString(ConfigItem::MoviePath, path, ConfigGroup::Appearance);
+                                                        config.getString(ConfigItem::DefaultDataPath),
+                                                        "Movie file (*.gif *.apng *.png);;All files(*)");
+            lightMovieEdit->setText(path);
+            config.setString(ConfigItem::LightMoviePath, path, ConfigGroup::Appearance);
             window->setWindowMoviePath(ElaThemeType::Light, path);
+        });
+        // dark movie button
+        connect(darkMovieButton, &QPushButton::clicked, this, [=]() {
+            QString path = QFileDialog::getOpenFileName(this, "Nuitka Studio",
+                                                        config.getString(ConfigItem::DefaultDataPath),
+                                                        "Movie file (*.gif *.apng *.png);;All files(*)");
+            darkMovieEdit->setText(path);
+            config.setString(ConfigItem::DarkMoviePath, path, ConfigGroup::Appearance);
             window->setWindowMoviePath(ElaThemeType::Dark, path);
         });
 
@@ -434,9 +545,14 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
             if (elaBackgroundRadioButton) {
                 elaBackgroundRadioButton->setChecked(true);
             }
+            opacitySlider->setValue(config.getDouble(ConfigItem::BackgroundOpacity, ConfigGroup::Appearance) * 100);
+            opacityValue->setText(QString::number(config.getDouble(ConfigItem::BackgroundOpacity, ConfigGroup::Appearance),
+                'f', 2));
 
-            pixmapEdit->setText(config.getString(ConfigItem::PixmapPath, ConfigGroup::Appearance));
-            movieEdit->setText(config.getString(ConfigItem::MoviePath, ConfigGroup::Appearance));
+            lightPixmapEdit->setText(config.getString(ConfigItem::LightPixmapPath, ConfigGroup::Appearance));
+            darkPixmapEdit->setText(config.getString(ConfigItem::DarkPixmapPath, ConfigGroup::Appearance));
+            lightMovieEdit->setText(config.getString(ConfigItem::LightMoviePath, ConfigGroup::Appearance));
+            darkMovieEdit->setText(config.getString(ConfigItem::DarkMoviePath, ConfigGroup::Appearance));
         });
     }
 #pragma endregion

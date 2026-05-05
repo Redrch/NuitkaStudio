@@ -119,6 +119,10 @@ bool Config::getBool(const ConfigItem configValue, const ConfigGroup& group) con
     return this->get(configValue, group).toBool();
 }
 
+double Config::getDouble(const ConfigItem configValue, const ConfigGroup& group) const {
+    return this->get(configValue, group).toDouble();
+}
+
 QSize Config::getSize(const ConfigItem configValue, const ConfigGroup& group) const {
     return this->get(configValue, group).toSize();
 }
@@ -188,6 +192,10 @@ void Config::setLanguage(const ConfigItem configValue, Language language, const 
 
 void Config::setBool(const ConfigItem configValue, const bool value, const ConfigGroup& group) const {
     this->set(configValue, QVariant(value), group);
+}
+
+void Config::setDouble(const ConfigItem configValue, const double size, const ConfigGroup& group) const {
+    this->set(configValue, QVariant(size), group);
 }
 
 void Config::setSize(const ConfigItem configValue, const QSize &size, const ConfigGroup& group) const {

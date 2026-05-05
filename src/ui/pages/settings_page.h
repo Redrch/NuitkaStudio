@@ -25,6 +25,11 @@ private:
     QWidget *generalCard;
     QWidget *appearanceCard;
     QWidget *defaultPathCard;
+
+signals:
+    Q_SIGNAL void opacityChanged(double value);
+    Q_SIGNAL void blurChanged(int value);
+    Q_SIGNAL void bgModeChanged();
 };
 
 

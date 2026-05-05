@@ -4,9 +4,9 @@ version = "1.4"
 # clean or not before building
 is_clean = 1
 # install or not building use tools
-is_install_tools = 1
+is_install_tools = 0
 # uninstall tools or not after building
-is_uninstall_tools = 1
+is_uninstall_tools = 0
 
 [Path]
 # ninja exe's path

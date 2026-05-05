@@ -86,6 +86,8 @@ set(SOURCES
         src/utils/compress.h
         src/utils/event_bus.cpp
         src/utils/event_bus.h
+        src/utils/image_processor.cpp
+        src/utils/image_processor.h
         # types
         src/types/data_structs.h
         src/types/project_config_type.h
@@ -267,6 +269,22 @@ else ()
     )
 endif ()
 
+# install licenses and README
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    install(DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}/licenses"
+        DESTINATION .
+        COMPONENT Runtime
+    )
+    install(FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+        "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
+        "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE"
+        DESTINATION .
+        COMPONENT Runtime
+    )
+endif ()
+
 # windeployqt
 if(WIN32)
     get_target_property(_qt_core_path Qt5::Core LOCATION)
@@ -310,6 +328,8 @@ if(WIN32)
     set(CPACK_NSIS_CREATE_ICONS_EXTRA "
         CreateShortCut '$DESKTOP\\Nuitka Studio.lnk' '$INSTDIR\\NuitkaStudio.exe'
     ")
+
+     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 endif()
 
 # include CPack module

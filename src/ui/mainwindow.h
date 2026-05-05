@@ -15,7 +15,6 @@
 #include <QString>
 #include <QList>
 #include <QStringListModel>
-#include <QPointer>
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -43,6 +42,7 @@
 #include <ElaTheme.h>
 #include <ElaIconButton.h>
 #include <QStackedWidget>
+#include <QMovie>
 
 #include "about_window.h"
 #include "ElaContentDialog.h"
@@ -98,6 +98,14 @@ private:
     QFile *noteFile;
     QJsonObject noteObject;
 
+    // background
+    QPixmap lightPixmap;
+    QPixmap darkPixmap;
+    QPixmap cachedBg;
+    QMovie *lightMovie;
+    QMovie *darkMovie;
+    QPixmap currentProcessedFrame;
+
     // controls
     QCheckBox *standaloneCheckbox;
     QCheckBox *onefileCheckbox;
@@ -142,7 +150,6 @@ private:
     int currentPackLogIndex;
 
     // functions
-    void connectOther();
     void initUI();
     void updateUI();
 
@@ -161,7 +168,6 @@ private:
     void clearText(TextPos position = TextPos::TopLabel) const;
     void disableUi() const;
     void enableUi() const;
-    void closeWindow();
 
     // util functions
     bool npfStatusTypeHandler(NPFStatusType status, const QString& path, bool isTip = true);
@@ -182,11 +188,15 @@ private slots:
     // Gen file info functions
     static void genFileInfo();
 
+    void updateBackground();
+    void processMovie();
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 };
 
 

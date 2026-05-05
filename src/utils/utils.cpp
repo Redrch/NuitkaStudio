@@ -6,6 +6,7 @@
 #include "logger.h"
 #include <QFont>
 #include <QWidget>
+#include <QPainter>
 
 
 QString Utils::boolToString(bool v) {
@@ -69,5 +70,21 @@ void Utils::setWidgetPixelSize(QWidget *widget, int pixelSize) {
 
 void Utils::addWidgetStyleSheet(QWidget *widget, const QString &styleSheet) {
     widget->setStyleSheet(widget->styleSheet() += styleSheet);
+}
+
+QPixmap Utils::applyOpacity(const QPixmap &pixmap, const qreal opacity) {
+    if (pixmap.isNull()) {
+        return QPixmap();
+    }
+    QPixmap temp(pixmap.size());
+    temp.fill(Qt::transparent);
+    QPainter painter(&temp);
+    if (!painter.isActive()) {
+        return pixmap;
+    }
+    painter.setOpacity(opacity);
+    painter.drawPixmap(0, 0, pixmap);
+    painter.end();
+    return temp;
 }
 

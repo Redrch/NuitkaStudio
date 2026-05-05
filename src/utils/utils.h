@@ -60,9 +60,7 @@ public:
     static T intToEnum(int value) {
         QMetaEnum metaEnum = QMetaEnum::fromType<T>();
 
-        // 2. 检查该 int 值是否在枚举中有对应的 Key
         if (metaEnum.valueToKey(value) != nullptr) {
-            // 合法值，进行转换
             T status = static_cast<T>(value);
             return status;
         }
@@ -78,6 +76,7 @@ public:
 
     static void setWidgetPixelSize(QWidget *widget, int pixelSize);
     static void addWidgetStyleSheet(QWidget *widget, const QString &styleSheet);
+    static QPixmap applyOpacity(const QPixmap &pixmap, qreal opacity);
 };
 
 

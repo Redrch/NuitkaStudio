@@ -49,8 +49,12 @@ namespace ConfigEnumNS {
         Theme,
         WindowDisplayMode,
         WindowBackground,
-        PixmapPath,
-        MoviePath,
+        BackgroundOpacity,
+        BackgroundBlur,
+        LightPixmapPath,
+        DarkPixmapPath,
+        LightMoviePath,
+        DarkMoviePath,
         NONE = -1
     };
 
@@ -207,6 +211,7 @@ public:
     QString getString(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     int getInt(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     bool getBool(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
+    double getDouble(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     Encoding getEncodingEnum(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     Language getLanguage(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     QSize getSize(ConfigItem configValue, const ConfigGroup& group = ConfigGroup::NONE) const;
@@ -220,6 +225,7 @@ public:
     void setString(ConfigItem configValue, const QString &string, const ConfigGroup& group = ConfigGroup::NONE) const;
     void setInt(ConfigItem configValue, int value, const ConfigGroup& group = ConfigGroup::NONE) const;
     void setBool(ConfigItem configValue, bool value, const ConfigGroup& group = ConfigGroup::NONE) const;
+    void setDouble(ConfigItem configValue, double value, const ConfigGroup& group = ConfigGroup::NONE) const;
     void setEncodingEnum(ConfigItem configValue, Encoding encodingValue, const ConfigGroup& group = ConfigGroup::NONE) const;
     void setLanguage(ConfigItem configValue, Language language, const ConfigGroup& group = ConfigGroup::NONE) const;
     void setSize(ConfigItem configValue, const QSize &size, const ConfigGroup& group = ConfigGroup::NONE) const;
