@@ -12,8 +12,6 @@ import zipfile
 import stat
 import ssl
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 # read config
 config_dict = tomllib.load(open("build_config.toml", "rb"))
 general_dict = config_dict["General"]

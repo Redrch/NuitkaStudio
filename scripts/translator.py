@@ -73,7 +73,6 @@ def translate_ts_file(input_file, output_file):
     print(f"本次翻译成功 {success_count} 条，失败 {fail_count} 条，总计 {total} 条")
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     # 生成TS文件
     os.system("lupdate src -ts lang/zh_CN.ts")
     os.system("lupdate src -ts lang/en_US.ts")
