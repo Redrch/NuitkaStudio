@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(NuitkaStudio VERSION 1.4.1)
+project(NuitkaStudio VERSION 1.4.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -296,7 +296,6 @@ if(WIN32)
             message(STATUS \"Running windeployqt...\")
             execute_process(
                 COMMAND \"${WINDEPLOYQT_EXECUTABLE}\"
-                --no-compiler-runtime
                 --no-svg
                 --no-opengl-sw
                 --no-translations
@@ -326,7 +325,7 @@ if(WIN32)
 
     # Shortcut
     set(CPACK_NSIS_CREATE_ICONS_EXTRA "
-        CreateShortCut '$DESKTOP\\Nuitka Studio.lnk' '$INSTDIR\\NuitkaStudio.exe'
+        CreateShortCut '$DESKTOP/Nuitka Studio.lnk' '$INSTDIR/NuitkaStudio.exe'
     ")
 
      set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")

@@ -574,8 +574,7 @@ void PackPage::scrollTo(const PageCard &card) const {
             this->scrollArea->ensureWidgetVisible(this->consoleCard);
             break;
         default:
-            Logger::error("SettingsPage::scrollTo: invalid card");
+            Logger::error("PackPage::scrollTo: invalid card");
             break;
     }
 }
-

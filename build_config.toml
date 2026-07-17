@@ -1,6 +1,6 @@
 [General]
 # version, Please don't modify
-version = "1.4.1"
+version = "1.4.0"
 # clean or not before building
 is_clean = 1
 # install or not building use tools

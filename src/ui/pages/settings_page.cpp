@@ -548,6 +548,8 @@ SettingsPage::SettingsPage(QWidget *parent) : QWidget(parent) {
             opacitySlider->setValue(config.getDouble(ConfigItem::BackgroundOpacity, ConfigGroup::Appearance) * 100);
             opacityValue->setText(QString::number(config.getDouble(ConfigItem::BackgroundOpacity, ConfigGroup::Appearance),
                 'f', 2));
+            blurSlider->setValue(config.getInt(ConfigItem::BackgroundBlur, ConfigGroup::Appearance));
+            blurValue->setText(QString::number(config.getInt(ConfigItem::BackgroundBlur, ConfigGroup::Appearance)));
 
             lightPixmapEdit->setText(config.getString(ConfigItem::LightPixmapPath, ConfigGroup::Appearance));
             darkPixmapEdit->setText(config.getString(ConfigItem::DarkPixmapPath, ConfigGroup::Appearance));
